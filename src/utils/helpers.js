@@ -98,12 +98,7 @@ export function getDaysRangeData(data, numDays = 7, endDateStr = getLocalDateStr
 
     const totalCalories = (dayData.foods || []).reduce((acc, f) => acc + (Number(f.calories) || 0), 0);
     const totalProtein = (dayData.foods || []).reduce((acc, f) => acc + (Number(f.protein) || 0), 0);
-    const totalTonnage = (dayData.workouts || []).reduce((acc, w) => {
-      const sets = Number(w.sets) || 0;
-      const reps = Number(w.reps) || 0;
-      const weight = Number(w.weight) || 0;
-      return acc + (sets * reps * weight);
-    }, 0);
+    const totalTonnage = (dayData.workouts || []).reduce((acc, w) => acc + (Number(w.weight) || 0), 0);
 
     const dayName = current.toLocaleDateString('es-ES', { weekday: 'short' });
     const formattedDay = `${current.getDate()}/${current.getMonth() + 1}`;

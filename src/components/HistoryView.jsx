@@ -41,7 +41,7 @@ export default function HistoryView({ data, goals, onSelectDate }) {
   const dayCalories = (currentDayStats.foods || []).reduce((acc, f) => acc + (Number(f.calories) || 0), 0);
   const dayProtein = (currentDayStats.foods || []).reduce((acc, f) => acc + (Number(f.protein) || 0), 0);
   const dayTonnage = (currentDayStats.workouts || []).reduce(
-    (acc, w) => acc + (Number(w.sets) || 0) * (Number(w.reps) || 0) * (Number(w.weight) || 0), 
+    (acc, w) => acc + (Number(w.weight) || 0), 
     0
   );
 
@@ -140,12 +140,12 @@ export default function HistoryView({ data, goals, onSelectDate }) {
             </div>
           </div>
 
-          {/* 3. Volumen de Carga */}
+          {/* 3. Peso Total */}
           <div className="space-y-3 relative group md:border-l md:border-white/5 md:pl-8">
             <div className="flex items-center justify-between text-xs font-mono tracking-wider text-neutral-400 uppercase">
               <span className="text-neutral-300 font-bold flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-purple"></span>
-                VOLUMEN DE CARGA
+                PESO TOTAL
               </span>
               <span className="text-neon-cyan font-bold">{tonPercent}% DE {tonGoal}KG</span>
             </div>
@@ -198,9 +198,7 @@ export default function HistoryView({ data, goals, onSelectDate }) {
 
               const totalCalories = foods.reduce((acc, f) => acc + (Number(f.calories) || 0), 0);
               const totalProtein = foods.reduce((acc, f) => acc + (Number(f.protein) || 0), 0);
-              const totalTonnage = workouts.reduce((acc, w) => {
-                return acc + (Number(w.sets) || 0) * (Number(w.reps) || 0) * (Number(w.weight) || 0);
-              }, 0);
+              const totalTonnage = workouts.reduce((acc, w) => acc + (Number(w.weight) || 0), 0);
 
               const isExpanded = expandedDate === dateStr;
               const isSelected = selectedHistoryDate === dateStr;
@@ -270,12 +268,11 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                         ) : (
                           <div className="space-y-2">
                             {workouts.map(w => {
-                              const vol = (Number(w.sets) || 0) * (Number(w.reps) || 0) * (Number(w.weight) || 0);
                               return (
                                 <div key={w.id} className="p-3 bg-space-900/60 border border-white/5 rounded-lg flex justify-between items-center text-xs font-mono">
                                   <span className="text-white font-bold">{w.name}</span>
                                   <span className="text-neutral-400">
-                                    {w.sets}×{w.reps} con <strong className="text-neon-cyan">{w.weight}kg</strong> <span className="text-neutral-400 font-normal">({vol}kg)</span>
+                                    {w.sets}×{w.reps} con <strong className="text-neon-cyan">{w.weight}kg</strong>
                                   </span>
                                 </div>
                               );

@@ -6,14 +6,14 @@ export default function GoalsModal({ isOpen, onClose, currentGoals, onSaveGoals 
 
   const [calories, setCalories] = useState(currentGoals.calories || 2400);
   const [protein, setProtein] = useState(currentGoals.protein || 150);
-  const [tonnage, setTonnage] = useState(currentGoals.tonnage || 5000);
+  const [tonnage, setTonnage] = useState(currentGoals.tonnage || 100);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSaveGoals({
       calories: Number(calories) || 2400,
       protein: Number(protein) || 150,
-      tonnage: Number(tonnage) || 5000,
+      tonnage: Number(tonnage) || 100,
     });
     onClose();
   };
@@ -71,13 +71,13 @@ export default function GoalsModal({ isOpen, onClose, currentGoals, onSaveGoals 
 
           <div className="space-y-1.5">
             <label className="block uppercase text-neutral-400 tracking-wider">
-              // Meta de Tonelaje Gym (Kg)
+              // Meta de Peso Gym / Carga (Kg)
             </label>
             <input
               type="number"
-              min="500"
-              max="100000"
-              step="500"
+              min="10"
+              max="5000"
+              step="5"
               value={tonnage}
               onChange={(e) => setTonnage(e.target.value)}
               className="w-full input-futuristic px-4 py-3 rounded-xl text-white font-bold"

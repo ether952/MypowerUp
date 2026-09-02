@@ -65,7 +65,7 @@ export default function App() {
     } catch (e) {
       console.error('Error loading goals', e);
     }
-    return { calories: 2400, protein: 150, tonnage: 5000 };
+    return { calories: 2400, protein: 150, tonnage: 100 };
   });
 
   const [rememberedWorkouts, setRememberedWorkouts] = useState(() => {
@@ -322,106 +322,52 @@ export default function App() {
 
       {/* HEADER HUD FUTURISTA */}
       <header className="sticky top-0 z-40 bg-space-950/80 backdrop-blur-2xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
 
-          {/* Logo Único, Marca & Estado de Sincronización */}
-          <div className="flex items-center gap-3.5">
-            <div className="relative group cursor-pointer">
-              <div className="absolute -inset-1 bg-gradient-to-r from-neon-purple via-neon-violet to-neon-cyan rounded-2xl blur-sm opacity-60 group-hover:opacity-100 transition duration-500"></div>
-              <div className="relative w-10 h-10 rounded-xl bg-space-950 border border-white/15 flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="powerLogoGradNew" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#8B5CF6" />
-                      <stop offset="50%" stopColor="#A855F7" />
-                      <stop offset="100%" stopColor="#06B6D4" />
-                    </linearGradient>
-                  </defs>
-                  {/* P geométrica estilizada de alto impacto */}
-                  <path
-                    d="M7 5H18C22.4183 5 26 8.58172 26 13C26 17.4183 22.4183 21 18 21H13L9.5 27H6.5L10 21H7V5Z"
-                    fill="url(#powerLogoGradNew)"
-                  />
-                  {/* Rayo central integrado en el monograma */}
-                  <path
-                    d="M17 9L12 17H18L15 24L23 15H17.5L19.5 9H17Z"
-                    fill="#06B6D4"
-                    className="drop-shadow-[0_0_8px_#06B6D4]"
-                  />
-                </svg>
-              </div>
+          {/* GRUPO IZQUIERDO: Marca & Pestañas de Navegación (Bien a la izquierda) */}
+          <div className="flex flex-wrap items-center gap-6 lg:gap-10">
+            {/* Nombre Marca (Sin icono y fuente más liviana) */}
+            <div className="flex items-center">
+              <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase font-display">
+                MYPOWERUP
+              </h1>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black tracking-tight text-white uppercase font-display">
-                  MYPOWERUP
-                </h1>
-              </div>
 
-              {/* Indicador de Nube / Sincronización */}
-              <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono">
-                {syncStatus === 'synced' && (
-                  <span className="text-emerald-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    CLOUD SYNC: CONECTADO
-                  </span>
-                )}
-                {syncStatus === 'syncing' && (
-                  <span className="text-amber-400 flex items-center gap-1">
-                    <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                    SINCRONIZANDO NUBE...
-                  </span>
-                )}
-                {syncStatus === 'local' && (
-                  <span className="text-neutral-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
-                    MODO LOCAL (OFFLINE)
-                  </span>
-                )}
-                {syncStatus === 'error' && (
-                  <span className="text-rose-400 flex items-center gap-1">
-                    <AlertCircle className="w-2.5 h-2.5" />
-                    ERROR NUBE (REINTENTANDO)
-                  </span>
-                )}
-              </div>
-            </div>
+            {/* Navegación de Pestañas HUD (A la izquierda junto al logo) */}
+            <nav className="flex items-center gap-1 sm:gap-2 font-mono text-xs">
+              <button
+                onClick={() => setActiveTab('daily')}
+                className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'daily'
+                    ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
+                    : 'text-neutral-400 hover:text-white'
+                  }`}
+              >
+                01 // REGISTRO
+              </button>
+
+              <button
+                onClick={() => setActiveTab('charts')}
+                className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'charts'
+                    ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
+                    : 'text-neutral-400 hover:text-white'
+                  }`}
+              >
+                02 // GRÁFICOS
+              </button>
+
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'history'
+                    ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
+                    : 'text-neutral-400 hover:text-white'
+                  }`}
+              >
+                03 // HISTORIAL
+              </button>
+            </nav>
           </div>
 
-          {/* Navegación de Pestañas HUD (Suelto y sin recuadro limitante) */}
-          <nav className="flex items-center gap-1 sm:gap-2 font-mono text-xs">
-            <button
-              onClick={() => setActiveTab('daily')}
-              className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'daily'
-                  ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                  : 'text-neutral-400 hover:text-white'
-                }`}
-            >
-              01 // REGISTRO
-            </button>
-
-            <button
-              onClick={() => setActiveTab('charts')}
-              className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'charts'
-                  ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                  : 'text-neutral-400 hover:text-white'
-                }`}
-            >
-              02 // GRÁFICOS
-            </button>
-
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'history'
-                  ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                  : 'text-neutral-400 hover:text-white'
-                }`}
-            >
-              03 // HISTORIAL
-            </button>
-          </nav>
-
-          {/* Selector de Fecha & Controles de Usuario HUD (Suelto y sin recuadros) */}
+          {/* GRUPO DERECHO: Selector de Fecha, 3 Puntitos & Usuario (Bien a la derecha) */}
           <div className="flex items-center gap-3 sm:gap-4">
 
             {/* Control de Fecha (Libre sin recuadro) */}

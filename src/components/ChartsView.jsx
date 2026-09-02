@@ -89,7 +89,7 @@ export default function ChartsView({ data, goals }) {
         </div>
 
         <div className="p-5 bg-space-900/50 border-l-2 border-neon-purple rounded-xl">
-          <span className="block text-[11px] font-mono text-neutral-400 uppercase">Carga Total</span>
+          <span className="block text-[11px] font-mono text-neutral-400 uppercase">Peso Total</span>
           <span className="text-2xl sm:text-3xl font-black font-mono text-white mt-1 block">
             {totalPeriodTonnage.toLocaleString()} <span className="text-xs text-neon-cyan font-normal">kg</span>
           </span>
@@ -110,13 +110,13 @@ export default function ChartsView({ data, goals }) {
         </div>
       </div>
 
-      {/* Gráfico 1: Volumen de Carga */}
+      {/* Gráfico 1: Peso y Carga */}
       <div className="p-6 bg-space-900/40 border border-white/5 rounded-2xl space-y-4">
         <div className="flex justify-between items-center border-b border-white/5 pb-3">
           <h3 className="font-mono font-bold text-sm uppercase tracking-wider text-neon-purple">
-            // VOLUMEN DE CARGA EN GIMNASIO (KG)
+            // PESO & CARGA EN GIMNASIO (KG)
           </h3>
-          <span className="text-xs font-mono text-neutral-500">Series × Reps × Peso</span>
+          <span className="text-xs font-mono text-neutral-500">Peso levantado por día</span>
         </div>
 
         <div className="h-72 w-full pt-2">
@@ -132,8 +132,8 @@ export default function ChartsView({ data, goals }) {
               <XAxis dataKey="shortLabel" stroke="#64748B" fontSize={11} tickLine={false} />
               <YAxis stroke="#64748B" fontSize={11} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
               <Tooltip content={<CustomTooltip />} />
-              <ReferenceLine y={goals?.tonnage || 5000} stroke="#06B6D4" strokeDasharray="3 3" />
-              <Bar dataKey="tonnage" name="Volumen" unit="kg" fill="url(#purpleBar)" radius={[4, 4, 0, 0]} maxBarSize={48} />
+              <ReferenceLine y={goals?.tonnage || 100} stroke="#06B6D4" strokeDasharray="3 3" />
+              <Bar dataKey="tonnage" name="Peso Total" unit="kg" fill="url(#purpleBar)" radius={[4, 4, 0, 0]} maxBarSize={48} />
             </BarChart>
           </ResponsiveContainer>
         </div>

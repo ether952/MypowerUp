@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Plus, 
-  Trash2, 
-  ArrowDown, 
+import {
+  Plus,
+  Trash2,
+  ArrowDown,
   ChevronDown,
   Clock,
   Dumbbell,
   Zap,
   Check
 } from 'lucide-react';
-import { 
-  calculate1RM, 
-  QUICK_FOODS, 
-  QUICK_EXERCISES, 
+import {
+  calculate1RM,
+  QUICK_FOODS,
+  QUICK_EXERCISES,
   QUICK_SUPPLEMENTS,
-  MEAL_TYPES, 
-  getCurrentTimeString 
+  MEAL_TYPES,
+  getCurrentTimeString
 } from '../utils/helpers';
 
 // Helper para animación suave de scroll
@@ -51,12 +51,12 @@ function ScrollReveal({ children, className = '', delay = 0 }) {
   );
 }
 
-export default function DailyView({ 
-  currentDay, 
-  selectedDate, 
-  onAddFood, 
-  onDeleteFood, 
-  onAddWorkout, 
+export default function DailyView({
+  currentDay,
+  selectedDate,
+  onAddFood,
+  onDeleteFood,
+  onAddWorkout,
   onDeleteWorkout,
   rememberedWorkouts: propRememberedWorkouts,
   onUpdateRememberedWorkouts,
@@ -130,12 +130,11 @@ export default function DailyView({
   const totalCalories = (currentDay.foods || []).reduce((acc, curr) => acc + (Number(curr.calories) || 0), 0);
   const totalProtein = (currentDay.foods || []).reduce((acc, curr) => acc + (Number(curr.protein) || 0), 0);
   const totalTonnage = (currentDay.workouts || []).reduce(
-    (acc, curr) => acc + (Number(curr.sets) || 0) * (Number(curr.reps) || 0) * (Number(curr.weight) || 0), 
+    (acc, curr) => acc + (Number(curr.weight) || 0), 
     0
   );
 
   const live1RM = calculate1RM(Number(weight), Number(reps));
-  const liveVolume = (Number(sets) || 0) * (Number(reps) || 0) * (Number(weight) || 0);
 
   // ==========================================
   // AUTORRELLENADO & MEMORIA PARA EJERCICIOS
@@ -151,14 +150,14 @@ export default function DailyView({
     }
 
     const query = val.toLowerCase().trim();
-    
+
     // Buscar en memoria aprendida
-    const rememberedMatches = Object.values(rememberedWorkouts).filter(item => 
+    const rememberedMatches = Object.values(rememberedWorkouts).filter(item =>
       item.name.toLowerCase().includes(query)
     );
 
     // Buscar en ejercicios rápidos
-    const presetMatches = QUICK_EXERCISES.filter(name => 
+    const presetMatches = QUICK_EXERCISES.filter(name =>
       name.toLowerCase().includes(query) && !rememberedMatches.some(r => r.name.toLowerCase() === name.toLowerCase())
     ).map(name => ({ name, isPreset: true }));
 
@@ -191,17 +190,17 @@ export default function DailyView({
     const query = val.toLowerCase().trim();
 
     // Buscar en memoria aprendida
-    const rememberedMatches = Object.values(rememberedFoods).filter(item => 
+    const rememberedMatches = Object.values(rememberedFoods).filter(item =>
       item.name.toLowerCase().includes(query)
     );
 
     // Buscar en alimentos frecuentes
-    const presetFoods = QUICK_FOODS.filter(f => 
+    const presetFoods = QUICK_FOODS.filter(f =>
       f.name.toLowerCase().includes(query) && !rememberedMatches.some(r => r.name.toLowerCase() === f.name.toLowerCase())
     );
 
     // Buscar en suplementos
-    const presetSupps = QUICK_SUPPLEMENTS.filter(s => 
+    const presetSupps = QUICK_SUPPLEMENTS.filter(s =>
       s.name.toLowerCase().includes(query) && !rememberedMatches.some(r => r.name.toLowerCase() === s.name.toLowerCase())
     );
 
@@ -312,13 +311,13 @@ export default function DailyView({
       {/* 01. SECCIÓN SUPERIOR: ENTRENAMIENTO & GIMNASIO (OCUPA TODO EL ESPACIO)    */}
       {/* ========================================================================= */}
       <section className="min-h-[82vh] flex flex-col justify-between py-6 px-4 sm:px-8 border-b border-purple-500/20 relative">
-        
+
         {/* Glows ambientales */}
         <div className="ambient-glow-purple w-96 h-96 -top-10 -left-10 opacity-30" />
         <div className="ambient-glow-cyan w-80 h-80 top-1/2 -right-10 opacity-25" />
 
         <div className="space-y-10 relative z-10 max-w-6xl mx-auto w-full">
-          
+
           {/* Cabecera Principal */}
           <ScrollReveal delay={0}>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-4">
@@ -335,7 +334,7 @@ export default function DailyView({
               {/* Tonelaje Total en Vivo */}
               <div className="flex items-center gap-6 border-l-2 border-neon-purple/40 pl-6">
                 <div>
-                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Volumen Acumulado</span>
+                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Peso Total</span>
                   <span className="text-3xl sm:text-4xl font-black font-mono text-neon-cyan">
                     {totalTonnage.toLocaleString()} <span className="text-sm font-sans text-neutral-400">KG</span>
                   </span>
@@ -353,9 +352,9 @@ export default function DailyView({
           {/* Formulario de Carga de Ejercicios */}
           <ScrollReveal delay={100}>
             <form onSubmit={handleSubmitWorkout} className="space-y-6 pt-2 relative">
-              
+
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                
+
                 {/* Ejercicio con Dropdown 100% Opaco y sin solapamiento */}
                 <div ref={exerciseContainerRef} className="md:col-span-6 space-y-2 relative">
                   <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
@@ -365,7 +364,7 @@ export default function DailyView({
                         <span className="text-[10px] text-neon-cyan lowercase font-normal">(con memoria)</span>
                       )}
                     </label>
-                    
+
                     {/* Botón sugerencias */}
                     <div className="relative">
                       <button
@@ -503,14 +502,18 @@ export default function DailyView({
               {/* Fila de acción & cálculo en tiempo real */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
                 <div className="text-xs font-mono text-neutral-400">
-                  {(Number(weight) > 0 && Number(reps) > 0) ? (
+                  {Number(weight) > 0 ? (
                     <div className="flex items-center gap-4 text-sm">
-                      <span>Volumen serie: <strong className="text-neon-cyan font-bold">{liveVolume.toLocaleString()} KG</strong></span>
-                      <span className="text-neutral-600">//</span>
-                      <span>1RM Estimado: <strong className="text-neon-mint font-bold">{live1RM} KG</strong></span>
+                      <span>Peso: <strong className="text-neon-cyan font-bold">{Number(weight)} KG</strong></span>
+                      {Number(reps) > 0 && live1RM > 0 && (
+                        <>
+                          <span className="text-neutral-600">//</span>
+                          <span>1RM Estimado: <strong className="text-neon-mint font-bold">{live1RM} KG</strong></span>
+                        </>
+                      )}
                     </div>
                   ) : (
-                    <span className="text-neutral-500">Ingresa tus series para calcular volumen y 1RM en vivo.</span>
+                    <span className="text-neutral-500">Completa los datos para registrar tu ejercicio.</span>
                   )}
                 </div>
 
@@ -540,12 +543,11 @@ export default function DailyView({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {currentDay.workouts.map((w) => {
-                    const vol = (Number(w.sets) || 0) * (Number(w.reps) || 0) * (Number(w.weight) || 0);
                     const rm = calculate1RM(Number(w.weight), Number(w.reps));
 
                     return (
-                      <div 
-                        key={w.id} 
+                      <div
+                        key={w.id}
                         className="flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-l-4 border-neon-purple border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1"
                       >
                         <div className="space-y-1">
@@ -554,9 +556,12 @@ export default function DailyView({
                             <span className="text-white font-semibold">{w.sets} series × {w.reps} reps</span>
                             <span>•</span>
                             <span className="text-neon-cyan font-bold">{w.weight} KG</span>
-                            <span>•</span>
-                            <span className="text-neon-mint">{vol.toLocaleString()} kg</span>
-                            {rm > 0 && <span className="text-neutral-400 font-mono">({rm}k 1RM)</span>}
+                            {rm > 0 && (
+                              <>
+                                <span>•</span>
+                                <span className="text-neutral-400 font-mono font-medium">({rm}k 1RM)</span>
+                              </>
+                            )}
                           </div>
                         </div>
 
@@ -595,15 +600,15 @@ export default function DailyView({
       {/* ========================================================================= */}
       {/* 02. SECCIÓN INFERIOR: NUTRICIÓN & SUPLEMENTOS (SCROLL REVEAL ANIMADO)     */}
       {/* ========================================================================= */}
-      <section 
-        ref={foodSectionRef} 
+      <section
+        ref={foodSectionRef}
         className="min-h-[85vh] py-12 px-4 sm:px-8 relative"
       >
         <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-25" />
         <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-20" />
 
         <div className="space-y-12 relative z-10 max-w-6xl mx-auto w-full">
-          
+
           {/* Cabecera Nutrición con Reveal */}
           <ScrollReveal delay={0}>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-cyan-500/20 pb-6">
@@ -621,13 +626,13 @@ export default function DailyView({
               <div className="flex items-center gap-6 border-l-2 border-neon-cyan/40 pl-6">
                 <div>
                   <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Calorías Totales</span>
-                  <span className="text-3xl sm:text-4xl font-black font-mono text-neon-yellow">
+                  <span className="text-3xl sm:text-4xl font-black font-mono text-neon-blue">
                     {totalCalories.toLocaleString()} <span className="text-sm font-sans text-neutral-400">KCAL</span>
                   </span>
                 </div>
                 <div>
                   <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Proteínas</span>
-                  <span className="text-3xl sm:text-4xl font-black font-mono text-neon-mint">
+                  <span className="text-3xl sm:text-4xl font-black font-mono text-neon-white">
                     {totalProtein} <span className="text-sm font-sans text-neutral-400">G</span>
                   </span>
                 </div>
@@ -641,7 +646,7 @@ export default function DailyView({
               <div className="text-xs font-mono tracking-wider text-neutral-400 uppercase">
                 // TIPO DE REGISTRO
               </div>
-              
+
               <div className="flex flex-wrap gap-2.5 sm:gap-3">
                 {MEAL_TYPES.map((type) => {
                   const isSelected = mealType === type.id;
@@ -652,13 +657,12 @@ export default function DailyView({
                       key={type.id}
                       type="button"
                       onClick={() => setMealType(type.id)}
-                      className={`px-5 py-3.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer relative ${
-                        isSelected
-                          ? isSupp
-                            ? 'bg-neon-mint text-space-950 font-black shadow-[0_0_25px_rgba(0,245,160,0.5)] border-2 border-neon-mint scale-105'
-                            : 'bg-neon-cyan text-space-950 font-black shadow-[0_0_25px_rgba(6,182,212,0.5)] border-2 border-neon-cyan scale-105'
-                          : 'bg-[#0E0926] text-neutral-300 hover:text-white hover:bg-[#1A1242] border border-white/10 hover:border-neon-cyan/40'
-                      }`}
+                      className={`px-5 py-3.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer relative ${isSelected
+                        ? isSupp
+                          ? 'bg-neon-mint text-space-950 font-black shadow-[0_0_25px_rgba(0,245,160,0.5)] border-2 border-neon-mint scale-105'
+                          : 'bg-neon-cyan text-space-950 font-black shadow-[0_0_25px_rgba(6,182,212,0.5)] border-2 border-neon-cyan scale-105'
+                        : 'bg-[#0E0926] text-neutral-300 hover:text-white hover:bg-[#1A1242] border border-white/10 hover:border-neon-cyan/40'
+                        }`}
                     >
                       <span className="flex items-center gap-2">
                         {isSelected && <span className="inline-block w-2 h-2 rounded-full bg-space-950 animate-pulse"></span>}
@@ -674,9 +678,9 @@ export default function DailyView({
           {/* Formulario de Carga de Comida o Suplemento con Reveal y Memoria */}
           <ScrollReveal delay={200}>
             <form onSubmit={handleSubmitFood} className="space-y-6 relative">
-              
+
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                
+
                 {/* Horario */}
                 <div className="md:col-span-2 space-y-2">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Horario</label>
@@ -698,7 +702,7 @@ export default function DailyView({
                         <span className="text-[10px] text-neon-mint lowercase font-normal">(con memoria)</span>
                       )}
                     </label>
-                    
+
                     <div className="relative">
                       {mealType === 'suplementacion' ? (
                         <button
@@ -779,8 +783,8 @@ export default function DailyView({
                   <input
                     type="text"
                     placeholder={
-                      mealType === 'suplementacion' 
-                        ? 'Ej: Creatina Creapure 5g, Proteína Whey 30g...' 
+                      mealType === 'suplementacion'
+                        ? 'Ej: Creatina Creapure 5g, Proteína Whey 30g...'
                         : 'Escribe para buscar o agregar (ej: Pollo con papas, Avena...)'
                     }
                     value={foodName}
@@ -892,17 +896,15 @@ export default function DailyView({
                     const isSupp = f.mealType === 'suplementacion';
 
                     return (
-                      <div 
-                        key={f.id} 
-                        className={`flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${
-                          isSupp ? 'border-l-4 border-neon-mint' : 'border-l-4 border-neon-cyan'
-                        }`}
+                      <div
+                        key={f.id}
+                        className={`flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${isSupp ? 'border-l-4 border-neon-mint' : 'border-l-4 border-neon-cyan'
+                          }`}
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold ${
-                              isSupp ? 'bg-neon-mint/10 text-neon-mint border border-neon-mint/30' : 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30'
-                            }`}>
+                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold ${isSupp ? 'bg-neon-mint/10 text-neon-mint border border-neon-mint/30' : 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30'
+                              }`}>
                               {mealMeta.label}
                             </span>
                             {f.time && (
@@ -911,7 +913,7 @@ export default function DailyView({
                           </div>
 
                           <h4 className="font-bold text-white text-base tracking-tight">{f.name}</h4>
-                          
+
                           <div className="flex items-center gap-3 text-xs font-mono text-neutral-400">
                             <span className="text-neon-yellow font-semibold">{f.calories} kcal</span>
                             <span>•</span>
