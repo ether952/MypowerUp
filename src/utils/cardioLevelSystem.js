@@ -82,9 +82,9 @@ export function getDayCardioKm(dayData, discipline = 'all') {
 /**
  * Calcula el progreso de nivel semanal de cardio para una disciplina dada
  */
-export function calculateCardioLevelProgress(data = {}, discipline = 'running', referenceDateStr = null) {
+export function calculateCardioLevelProgress(data = {}, discipline = 'running', referenceDateStr = null, customLevels = null) {
   const currentDiscipline = CARDIO_DISCIPLINES[discipline] || CARDIO_DISCIPLINES.running;
-  const levels = currentDiscipline.levels;
+  const levels = customLevels && customLevels.length > 0 ? customLevels : currentDiscipline.levels;
 
   const allDates = Object.keys(data);
   const weekInfo = getCurrentWeekRange(referenceDateStr);

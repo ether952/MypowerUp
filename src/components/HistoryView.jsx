@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { 
+import {
   ChevronLeft,
-  ChevronRight, 
-  ChevronDown, 
-  Search, 
+  ChevronRight,
+  ChevronDown,
+  Search,
   Sparkles,
   Calendar,
   Flame,
@@ -18,28 +18,50 @@ import {
   Shield,
   Info,
   HelpCircle,
-  X
+  X,
+  Gauge
 } from 'lucide-react';
 import { formatDisplayDate, getLocalDateString } from '../utils/helpers';
 import { calculateLevelProgress, TONNAGE_LEVELS } from '../utils/levelSystem';
 import { calculateCardioLevelProgress } from '../utils/cardioLevelSystem';
+import ChallengeUnifiedModal from './ChallengeUnifiedModal';
+import {
+  getStoredChallengeCalibration,
+  saveStoredChallengeCalibration,
+  getCalibratedMuscleLevels,
+  getCalibratedCardioLevels,
+  filterDataForChallenge
+} from '../utils/challengeCalibration';
 
 export default function HistoryView({ data, goals, onSelectDate }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedDate, setExpandedDate] = useState(null);
-  
+
+  // Calibrador / Medidor de Desafíos y Modal Unificado
+  const [calibrationProfile, setCalibrationProfile] = useState(() => getStoredChallengeCalibration());
+  const [unifiedModalType, setUnifiedModalType] = useState(null); // 'muscle' | 'cardio' | null
+
   // Desafío de Musculación
   const [isChallengeOpen, setIsChallengeOpen] = useState(false);
-  const [showChallengeModal, setShowChallengeModal] = useState(false);
   const rouletteRef = useRef(null);
 
   // Desafío de Resistencia
   const [isCardioChallengeOpen, setIsCardioChallengeOpen] = useState(false);
-  const [showCardioModal, setShowCardioModal] = useState(false);
   const [cardioDiscipline, setCardioDiscipline] = useState('running');
   const cardioRouletteRef = useRef(null);
 
   const [selectedHistoryDate, setSelectedHistoryDate] = useState(() => getLocalDateString());
+
+  const handleCompleteUnifiedModal = (newProfile) => {
+    setCalibrationProfile(newProfile);
+    saveStoredChallengeCalibration(newProfile);
+    if (unifiedModalType === 'muscle') {
+      setIsChallengeOpen(true);
+    } else if (unifiedModalType === 'cardio') {
+      setIsCardioChallengeOpen(true);
+    }
+    setUnifiedModalType(null);
+  };
 
   const scrollRoulette = (direction) => {
     if (rouletteRef.current) {
@@ -62,13 +84,13 @@ export default function HistoryView({ data, goals, onSelectDate }) {
   const filteredDates = allDates.filter(dateStr => {
     const dayData = data[dateStr] || { foods: [], workouts: [], cardios: [] };
     const query = searchTerm.toLowerCase();
-    
+
     const matchesDate = dateStr.includes(query) || formatDisplayDate(dateStr).toLowerCase().includes(query);
     const matchesFood = (dayData.foods || []).some(f => f.name.toLowerCase().includes(query));
     const matchesWorkout = (dayData.workouts || []).some(w => w.name.toLowerCase().includes(query));
-    const matchesCardio = (dayData.cardios || []).some(c => 
-      (c.from || '').toLowerCase().includes(query) || 
-      (c.to || '').toLowerCase().includes(query) || 
+    const matchesCardio = (dayData.cardios || []).some(c =>
+      (c.from || '').toLowerCase().includes(query) ||
+      (c.to || '').toLowerCase().includes(query) ||
       (c.type || '').toLowerCase().includes(query)
     );
 
@@ -84,7 +106,7 @@ export default function HistoryView({ data, goals, onSelectDate }) {
   const dayCalories = (currentDayStats.foods || []).reduce((acc, f) => acc + (Number(f.calories) || 0), 0);
   const dayProtein = (currentDayStats.foods || []).reduce((acc, f) => acc + (Number(f.protein) || 0), 0);
   const dayTonnage = (currentDayStats.workouts || []).reduce(
-    (acc, w) => acc + (Number(w.weight) || 0), 
+    (acc, w) => acc + (Number(w.weight) || 0),
     0
   );
   const dayCardios = currentDayStats.cardios || [];
@@ -99,12 +121,29 @@ export default function HistoryView({ data, goals, onSelectDate }) {
   const protPercent = Math.min(Math.round((dayProtein / protGoal) * 100), 100);
   const tonPercent = Math.min(Math.round((dayTonnage / tonGoal) * 100), 100);
 
-  const levelProgress = calculateLevelProgress(data, selectedHistoryDate);
-  const cardioProgress = calculateCardioLevelProgress(data, cardioDiscipline, selectedHistoryDate);
+  const isChallengeActive = Boolean(calibrationProfile && calibrationProfile.activatedAt);
+
+  // Filtrar data: el juego y control del reto SOLO cuenta a partir del momento en que se le da a "Jugar"
+  const challengeData = isChallengeActive ? filterDataForChallenge(data, calibrationProfile) : {};
+
+  const customMuscleLevels = isChallengeActive ? getCalibratedMuscleLevels(calibrationProfile) : null;
+  const customCardioLevels = isChallengeActive ? getCalibratedCardioLevels(calibrationProfile, cardioDiscipline) : null;
+
+  const levelProgress = isChallengeActive ? calculateLevelProgress(challengeData, selectedHistoryDate, customMuscleLevels) : null;
+  const cardioProgress = isChallengeActive ? calculateCardioLevelProgress(challengeData, cardioDiscipline, selectedHistoryDate, customCardioLevels) : null;
 
   return (
     <div className="space-y-12 animate-slide-up">
-      
+
+      {/* Modal Unificado: Explicación + Preguntas Paso a Paso */}
+      <ChallengeUnifiedModal
+        isOpen={Boolean(unifiedModalType)}
+        onClose={() => setUnifiedModalType(null)}
+        challengeType={unifiedModalType || 'muscle'}
+        onComplete={handleCompleteUnifiedModal}
+        currentProfile={calibrationProfile}
+      />
+
       {/* Cabecera Principal */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-purple-500/20 pb-6">
         <div>
@@ -119,145 +158,92 @@ export default function HistoryView({ data, goals, onSelectDate }) {
         </div>
       </div>
 
-      {/* Pop-up Modal Explicativo: ¡Desafío de Musculación! */}
-      {showChallengeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-[#0E0926] border border-amber-500/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl shadow-amber-500/15 relative">
-            <button
-              type="button"
-              onClick={() => setShowChallengeModal(false)}
-              className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="border-b border-white/10 pb-3 pr-8">
-              <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest block font-bold">
-                // GUÍA RÁPIDA
-              </span>
-              <h3 className="text-2xl font-black text-white uppercase font-display tracking-tight mt-0.5">
-                ¡Desafío de Musculación!
-              </h3>
-            </div>
-
-            <div className="py-2 font-sans text-neutral-300 text-sm leading-relaxed">
-              <p>
-                El <strong className="text-white">Desafío de Musculación</strong> suma automáticamente el volumen total que levantas en la semana (<span className="text-neon-cyan font-mono font-semibold">Series × Reps × Peso</span>). Si antes del domingo completas la meta de tu rango actual, conquistas el reto y subes al siguiente nivel con una exigencia progresiva. Tu nivel <strong className="text-amber-400 font-semibold">nunca baja</strong> si una semana descansas o no alcanzas el peso; cada lunes comienza un nuevo ciclo limpio para que avances con calma y a tu propio ritmo, priorizando siempre la técnica y la salud de tus articulaciones.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowChallengeModal(false);
-                setIsChallengeOpen(true);
-              }}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-black font-bold font-sans text-sm uppercase tracking-wide hover:opacity-95 transition-opacity shadow-lg shadow-amber-500/25 cursor-pointer"
-            >
-              ¡Entendido, a entrenar!
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Pop-up Modal Explicativo: ¡Desafío de Resistencia! */}
-      {showCardioModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-[#0A161E] border border-emerald-500/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl shadow-emerald-500/15 relative">
-            <button
-              type="button"
-              onClick={() => setShowCardioModal(false)}
-              className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="border-b border-white/10 pb-3 pr-8">
-              <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest block font-bold">
-                // GUÍA RÁPIDA
-              </span>
-              <h3 className="text-2xl font-black text-white uppercase font-display tracking-tight mt-0.5">
-                ¡Desafío de Resistencia!
-              </h3>
-            </div>
-
-            <div className="py-2 font-sans text-neutral-300 text-sm leading-relaxed">
-              <p>
-                El <strong className="text-white">Desafío de Resistencia</strong> calcula automáticamente los kilómetros acumulados durante la semana (lunes a domingo) según la actividad que elijas: <strong className="text-emerald-400">caminata</strong>, <strong className="text-amber-400">running</strong> o <strong className="text-cyan-400">bicicleta</strong>. Cada disciplina cuenta con metas adaptadas a la fisiología humana: en caminata las distancias son moderadas, en running intermedias y en bicicleta más extensas. Si antes del domingo completas los kilómetros de tu rango actual, superas el reto y subes de nivel. Tu nivel <strong className="text-emerald-400 font-semibold">nunca baja</strong> si una semana descansas o no alcanzas la distancia; cada lunes el contador se reinicia a 0 km para continuar a tu propio ritmo.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowCardioModal(false);
-                setIsCardioChallengeOpen(true);
-              }}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 text-black font-bold font-sans text-sm uppercase tracking-wide hover:opacity-95 transition-opacity shadow-lg shadow-emerald-500/25 cursor-pointer"
-            >
-              ¡Entendido, a sumar kilómetros!
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* ========================================================================= */}
       {/* BOTÓN DESPLEGABLE MINIMIZADO: ¡DESAFÍO DE MUSCULACIÓN!                    */}
       {/* ========================================================================= */}
       <div className="pt-1 border-b border-white/10 pb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#161033] to-purple-950/25 border border-amber-500/30 shadow-lg shadow-amber-500/5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-purple-600/15 via-[#130B2E] to-indigo-950/25 border border-purple-500/30 shadow-lg shadow-purple-950/40">
           <div
             onClick={() => {
-              setIsChallengeOpen(true);
-              setShowChallengeModal(true);
+              if (!isChallengeActive) {
+                setUnifiedModalType('muscle');
+                return;
+              }
+              setIsChallengeOpen(!isChallengeOpen);
             }}
             className="flex items-center gap-3 text-left group cursor-pointer hover:opacity-95 transition-opacity flex-1"
           >
-            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.25)] flex-shrink-0">
-              <Trophy className="w-5 h-5 text-amber-400" />
+            <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 group-hover:scale-105 transition-transform flex-shrink-0">
+              <Trophy className="w-5 h-5 text-purple-300" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-display font-black text-base sm:text-lg text-white uppercase tracking-tight">
                   ¡Desafío de Musculación!
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 border border-amber-400/30 font-bold">
-                  NIVEL {levelProgress.currentLevel.level}: {levelProgress.currentLevel.name.toUpperCase()}
-                </span>
+                {isChallengeActive ? (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-400/30 font-bold">
+                    NIVEL {levelProgress.currentLevel.level}: {levelProgress.currentLevel.name.toUpperCase()}
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-white/10 font-bold">
+                    DESAFÍO INACTIVO
+                  </span>
+                )}
               </div>
               <p className="text-xs text-neutral-400 font-sans mt-0.5">
-                Semana: <strong className="text-white font-mono">{levelProgress.currentWeekTonnage.toLocaleString()} kg</strong> / {levelProgress.weeklyGoal.toLocaleString()} kg ({levelProgress.progressPercent}%)
+                {isChallengeActive ? (
+                  <>
+                    Semana: <strong className="text-white font-mono">{levelProgress.currentWeekTonnage.toLocaleString()} kg</strong> / {levelProgress.weeklyGoal.toLocaleString()} kg ({levelProgress.progressPercent}%)
+                  </>
+                ) : (
+                  'Presiona "Jugar" para calibrar tu nivel y activar tus metas semanales.'
+                )}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-center">
-            <button
-              type="button"
-              onClick={() => {
-                if (!isChallengeOpen) {
-                  setIsChallengeOpen(true);
-                  setShowChallengeModal(true);
-                } else {
-                  setIsChallengeOpen(false);
-                }
-              }}
-              className={`px-5 py-2.5 rounded-xl font-bold font-sans text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md ${
-                !isChallengeOpen
-                  ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-black shadow-amber-500/25 hover:opacity-95 hover:scale-[1.02]'
-                  : 'bg-space-900/80 hover:bg-space-850 text-neutral-300 border border-white/10'
-              }`}
-            >
-              <span>{isChallengeOpen ? 'Ocultar' : 'Jugar'}</span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isChallengeOpen ? 'rotate-180 text-amber-400' : ''}`} />
-            </button>
+            {isChallengeActive ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setUnifiedModalType('muscle')}
+                  className="px-3 py-2 rounded-xl bg-space-900/90 hover:bg-space-850 border border-purple-500/30 text-purple-300 hover:text-white text-[11px] font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Ajustar Medidor de Nivel"
+                >
+                  <span>Medidor</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsChallengeOpen(!isChallengeOpen)}
+                  className={`px-5 py-2.5 rounded-xl font-bold font-sans text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md ${!isChallengeOpen
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-900/30 hover:scale-[1.02]'
+                    : 'bg-space-900/80 hover:bg-space-850 text-neutral-300 border border-white/10'
+                    }`}
+                >
+                  <span>{isChallengeOpen ? 'Ocultar' : 'Ver Reto'}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isChallengeOpen ? 'rotate-180 text-purple-300' : ''}`} />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setUnifiedModalType('muscle')}
+                className="px-5 py-2.5 rounded-xl font-bold font-sans text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-900/30 hover:scale-[1.02]"
+              >
+                <span>Jugar</span>
+                <span>→</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* CONTENIDO DESPLEGABLE DEL DESAFÍO */}
-        {isChallengeOpen && (
+        {isChallengeActive && isChallengeOpen && (
           <div className="space-y-4 animate-fade-in-up pt-2">
-            
+
             {/* Barra de Progreso del Reto Semanal */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs font-mono">
@@ -289,12 +275,6 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                     </span>
                   )}
                 </div>
-
-                {levelProgress.nextLevel && (
-                  <span className="text-neutral-500">
-                    Próximo requisito: <span className="text-neutral-300 font-semibold">{levelProgress.nextLevel.name}</span> ({levelProgress.nextLevel.weeklyGoalKg.toLocaleString()} kg)
-                  </span>
-                )}
               </div>
             </div>
 
@@ -305,9 +285,6 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                   <span className="flex items-center gap-1.5 text-neutral-300">
                     <Award className="w-3.5 h-3.5 text-amber-400" />
                     // RULETA DE RANGOS & OBJETIVOS SEMANALES
-                  </span>
-                  <span className="text-[10px] text-neutral-500 hidden sm:inline">
-                    (Desliza para explorar los niveles)
                   </span>
                 </div>
 
@@ -343,13 +320,12 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                   return (
                     <div
                       key={lvl.level}
-                      className={`flex-shrink-0 w-44 sm:w-48 snap-center p-4 rounded-2xl border transition-all flex flex-col justify-between select-none ${
-                        isCurrent
-                          ? 'border-amber-400 bg-gradient-to-b from-amber-500/20 via-[#181133] to-black/60 shadow-[0_0_20px_rgba(245,158,11,0.25)] ring-1 ring-amber-400'
-                          : isUnlocked
+                      className={`flex-shrink-0 w-44 sm:w-48 snap-center p-4 rounded-2xl border transition-all flex flex-col justify-between select-none ${isCurrent
+                        ? 'border-amber-400 bg-gradient-to-b from-amber-500/20 via-[#181133] to-black/60 shadow-[0_0_20px_rgba(245,158,11,0.25)] ring-1 ring-amber-400'
+                        : isUnlocked
                           ? 'border-white/10 bg-space-900/60 hover:border-white/20 text-neutral-300'
                           : 'border-white/5 bg-black/40 text-neutral-600 opacity-60'
-                      }`}
+                        }`}
                     >
                       <div>
                         <div className="flex justify-between items-center mb-1.5 text-xs font-mono">
@@ -411,59 +387,88 @@ export default function HistoryView({ data, goals, onSelectDate }) {
       {/* BOTÓN DESPLEGABLE MINIMIZADO: ¡DESAFÍO DE RESISTENCIA!                   */}
       {/* ========================================================================= */}
       <div className="pt-1 border-b border-white/10 pb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-[#0d211d] to-teal-950/25 border border-emerald-500/30 shadow-lg shadow-emerald-500/5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-600/15 via-[#0F0E2C] to-purple-950/25 border border-indigo-500/30 shadow-lg shadow-purple-950/40">
           <div
             onClick={() => {
-              setIsCardioChallengeOpen(true);
-              setShowCardioModal(true);
+              if (!isChallengeActive) {
+                setUnifiedModalType('cardio');
+                return;
+              }
+              setIsCardioChallengeOpen(!isCardioChallengeOpen);
             }}
             className="flex items-center gap-3 text-left group cursor-pointer hover:opacity-95 transition-opacity flex-1"
           >
-            <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(16,185,129,0.25)] flex-shrink-0">
-              <Footprints className="w-5 h-5 text-emerald-400" />
+            <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 group-hover:scale-105 transition-transform flex-shrink-0">
+              <Footprints className="w-5 h-5 text-indigo-300" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-display font-black text-base sm:text-lg text-white uppercase tracking-tight">
                   ¡Desafío de Resistencia!
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400 border border-emerald-400/30 font-bold uppercase">
-                  NIVEL {cardioProgress.currentLevel.level}: {cardioProgress.currentLevel.name} ({cardioProgress.disciplineInfo.name})
-                </span>
+                {isChallengeActive ? (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-400/30 font-bold uppercase">
+                    NIVEL {cardioProgress.currentLevel.level}: {cardioProgress.currentLevel.name} ({cardioProgress.disciplineInfo.name})
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-white/10 font-bold">
+                    DESAFÍO INACTIVO
+                  </span>
+                )}
               </div>
               <p className="text-xs text-neutral-400 font-sans mt-0.5">
-                Semana: <strong className="text-white font-mono">{cardioProgress.currentWeekKm} km</strong> / {cardioProgress.weeklyGoal} km ({cardioProgress.progressPercent}%)
+                {isChallengeActive ? (
+                  <>
+                    Semana: <strong className="text-white font-mono">{cardioProgress.currentWeekKm} km</strong> / {cardioProgress.weeklyGoal} km ({cardioProgress.progressPercent}%)
+                  </>
+                ) : (
+                  'Presiona "Jugar" para calibrar tu nivel y activar tus metas semanales.'
+                )}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-center">
-            <button
-              type="button"
-              onClick={() => {
-                if (!isCardioChallengeOpen) {
-                  setIsCardioChallengeOpen(true);
-                  setShowCardioModal(true);
-                } else {
-                  setIsCardioChallengeOpen(false);
-                }
-              }}
-              className={`px-5 py-2.5 rounded-xl font-bold font-sans text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md ${
-                !isCardioChallengeOpen
-                  ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 text-black shadow-emerald-500/25 hover:opacity-95 hover:scale-[1.02]'
-                  : 'bg-space-900/80 hover:bg-space-850 text-neutral-300 border border-white/10'
-              }`}
-            >
-              <span>{isCardioChallengeOpen ? 'Ocultar' : 'Jugar'}</span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCardioChallengeOpen ? 'rotate-180 text-emerald-400' : ''}`} />
-            </button>
+            {isChallengeActive ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setUnifiedModalType('cardio')}
+                  className="px-3 py-2 rounded-xl bg-space-900/90 hover:bg-space-850 border border-purple-500/30 text-purple-300 hover:text-white text-[11px] font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Ajustar Medidor de Nivel"
+                >
+                  <span>Medidor</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsCardioChallengeOpen(!isCardioChallengeOpen)}
+                  className={`px-5 py-2.5 rounded-xl font-bold font-sans text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md ${!isCardioChallengeOpen
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-900/30 hover:scale-[1.02]'
+                    : 'bg-space-900/80 hover:bg-space-850 text-neutral-300 border border-white/10'
+                    }`}
+                >
+                  <span>{isCardioChallengeOpen ? 'Ocultar' : 'Ver Reto'}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCardioChallengeOpen ? 'rotate-180 text-purple-300' : ''}`} />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setUnifiedModalType('cardio')}
+                className="px-5 py-2.5 rounded-xl font-bold font-sans text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-900/30 hover:scale-[1.02]"
+              >
+                <span>Jugar</span>
+                <span>→</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* CONTENIDO DESPLEGABLE DEL DESAFÍO DE RESISTENCIA */}
-        {isCardioChallengeOpen && (
+        {isChallengeActive && isCardioChallengeOpen && (
           <div className="space-y-4 animate-fade-in-up pt-2">
-            
+
             {/* Selector de Disciplina: Caminata, Running, Bicicleta */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-space-900/60 border border-white/5 font-sans">
               <span className="text-xs font-mono text-neutral-400 uppercase">
@@ -482,11 +487,10 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                       key={d.id}
                       type="button"
                       onClick={() => setCardioDiscipline(d.id)}
-                      className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer uppercase text-xs ${
-                        isActive
-                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-black shadow-md shadow-emerald-500/20'
-                          : 'text-neutral-400 hover:text-white'
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer uppercase text-xs ${isActive
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-black shadow-md shadow-emerald-500/20'
+                        : 'text-neutral-400 hover:text-white'
+                        }`}
                     >
                       <IconComp className="w-3.5 h-3.5" />
                       <span>{d.label}</span>
@@ -527,12 +531,6 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                     </span>
                   )}
                 </div>
-
-                {cardioProgress.nextLevel && (
-                  <span className="text-neutral-500">
-                    Próximo requisito: <span className="text-neutral-300 font-semibold">{cardioProgress.nextLevel.name}</span> ({cardioProgress.nextLevel.weeklyGoalKm} km)
-                  </span>
-                )}
               </div>
             </div>
 
@@ -545,7 +543,6 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                     // RULETA DE RANGOS: {cardioProgress.disciplineInfo.name.toUpperCase()}
                   </span>
                   <span className="text-[10px] text-neutral-500 hidden sm:inline">
-                    (Desliza para explorar los niveles)
                   </span>
                 </div>
 
@@ -581,13 +578,12 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                   return (
                     <div
                       key={lvl.level}
-                      className={`flex-shrink-0 w-44 sm:w-48 snap-center p-4 rounded-2xl border transition-all flex flex-col justify-between select-none ${
-                        isCurrent
-                          ? 'border-emerald-400 bg-gradient-to-b from-emerald-500/20 via-[#0d211d] to-black/60 shadow-[0_0_20px_rgba(16,185,129,0.25)] ring-1 ring-emerald-400'
-                          : isUnlocked
+                      className={`flex-shrink-0 w-44 sm:w-48 snap-center p-4 rounded-2xl border transition-all flex flex-col justify-between select-none ${isCurrent
+                        ? 'border-emerald-400 bg-gradient-to-b from-emerald-500/20 via-[#0d211d] to-black/60 shadow-[0_0_20px_rgba(16,185,129,0.25)] ring-1 ring-emerald-400'
+                        : isUnlocked
                           ? 'border-white/10 bg-space-900/60 hover:border-white/20 text-neutral-300'
                           : 'border-white/5 bg-black/40 text-neutral-600 opacity-60'
-                      }`}
+                        }`}
                     >
                       <div>
                         <div className="flex justify-between items-center mb-1.5 text-xs font-mono">
@@ -668,7 +664,7 @@ export default function HistoryView({ data, goals, onSelectDate }) {
 
         {/* MÉTRICAS SUELTAS Y MODERNAS CON COLOR UNIFICADO */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4 border-y border-white/5">
-          
+
           {/* 1. Calorías Totales */}
           <div className="space-y-3 relative group">
             <div className="flex items-center justify-between text-xs font-mono tracking-wider text-neutral-400 uppercase">
@@ -678,14 +674,14 @@ export default function HistoryView({ data, goals, onSelectDate }) {
               </span>
               <span className="text-neon-cyan font-bold">{calPercent}% DE {calGoal}</span>
             </div>
-            
+
             <div className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
               {dayCalories.toLocaleString()} <span className="text-xs font-mono text-neon-cyan font-normal uppercase">KCAL</span>
             </div>
 
             {/* Barra de progreso minimalista */}
             <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
-              <div 
+              <div
                 className="bg-gradient-to-r from-neon-purple to-neon-cyan h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${calPercent}%` }}
               />
@@ -701,14 +697,14 @@ export default function HistoryView({ data, goals, onSelectDate }) {
               </span>
               <span className="text-neon-cyan font-bold">{protPercent}% DE {protGoal}G</span>
             </div>
-            
+
             <div className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
               {dayProtein} <span className="text-xs font-mono text-neon-cyan font-normal uppercase">G PROT</span>
             </div>
 
             {/* Barra de progreso minimalista */}
             <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
-              <div 
+              <div
                 className="bg-gradient-to-r from-neon-purple to-neon-cyan h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${protPercent}%` }}
               />
@@ -724,14 +720,14 @@ export default function HistoryView({ data, goals, onSelectDate }) {
               </span>
               <span className="text-neon-cyan font-bold">{tonPercent}% DE {tonGoal}KG</span>
             </div>
-            
+
             <div className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
               {dayTonnage.toLocaleString()} <span className="text-xs font-mono text-neon-cyan font-normal uppercase">KG TOT.</span>
             </div>
 
             {/* Barra de progreso minimalista */}
             <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
-              <div 
+              <div
                 className="bg-gradient-to-r from-neon-purple to-neon-cyan h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${tonPercent}%` }}
               />
@@ -772,7 +768,7 @@ export default function HistoryView({ data, goals, onSelectDate }) {
 
       {/* Buscador & Lista de Días */}
       <div className="space-y-6">
-        
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase">
             // REGISTRO CRONOLÓGICO DE DÍAS
@@ -811,13 +807,12 @@ export default function HistoryView({ data, goals, onSelectDate }) {
               const isSelected = selectedHistoryDate === dateStr;
 
               return (
-                <div 
-                  key={dateStr} 
-                  className={`bg-space-900/50 border-l-4 transition-all overflow-hidden rounded-xl ${
-                    isSelected ? 'border-neon-purple bg-space-900/80 shadow-lg shadow-purple-600/10' : 'border-neutral-800 hover:border-neutral-600'
-                  }`}
+                <div
+                  key={dateStr}
+                  className={`bg-space-900/50 border-l-4 transition-all overflow-hidden rounded-xl ${isSelected ? 'border-neon-purple bg-space-900/80 shadow-lg shadow-purple-600/10' : 'border-neutral-800 hover:border-neutral-600'
+                    }`}
                 >
-                  <div 
+                  <div
                     onClick={() => toggleExpand(dateStr)}
                     className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer select-none hover:bg-space-850/50 transition-colors"
                   >
@@ -879,7 +874,7 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                   {/* Desglose Expandible */}
                   {isExpanded && (
                     <div className={`p-6 border-t border-white/5 bg-space-950/80 grid grid-cols-1 ${cardios.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 animate-fade-in-up`}>
-                      
+
                       {/* Ejercicios */}
                       <div className="space-y-3">
                         <div className="text-xs font-mono text-neon-purple uppercase tracking-wider">
@@ -917,9 +912,8 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                               return (
                                 <div key={f.id} className="p-3 bg-space-900/60 border border-white/5 rounded-lg flex justify-between items-center text-xs font-mono">
                                   <div className="flex items-center gap-2">
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase ${
-                                      isSupp ? 'bg-neon-purple/10 text-neon-purple' : 'bg-neon-cyan/10 text-neon-cyan'
-                                    }`}>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase ${isSupp ? 'bg-neon-purple/10 text-neon-purple' : 'bg-neon-cyan/10 text-neon-cyan'
+                                      }`}>
                                       {f.mealType || 'item'}
                                     </span>
                                     <span className="text-white font-bold">{f.name}</span>
@@ -949,13 +943,12 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                               return (
                                 <div key={c.id} className="p-3 bg-space-900/60 border border-emerald-500/20 rounded-lg flex flex-col justify-between gap-1 text-xs font-mono">
                                   <div className="flex justify-between items-center">
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                                      isRun
-                                        ? 'bg-amber-400/10 text-amber-400 border border-amber-400/30'
-                                        : isBike
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${isRun
+                                      ? 'bg-amber-400/10 text-amber-400 border border-amber-400/30'
+                                      : isBike
                                         ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/30'
                                         : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/30'
-                                    }`}>
+                                      }`}>
                                       {c.type}
                                     </span>
                                     {c.time && <span className="text-neutral-500 text-[10px]">({c.time})</span>}
