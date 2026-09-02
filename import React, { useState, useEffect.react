@@ -1,0 +1,287 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, Trash2, Dumbbell, Utensils, BarChart3, Calendar } from 'lucide-react';
+
+export default function MyPowerUp() {
+  // Fecha seleccionada (YYYY-MM-DD)
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Base de datos local en memoria (persiste en LocalStorage)
+  const [data, setData] = useState(() => {
+    const saved = localStorage.getItem('mypowerup_data');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('mypowerup_data', JSON.stringify(data));
+  }, [data]);
+
+  // Registro del día actual
+  const currentDay = data[selectedDate] || { foods: [], workouts: [] };
+
+  // Inputs controlados para comidas
+  const [foodName, setFoodName] = useState('');
+  const [calories, setCalories] = useState('');
+  const [protein, setProtein] = useState('');
+
+  // Inputs controlados para ejercicios
+  const [exerciseName, setExerciseName] = useState('');
+  const [sets, setSets] = useState('');
+  const [reps, setReps] = useState('');
+  const [weight, setWeight] = useState('');
+
+  // Agregar comida
+  const addFood = (e) => {
+    e.preventDefault();
+    if (!foodName || !calories) return;
+
+    const newFood = {
+      id: Date.now(),
+      name: foodName,
+      calories: Number(calories) || 0,
+      protein: Number(protein) || 0,
+    };
+
+    setData({
+      ...data,
+      [selectedDate]: {
+        ...currentDay,
+        foods: [...currentDay.foods, newFood],
+      },
+    });
+
+    setFoodName('');
+    setCalories('');
+    setProtein('');
+  };
+
+  // Eliminar comida
+  const deleteFood = (id) => {
+    setData({
+      ...data,
+      [selectedDate]: {
+        ...currentDay,
+        foods: currentDay.foods.filter((item) => item.id !== id),
+      },
+    });
+  };
+
+  // Agregar ejercicio
+  const addWorkout = (e) => {
+    e.preventDefault();
+    if (!exerciseName || !weight) return;
+
+    const newWorkout = {
+      id: Date.now(),
+      name: exerciseName,
+      sets: Number(sets) || 0,
+      reps: Number(reps) || 0,
+      weight: Number(weight) || 0,
+    };
+
+    setData({
+      ...data,
+      [selectedDate]: {
+        ...currentDay,
+        workouts: [...currentDay.workouts, newWorkout],
+      },
+    });
+
+    setExerciseName('');
+    setSets('');
+    setReps('');
+    setWeight('');
+  };
+
+  // Eliminar ejercicio
+  const deleteWorkout = (id) => {
+    setData({
+      ...data,
+      [selectedDate]: {
+        ...currentDay,
+        workouts: currentDay.workouts.filter((item) => item.id !== id),
+      },
+    });
+  };
+
+  // Totales calculados automáticamente
+  const totalCalories = currentDay.foods.reduce((acc, curr) => acc + curr.calories, 0);
+  const totalProtein = currentDay.foods.reduce((acc, curr) => acc + curr.protein, 0);
+  const totalTonnage = currentDay.workouts.reduce((acc, curr) => acc + (curr.sets * curr.reps * curr.weight), 0);
+
+  return (
+    <div className="min-h-screen bg-black text-white p-4 md:p-8 font-sans selection:bg-yellow-400 selection:text-black">
+      {/* Header */}
+      <header className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center border-b border-yellow-400 pb-4 mb-8 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-yellow-400 text-black font-black text-2xl px-3 py-1 rounded">
+            ⚡
+          </div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-yellow-400">
+            MypowerUp
+          </h1>
+        </div>
+
+        {/* Selector de fecha */}
+        <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-700 px-3 py-1.5 rounded-lg">
+          <Calendar className="w-4 h-4 text-yellow-400" />
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="bg-transparent text-white focus:outline-none text-sm cursor-pointer"
+          />
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto space-y-8">
+        {/* Resumen Diario (Cards de Métricas) */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-neutral-900 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm">
+            <span className="text-xs uppercase text-neutral-400 font-semibold tracking-wider">Calorías Totales</span>
+            <div className="text-2xl font-bold text-white mt-1">{totalCalories} <span className="text-sm font-normal text-yellow-400">kcal</span></div>
+          </div>
+          <div className="bg-neutral-900 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm">
+            <span className="text-xs uppercase text-neutral-400 font-semibold tracking-wider">Proteínas</span>
+            <div className="text-2xl font-bold text-white mt-1">{totalProtein} <span className="text-sm font-normal text-yellow-400">g</span></div>
+          </div>
+          <div className="bg-neutral-900 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm">
+            <span className="text-xs uppercase text-neutral-400 font-semibold tracking-wider">Volumen Carga</span>
+            <div className="text-2xl font-bold text-white mt-1">{totalTonnage} <span className="text-sm font-normal text-yellow-400">kg tot.</span></div>
+          </div>
+        </section>
+
+        {/* Grilla principal: Comidas y Entrenamiento */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* SECCIÓN COMIDAS */}
+          <section className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 space-y-4">
+            <div className="flex items-center gap-2 text-yellow-400 border-b border-neutral-800 pb-2">
+              <Utensils className="w-5 h-5" />
+              <h2 className="font-bold text-lg text-white">Comidas</h2>
+            </div>
+
+            <form onSubmit={addFood} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Alimento o plato (ej: Panqueques)"
+                value={foodName}
+                onChange={(e) => setFoodName(e.target.value)}
+                className="w-full bg-neutral-900 border border-neutral-700 text-white px-3 py-2 rounded text-sm focus:border-yellow-400 focus:outline-none"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  placeholder="Kcal"
+                  value={calories}
+                  onChange={(e) => setCalories(e.target.value)}
+                  className="bg-neutral-900 border border-neutral-700 text-white px-3 py-2 rounded text-sm focus:border-yellow-400 focus:outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Proteína (g)"
+                  value={protein}
+                  onChange={(e) => setProtein(e.target.value)}
+                  className="bg-neutral-900 border border-neutral-700 text-white px-3 py-2 rounded text-sm focus:border-yellow-400 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-2 rounded text-sm flex items-center justify-center gap-2 transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Agregar Alimento
+              </button>
+            </form>
+
+            <ul className="space-y-2 pt-2">
+              {currentDay.foods.length === 0 ? (
+                <p className="text-xs text-neutral-500 text-center py-4">Sin comidas registradas este día.</p>
+              ) : (
+                currentDay.foods.map((food) => (
+                  <li key={food.id} className="flex justify-between items-center bg-neutral-900 border border-neutral-800 p-3 rounded text-sm">
+                    <div>
+                      <p className="font-medium text-white">{food.name}</p>
+                      <p className="text-xs text-neutral-400">
+                        {food.calories} kcal • <span className="text-yellow-400">{food.protein}g prot</span>
+                      </p>
+                    </div>
+                    <button onClick={() => deleteFood(food.id)} className="text-neutral-500 hover:text-red-400 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          </section>
+
+          {/* SECCIÓN ENTRENAMIENTO */}
+          <section className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 space-y-4">
+            <div className="flex items-center gap-2 text-yellow-400 border-b border-neutral-800 pb-2">
+              <Dumbbell className="w-5 h-5" />
+              <h2 className="font-bold text-lg text-white">Entrenamiento</h2>
+            </div>
+
+            <form onSubmit={addWorkout} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Ejercicio (ej: Remo máquina)"
+                value={exerciseName}
+                onChange={(e) => setExerciseName(e.target.value)}
+                className="w-full bg-neutral-900 border border-neutral-700 text-white px-3 py-2 rounded text-sm focus:border-yellow-400 focus:outline-none"
+              />
+              <div className="grid grid-cols-3 gap-2">
+                <input
+                  type="number"
+                  placeholder="Series"
+                  value={sets}
+                  onChange={(e) => setSets(e.target.value)}
+                  className="bg-neutral-900 border border-neutral-700 text-white px-3 py-2 rounded text-sm focus:border-yellow-400 focus:outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Reps"
+                  value={reps}
+                  onChange={(e) => setReps(e.target.value)}
+                  className="bg-neutral-900 border border-neutral-700 text-white px-3 py-2 rounded text-sm focus:border-yellow-400 focus:outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Kg"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  className="bg-neutral-900 border border-neutral-700 text-white px-3 py-2 rounded text-sm focus:border-yellow-400 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-2 rounded text-sm flex items-center justify-center gap-2 transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Agregar Ejercicio
+              </button>
+            </form>
+
+            <ul className="space-y-2 pt-2">
+              {currentDay.workouts.length === 0 ? (
+                <p className="text-xs text-neutral-500 text-center py-4">Sin ejercicios registrados este día.</p>
+              ) : (
+                currentDay.workouts.map((w) => (
+                  <li key={w.id} className="flex justify-between items-center bg-neutral-900 border border-neutral-800 p-3 rounded text-sm">
+                    <div>
+                      <p className="font-medium text-white">{w.name}</p>
+                      <p className="text-xs text-neutral-400">
+                        {w.sets} series × {w.reps} reps con <span className="text-yellow-400 font-semibold">{w.weight} kg</span>
+                      </p>
+                    </div>
+                    <button onClick={() => deleteWorkout(w.id)} className="text-neutral-500 hover:text-red-400 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  );
+}
