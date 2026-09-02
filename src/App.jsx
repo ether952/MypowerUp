@@ -6,23 +6,47 @@ import {
   Upload, 
   Trash2,
   Sliders,
-  Sparkles
+  Sparkles,
+  LogIn,
+  LogOut,
+  Cloud,
+  CheckCircle2,
+  RefreshCw,
+  User as UserIcon,
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react';
 
 import DailyView from './components/DailyView';
 import ChartsView from './components/ChartsView';
 import HistoryView from './components/HistoryView';
 import GoalsModal from './components/GoalsModal';
+import AuthModal from './components/AuthModal';
 import { 
   getLocalDateString, 
   formatDisplayDate, 
   shiftDate 
 } from './utils/helpers';
+import {
+  subscribeToAuthChanges,
+  logoutUser,
+  getUserCloudData,
+  saveUserCloudData,
+  isFirebaseConfigured
+} from './lib/firebase';
 
 export default function App() {
   const [selectedDate, setSelectedDate] = useState(() => getLocalDateString());
   const [activeTab, setActiveTab] = useState('daily');
 
+  // === ESTADO DE AUTENTICACIÓN Y NUBE ===
+  const [user, setUser] = useState(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [syncStatus, setSyncStatus] = useState(isFirebaseConfigured ? 'syncing' : 'local'); // 'local' | 'syncing' | 'synced' | 'error'
+  const isInitialLoadRef = useRef(true);
+  const saveTimeoutRef = useRef(null);
+
+  // === ESTADOS DE DATOS (Con fallback a LocalStorage) ===
   const [data, setData] = useState(() => {
     try {
       const saved = localStorage.getItem('mypowerup_data');
@@ -43,6 +67,26 @@ export default function App() {
     return { calories: 2400, protein: 150, tonnage: 5000 };
   });
 
+  const [rememberedWorkouts, setRememberedWorkouts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mypowerup_remembered_workouts');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      return {};
+    }
+    return {};
+  });
+
+  const [rememberedFoods, setRememberedFoods] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mypowerup_remembered_foods');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      return {};
+    }
+    return {};
+  });
+
   const [isGoalsOpen, setIsGoalsOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
@@ -52,6 +96,7 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // 1. Guardar siempre en LocalStorage como caché offline rápido
   useEffect(() => {
     localStorage.setItem('mypowerup_data', JSON.stringify(data));
   }, [data]);
@@ -59,6 +104,97 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('mypowerup_goals', JSON.stringify(goals));
   }, [goals]);
+
+  useEffect(() => {
+    localStorage.setItem('mypowerup_remembered_workouts', JSON.stringify(rememberedWorkouts));
+  }, [rememberedWorkouts]);
+
+  useEffect(() => {
+    localStorage.setItem('mypowerup_remembered_foods', JSON.stringify(rememberedFoods));
+  }, [rememberedFoods]);
+
+  // 2. Suscripción al estado de Autenticación de Firebase
+  useEffect(() => {
+    if (!isFirebaseConfigured) {
+      setSyncStatus('local');
+      return;
+    }
+
+    const unsubscribe = subscribeToAuthChanges(async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        setSyncStatus('syncing');
+        try {
+          const cloudData = await getUserCloudData(currentUser.uid);
+          if (cloudData) {
+            // Cargar datos de la nube
+            if (cloudData.data) setData(cloudData.data);
+            if (cloudData.goals) setGoals(cloudData.goals);
+            if (cloudData.rememberedWorkouts) setRememberedWorkouts(cloudData.rememberedWorkouts);
+            if (cloudData.rememberedFoods) setRememberedFoods(cloudData.rememberedFoods);
+            showToast(`Bienvenido ${currentUser.displayName || currentUser.email.split('@')[0]} // Datos sincronizados`);
+          } else {
+            // Primer login: subir datos locales actuales a la nube
+            await saveUserCloudData(currentUser.uid, {
+              data,
+              goals,
+              rememberedWorkouts,
+              rememberedFoods
+            });
+            showToast(`Cuenta inicializada en la nube`);
+          }
+          setSyncStatus('synced');
+        } catch (err) {
+          console.error('Error al sincronizar con la nube:', err);
+          setSyncStatus('error');
+          showToast('Modo sin conexión');
+        }
+      } else {
+        setSyncStatus('local');
+      }
+      isInitialLoadRef.current = false;
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // 3. Auto-guardado en Firestore (Cloud Sync) al detectar cambios
+  useEffect(() => {
+    if (!user || isInitialLoadRef.current) return;
+
+    setSyncStatus('syncing');
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        await saveUserCloudData(user.uid, {
+          data,
+          goals,
+          rememberedWorkouts,
+          rememberedFoods
+        });
+        setSyncStatus('synced');
+      } catch (err) {
+        console.error('Error auto-guardando en la nube:', err);
+        setSyncStatus('error');
+      }
+    }, 1200); // 1.2 segundos de debounce
+
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [data, goals, rememberedWorkouts, rememberedFoods, user]);
+
+  const handleLogout = async () => {
+    if (window.confirm('¿Deseas cerrar tu sesión actual?')) {
+      try {
+        await logoutUser();
+        showToast('Sesión cerrada');
+      } catch (err) {
+        showToast('Error al cerrar sesión');
+      }
+    }
+  };
 
   const currentDay = data[selectedDate] || { foods: [], workouts: [] };
 
@@ -112,13 +248,16 @@ export default function App() {
     if (window.confirm('¿Vaciar todos los datos de la aplicación?')) {
       setData({});
       localStorage.removeItem('mypowerup_data');
+      if (user) {
+        saveUserCloudData(user.uid, { data: {} });
+      }
       showToast('Todos los datos han sido borrados');
     }
   };
 
   const handleExportData = () => {
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
-      JSON.stringify({ data, goals, version: '3.0' }, null, 2)
+      JSON.stringify({ data, goals, rememberedWorkouts, rememberedFoods, version: '3.1' }, null, 2)
     )}`;
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', jsonString);
@@ -139,6 +278,8 @@ export default function App() {
           if (parsed.data) {
             setData(parsed.data);
             if (parsed.goals) setGoals(parsed.goals);
+            if (parsed.rememberedWorkouts) setRememberedWorkouts(parsed.rememberedWorkouts);
+            if (parsed.rememberedFoods) setRememberedFoods(parsed.rememberedFoods);
           } else {
             setData(parsed);
           }
@@ -167,9 +308,9 @@ export default function App() {
 
       {/* HEADER HUD FUTURISTA */}
       <header className="sticky top-0 z-40 bg-space-950/80 backdrop-blur-2xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
           
-          {/* Logo & Marca */}
+          {/* Logo, Marca & Estado de Sincronización */}
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-neon-purple to-neon-cyan flex items-center justify-center text-white font-black text-xl shadow-lg shadow-purple-500/20">
               ⚡
@@ -180,8 +321,36 @@ export default function App() {
                   MYPOWERUP
                 </h1>
                 <span className="text-[10px] font-mono tracking-widest text-neon-cyan px-2 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">
-                  SYSTEM v3
+                  SYSTEM v3.1
                 </span>
+              </div>
+              
+              {/* Indicador de Nube / Sincronización */}
+              <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono">
+                {syncStatus === 'synced' && (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    CLOUD SYNC: CONECTADO
+                  </span>
+                )}
+                {syncStatus === 'syncing' && (
+                  <span className="text-amber-400 flex items-center gap-1">
+                    <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                    SINCRONIZANDO NUBE...
+                  </span>
+                )}
+                {syncStatus === 'local' && (
+                  <span className="text-neutral-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+                    MODO LOCAL (OFFLINE)
+                  </span>
+                )}
+                {syncStatus === 'error' && (
+                  <span className="text-rose-400 flex items-center gap-1">
+                    <AlertCircle className="w-2.5 h-2.5" />
+                    ERROR NUBE (REINTENTANDO)
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -222,8 +391,8 @@ export default function App() {
             </button>
           </nav>
 
-          {/* Selector de Fecha & Controles */}
-          <div className="flex items-center gap-3">
+          {/* Selector de Fecha & Controles de Usuario HUD */}
+          <div className="flex items-center gap-2.5">
             
             {/* Control de Fecha */}
             <div className="flex items-center bg-space-900 border border-white/10 rounded-xl p-1 text-xs font-mono">
@@ -258,7 +427,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Acciones */}
+            {/* Acciones Rápidas */}
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setIsGoalsOpen(true)}
@@ -301,6 +470,53 @@ export default function App() {
               )}
             </div>
 
+            {/* SECCIÓN USUARIO / LOGIN HUD */}
+            <div className="pl-2 border-l border-white/10 flex items-center">
+              {user ? (
+                <div className="flex items-center gap-2 bg-space-900/90 border border-purple-500/30 rounded-xl p-1 pr-2 text-xs font-mono">
+                  {user.photoURL ? (
+                    <img 
+                      src={user.photoURL} 
+                      alt="avatar" 
+                      className="w-7 h-7 rounded-lg object-cover border border-neon-cyan/40"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-neon-purple to-neon-violet flex items-center justify-center text-white font-bold text-[11px] shadow-sm">
+                      {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                  
+                  <div className="hidden sm:block text-left">
+                    <p className="text-[11px] font-bold text-white leading-tight truncate max-w-[100px]">
+                      {user.displayName || user.email.split('@')[0]}
+                    </p>
+                    <p className="text-[9px] text-emerald-400 leading-tight">
+                      ● CLOUD ACTIVO
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleLogout}
+                    className="p-1.5 hover:bg-white/10 text-neutral-400 hover:text-rose-400 rounded-lg transition-colors ml-1"
+                    title="Cerrar Sesión"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="group relative p-2.5 rounded-xl bg-space-900/90 hover:bg-space-850 border border-purple-500/40 hover:border-neon-cyan/70 shadow-[0_0_15px_rgba(139,92,246,0.25)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all duration-300 flex items-center justify-center active:scale-95"
+                  title="Iniciar Sesión / Cloud Sync"
+                >
+                  <div className="relative flex items-center justify-center">
+                    <UserIcon className="w-4 h-4 text-neutral-200 group-hover:text-white transition-colors" />
+                    <span className="absolute -top-1.5 -right-1.5 w-2 h-2 rounded-full bg-gradient-to-r from-neon-purple to-neon-cyan shadow-[0_0_8px_#06B6D4] animate-pulse"></span>
+                  </div>
+                </button>
+              )}
+            </div>
+
           </div>
 
         </div>
@@ -316,6 +532,10 @@ export default function App() {
             onDeleteFood={handleDeleteFood}
             onAddWorkout={handleAddWorkout}
             onDeleteWorkout={handleDeleteWorkout}
+            rememberedWorkouts={rememberedWorkouts}
+            onUpdateRememberedWorkouts={setRememberedWorkouts}
+            rememberedFoods={rememberedFoods}
+            onUpdateRememberedFoods={setRememberedFoods}
           />
         )}
 
@@ -348,6 +568,15 @@ export default function App() {
         onSaveGoals={(newGoals) => {
           setGoals(newGoals);
           showToast('Metas guardadas');
+        }}
+      />
+
+      {/* Modal de Login / Registro Cloud */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={() => {
+          showToast('Sesión iniciada con éxito');
         }}
       />
 

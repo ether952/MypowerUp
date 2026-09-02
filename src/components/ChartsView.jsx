@@ -35,7 +35,7 @@ export default function ChartsView({ data, goals }) {
           <p className="font-bold text-white border-b border-white/10 pb-1">{label}</p>
           {payload.map((entry, index) => (
             <div key={index} className="flex items-center justify-between gap-4 py-0.5">
-              <span style={{ color: entry.color }} className="font-medium">
+              <span className="font-medium text-neon-cyan">
                 {entry.name}:
               </span>
               <span className="font-bold text-white">
@@ -79,7 +79,7 @@ export default function ChartsView({ data, goals }) {
         </div>
       </div>
 
-      {/* KPI HUD */}
+      {/* KPI HUD - TODOS DEL MISMO COLOR UNIFICADO */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-5 bg-space-900/50 border-l-2 border-neon-purple rounded-xl">
           <span className="block text-[11px] font-mono text-neutral-400 uppercase">Días Entrenados</span>
@@ -88,24 +88,24 @@ export default function ChartsView({ data, goals }) {
           </span>
         </div>
 
-        <div className="p-5 bg-space-900/50 border-l-2 border-neon-mint rounded-xl">
+        <div className="p-5 bg-space-900/50 border-l-2 border-neon-purple rounded-xl">
           <span className="block text-[11px] font-mono text-neutral-400 uppercase">Carga Total</span>
-          <span className="text-2xl sm:text-3xl font-black font-mono text-neon-mint mt-1 block">
-            {totalPeriodTonnage.toLocaleString()} <span className="text-xs text-neutral-500 font-normal">kg</span>
+          <span className="text-2xl sm:text-3xl font-black font-mono text-white mt-1 block">
+            {totalPeriodTonnage.toLocaleString()} <span className="text-xs text-neon-cyan font-normal">kg</span>
           </span>
         </div>
 
-        <div className="p-5 bg-space-900/50 border-l-2 border-neon-yellow rounded-xl">
+        <div className="p-5 bg-space-900/50 border-l-2 border-neon-purple rounded-xl">
           <span className="block text-[11px] font-mono text-neutral-400 uppercase">Promedio Kcal</span>
-          <span className="text-2xl sm:text-3xl font-black font-mono text-neon-yellow mt-1 block">
-            {avgCalories.toLocaleString()} <span className="text-xs text-neutral-500 font-normal">kcal</span>
+          <span className="text-2xl sm:text-3xl font-black font-mono text-white mt-1 block">
+            {avgCalories.toLocaleString()} <span className="text-xs text-neon-cyan font-normal">kcal</span>
           </span>
         </div>
 
-        <div className="p-5 bg-space-900/50 border-l-2 border-neon-cyan rounded-xl">
+        <div className="p-5 bg-space-900/50 border-l-2 border-neon-purple rounded-xl">
           <span className="block text-[11px] font-mono text-neutral-400 uppercase">Promedio Proteína</span>
-          <span className="text-2xl sm:text-3xl font-black font-mono text-neon-cyan mt-1 block">
-            {avgProtein} <span className="text-xs text-neutral-500 font-normal">g</span>
+          <span className="text-2xl sm:text-3xl font-black font-mono text-white mt-1 block">
+            {avgProtein} <span className="text-xs text-neon-cyan font-normal">g</span>
           </span>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function ChartsView({ data, goals }) {
       {/* Gráfico 1: Volumen de Carga */}
       <div className="p-6 bg-space-900/40 border border-white/5 rounded-2xl space-y-4">
         <div className="flex justify-between items-center border-b border-white/5 pb-3">
-          <h3 className="font-mono font-bold text-white text-sm uppercase tracking-wider text-neon-purple">
+          <h3 className="font-mono font-bold text-sm uppercase tracking-wider text-neon-purple">
             // VOLUMEN DE CARGA EN GIMNASIO (KG)
           </h3>
           <span className="text-xs font-mono text-neutral-500">Series × Reps × Peso</span>
@@ -125,14 +125,14 @@ export default function ChartsView({ data, goals }) {
               <defs>
                 <linearGradient id="purpleBar" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#8B5CF6" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#3B2F7E" stopOpacity={0.6}/>
+                  <stop offset="100%" stopColor="#3B2F7E" stopOpacity={0.5}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="2 2" stroke="rgba(255,255,255,0.05)" vertical={false} />
               <XAxis dataKey="shortLabel" stroke="#64748B" fontSize={11} tickLine={false} />
               <YAxis stroke="#64748B" fontSize={11} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
               <Tooltip content={<CustomTooltip />} />
-              <ReferenceLine y={goals?.tonnage || 5000} stroke="#00F5A0" strokeDasharray="3 3" />
+              <ReferenceLine y={goals?.tonnage || 5000} stroke="#06B6D4" strokeDasharray="3 3" />
               <Bar dataKey="tonnage" name="Volumen" unit="kg" fill="url(#purpleBar)" radius={[4, 4, 0, 0]} maxBarSize={48} />
             </BarChart>
           </ResponsiveContainer>
@@ -145,7 +145,7 @@ export default function ChartsView({ data, goals }) {
         {/* Calorías */}
         <div className="p-6 bg-space-900/40 border border-white/5 rounded-2xl space-y-4">
           <div className="flex justify-between items-center border-b border-white/5 pb-3">
-            <h3 className="font-mono font-bold text-sm uppercase text-neon-yellow">
+            <h3 className="font-mono font-bold text-sm uppercase text-neon-purple">
               // CALORÍAS DIARIAS (KCAL)
             </h3>
             <span className="text-xs font-mono text-neutral-500">Meta: {goals?.calories || 2400}</span>
@@ -155,17 +155,17 @@ export default function ChartsView({ data, goals }) {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="yellowArea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FACC15" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#FACC15" stopOpacity={0}/>
+                  <linearGradient id="purpleAreaCal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="2 2" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <XAxis dataKey="shortLabel" stroke="#64748B" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <ReferenceLine y={goals?.calories || 2400} stroke="#FACC15" strokeDasharray="3 3" />
-                <Area type="monotone" dataKey="calories" name="Calorías" unit="kcal" stroke="#FACC15" strokeWidth={2} fill="url(#yellowArea)" />
+                <ReferenceLine y={goals?.calories || 2400} stroke="#06B6D4" strokeDasharray="3 3" />
+                <Area type="monotone" dataKey="calories" name="Calorías" unit="kcal" stroke="#8B5CF6" strokeWidth={2} fill="url(#purpleAreaCal)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -174,7 +174,7 @@ export default function ChartsView({ data, goals }) {
         {/* Proteína */}
         <div className="p-6 bg-space-900/40 border border-white/5 rounded-2xl space-y-4">
           <div className="flex justify-between items-center border-b border-white/5 pb-3">
-            <h3 className="font-mono font-bold text-sm uppercase text-neon-cyan">
+            <h3 className="font-mono font-bold text-sm uppercase text-neon-purple">
               // PROTEÍNA DIARIA (G)
             </h3>
             <span className="text-xs font-mono text-neutral-500">Meta: {goals?.protein || 150}g</span>
@@ -184,9 +184,9 @@ export default function ChartsView({ data, goals }) {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="cyanArea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
+                  <linearGradient id="purpleAreaProt" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="2 2" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -194,7 +194,7 @@ export default function ChartsView({ data, goals }) {
                 <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <ReferenceLine y={goals?.protein || 150} stroke="#06B6D4" strokeDasharray="3 3" />
-                <Area type="monotone" dataKey="protein" name="Proteína" unit="g" stroke="#06B6D4" strokeWidth={2} fill="url(#cyanArea)" />
+                <Area type="monotone" dataKey="protein" name="Proteína" unit="g" stroke="#8B5CF6" strokeWidth={2} fill="url(#purpleAreaProt)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

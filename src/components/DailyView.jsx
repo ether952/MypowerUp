@@ -57,7 +57,11 @@ export default function DailyView({
   onAddFood, 
   onDeleteFood, 
   onAddWorkout, 
-  onDeleteWorkout 
+  onDeleteWorkout,
+  rememberedWorkouts: propRememberedWorkouts,
+  onUpdateRememberedWorkouts,
+  rememberedFoods: propRememberedFoods,
+  onUpdateRememberedFoods
 }) {
   // === ESTADOS GYM ===
   const [exerciseName, setExerciseName] = useState('');
@@ -79,8 +83,8 @@ export default function DailyView({
   const [foodSuggestions, setFoodSuggestions] = useState([]);
   const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
 
-  // === BASE DE MEMORIA (Persiste en LocalStorage) ===
-  const [rememberedWorkouts, setRememberedWorkouts] = useState(() => {
+  // === BASE DE MEMORIA (Persiste en LocalStorage y Firebase) ===
+  const [localRememberedWorkouts, setLocalRememberedWorkouts] = useState(() => {
     try {
       const saved = localStorage.getItem('mypowerup_remembered_workouts');
       return saved ? JSON.parse(saved) : {};
@@ -89,7 +93,7 @@ export default function DailyView({
     }
   });
 
-  const [rememberedFoods, setRememberedFoods] = useState(() => {
+  const [localRememberedFoods, setLocalRememberedFoods] = useState(() => {
     try {
       const saved = localStorage.getItem('mypowerup_remembered_foods');
       return saved ? JSON.parse(saved) : {};
@@ -97,6 +101,9 @@ export default function DailyView({
       return {};
     }
   });
+
+  const rememberedWorkouts = propRememberedWorkouts !== undefined ? propRememberedWorkouts : localRememberedWorkouts;
+  const rememberedFoods = propRememberedFoods !== undefined ? propRememberedFoods : localRememberedFoods;
 
   const foodSectionRef = useRef(null);
   const exerciseContainerRef = useRef(null);
@@ -237,8 +244,12 @@ export default function DailyView({
         lastUsed: Date.now()
       }
     };
-    setRememberedWorkouts(updated);
-    localStorage.setItem('mypowerup_remembered_workouts', JSON.stringify(updated));
+    if (onUpdateRememberedWorkouts) {
+      onUpdateRememberedWorkouts(updated);
+    } else {
+      setLocalRememberedWorkouts(updated);
+      localStorage.setItem('mypowerup_remembered_workouts', JSON.stringify(updated));
+    }
 
     setExerciseName('');
     setSets('');
@@ -275,8 +286,12 @@ export default function DailyView({
         lastUsed: Date.now()
       }
     };
-    setRememberedFoods(updated);
-    localStorage.setItem('mypowerup_remembered_foods', JSON.stringify(updated));
+    if (onUpdateRememberedFoods) {
+      onUpdateRememberedFoods(updated);
+    } else {
+      setLocalRememberedFoods(updated);
+      localStorage.setItem('mypowerup_remembered_foods', JSON.stringify(updated));
+    }
 
     setFoodName('');
     setCalories('');
