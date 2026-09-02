@@ -9,9 +9,13 @@ export const MEAL_TYPES = [
   { id: 'suplementacion', label: 'Suplementos', tag: 'SUPP' },
 ];
 
+export { NUTRITIONAL_DATABASE, estimateNutrition } from './nutritionDb.js';
+
 export const QUICK_SUPPLEMENTS = [
+  { name: 'Whey Protein (1 scoop de 30g)', calories: 120, protein: 24, mealType: 'suplementacion' },
+  { name: 'Batido Básico (250ml leche desc. + 1 scoop)', calories: 205, protein: 32, mealType: 'suplementacion' },
+  { name: 'Batido Volumen (1 scoop + leche + 1 banana)', calories: 295, protein: 33, mealType: 'suplementacion' },
   { name: 'Creatina Monohidrato (5g)', calories: 0, protein: 0, mealType: 'suplementacion' },
-  { name: 'Proteína Whey (1 scoop / 30g)', calories: 125, protein: 25, mealType: 'suplementacion' },
   { name: 'Proteína Isolate (30g)', calories: 110, protein: 27, mealType: 'suplementacion' },
   { name: 'Pre-Entreno (1 scoop)', calories: 10, protein: 0, mealType: 'suplementacion' },
   { name: 'Glutamina (5g)', calories: 20, protein: 5, mealType: 'suplementacion' },
@@ -100,6 +104,9 @@ export function getDaysRangeData(data, numDays = 7, endDateStr = getLocalDateStr
     const totalProtein = (dayData.foods || []).reduce((acc, f) => acc + (Number(f.protein) || 0), 0);
     const totalTonnage = (dayData.workouts || []).reduce((acc, w) => acc + (Number(w.weight) || 0), 0);
 
+    const totalCardioKm = (dayData.cardios || []).reduce((acc, c) => acc + (Number(c.distance) || 0), 0);
+    const totalCardioBurned = (dayData.cardios || []).reduce((acc, c) => acc + (Number(c.caloriesBurned) || 0), 0);
+
     const dayName = current.toLocaleDateString('es-ES', { weekday: 'short' });
     const formattedDay = `${current.getDate()}/${current.getMonth() + 1}`;
 
@@ -110,24 +117,33 @@ export function getDaysRangeData(data, numDays = 7, endDateStr = getLocalDateStr
       calories: totalCalories,
       protein: totalProtein,
       tonnage: totalTonnage,
+      cardioKm: Math.round(totalCardioKm * 10) / 10,
+      cardioBurned: totalCardioBurned,
       workoutsCount: (dayData.workouts || []).length,
       foodsCount: (dayData.foods || []).length,
+      cardiosCount: (dayData.cardios || []).length,
     });
   }
 
   return result;
 }
 
-// Opciones rápidas de alimentos frecuentes
+// Opciones rápidas de alimentos frecuentes (con valores exactos de la Base de Datos Nutricional)
 export const QUICK_FOODS = [
-  { name: 'Pechuga de pollo (150g)', calories: 245, protein: 46 },
-  { name: 'Huevos enteros (3u)', calories: 215, protein: 18 },
-  { name: 'Arroz blanco cocido (150g)', calories: 195, protein: 4 },
-  { name: 'Avena en copos (80g)', calories: 300, protein: 11 },
+  { name: 'Pechuga de pollo (cocida) (100g)', calories: 165, protein: 31 },
+  { name: 'Huevo entero (aprox. 2 medianos)', calories: 155, protein: 13 },
+  { name: 'Lomito horneado (fetas) (100g)', calories: 120, protein: 20 },
+  { name: 'Queso cremoso (100g)', calories: 300, protein: 22 },
+  { name: 'Avena (tradicional) (100g)', calories: 389, protein: 17 },
+  { name: 'Fideos / Pasta seca (crudos) (100g)', calories: 350, protein: 12 },
+  { name: 'Papa (hervida) (100g)', calories: 87, protein: 2 },
+  { name: 'Pan de masa madre (100g)', calories: 270, protein: 11 },
+  { name: 'Pan lactal común (100g)', calories: 260, protein: 8 },
+  { name: 'Banana (1 unidad ~100g)', calories: 89, protein: 1 },
+  { name: 'Mantequilla de maní (100g)', calories: 588, protein: 25 },
   { name: 'Lata de atún al natural (120g)', calories: 135, protein: 30 },
   { name: 'Carne vacuna magra (200g)', calories: 420, protein: 44 },
   { name: 'Yogur griego natural (200g)', calories: 140, protein: 20 },
-  { name: 'Papas al horno (200g)', calories: 170, protein: 4 },
 ];
 
 // Opciones rápidas de ejercicios comunes
@@ -147,3 +163,39 @@ export const QUICK_EXERCISES = [
   'Hip Thrust',
   'Jalón al pecho en polea'
 ];
+
+// Opciones de cardio y tasas de gasto calórico estimado por km
+export const CARDIO_TYPES = [
+  {
+    id: 'caminata',
+    label: 'Caminata',
+    tag: 'WALK',
+    kcalPerKm: 55, // Promedio caminata moderada: ~55 kcal / km
+    desc: '~55 kcal / km'
+  },
+  {
+    id: 'running',
+    label: 'Running',
+    tag: 'RUN',
+    kcalPerKm: 75, // Promedio running: ~75 kcal / km
+    desc: '~75 kcal / km'
+  },
+  {
+    id: 'bicicleta',
+    label: 'Bicicleta',
+    tag: 'BIKE',
+    kcalPerKm: 35, // Promedio ciclismo ritmo recreativo/medio: ~35 kcal / km
+    desc: '~35 kcal / km'
+  }
+];
+
+/**
+ * Calcula las calorías quemadas estimadas según el tipo de cardio y los km recorridos
+ */
+export function calculateCardioCalories(type, distanceKm) {
+  const km = parseFloat(distanceKm) || 0;
+  if (km <= 0) return 0;
+  const match = CARDIO_TYPES.find((c) => c.id === type) || CARDIO_TYPES[0];
+  return Math.round(km * match.kcalPerKm);
+}
+

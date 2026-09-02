@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
+  ChevronLeft,
   ChevronRight, 
   ChevronDown, 
   Search, 
@@ -8,28 +9,70 @@ import {
   Flame,
   Dumbbell,
   Zap,
-  Activity
+  Activity,
+  Footprints,
+  Bike,
+  Trophy,
+  Award,
+  CheckCircle2,
+  Shield,
+  Info,
+  HelpCircle,
+  X
 } from 'lucide-react';
 import { formatDisplayDate, getLocalDateString } from '../utils/helpers';
+import { calculateLevelProgress, TONNAGE_LEVELS } from '../utils/levelSystem';
+import { calculateCardioLevelProgress } from '../utils/cardioLevelSystem';
 
 export default function HistoryView({ data, goals, onSelectDate }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedDate, setExpandedDate] = useState(null);
+  
+  // Desafío de Musculación
+  const [isChallengeOpen, setIsChallengeOpen] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const rouletteRef = useRef(null);
+
+  // Desafío de Resistencia
+  const [isCardioChallengeOpen, setIsCardioChallengeOpen] = useState(false);
+  const [showCardioModal, setShowCardioModal] = useState(false);
+  const [cardioDiscipline, setCardioDiscipline] = useState('running');
+  const cardioRouletteRef = useRef(null);
+
   const [selectedHistoryDate, setSelectedHistoryDate] = useState(() => getLocalDateString());
+
+  const scrollRoulette = (direction) => {
+    if (rouletteRef.current) {
+      const scrollAmount = direction === 'left' ? -220 : 220;
+      rouletteRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const scrollCardioRoulette = (direction) => {
+    if (cardioRouletteRef.current) {
+      const scrollAmount = direction === 'left' ? -220 : 220;
+      cardioRouletteRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   // Ordenar fechas descendente
   const allDates = Object.keys(data).sort((a, b) => new Date(b) - new Date(a));
 
   // Filtrado por buscador
   const filteredDates = allDates.filter(dateStr => {
-    const dayData = data[dateStr] || { foods: [], workouts: [] };
+    const dayData = data[dateStr] || { foods: [], workouts: [], cardios: [] };
     const query = searchTerm.toLowerCase();
     
     const matchesDate = dateStr.includes(query) || formatDisplayDate(dateStr).toLowerCase().includes(query);
     const matchesFood = (dayData.foods || []).some(f => f.name.toLowerCase().includes(query));
     const matchesWorkout = (dayData.workouts || []).some(w => w.name.toLowerCase().includes(query));
+    const matchesCardio = (dayData.cardios || []).some(c => 
+      (c.from || '').toLowerCase().includes(query) || 
+      (c.to || '').toLowerCase().includes(query) || 
+      (c.type || '').toLowerCase().includes(query)
+    );
 
-    return matchesDate || matchesFood || matchesWorkout;
+    return matchesDate || matchesFood || matchesWorkout || matchesCardio;
   });
 
   const toggleExpand = (dateStr) => {
@@ -37,13 +80,16 @@ export default function HistoryView({ data, goals, onSelectDate }) {
   };
 
   // Datos del día seleccionado en el panel superior
-  const currentDayStats = data[selectedHistoryDate] || { foods: [], workouts: [] };
+  const currentDayStats = data[selectedHistoryDate] || { foods: [], workouts: [], cardios: [] };
   const dayCalories = (currentDayStats.foods || []).reduce((acc, f) => acc + (Number(f.calories) || 0), 0);
   const dayProtein = (currentDayStats.foods || []).reduce((acc, f) => acc + (Number(f.protein) || 0), 0);
   const dayTonnage = (currentDayStats.workouts || []).reduce(
     (acc, w) => acc + (Number(w.weight) || 0), 
     0
   );
+  const dayCardios = currentDayStats.cardios || [];
+  const dayCardioKm = dayCardios.reduce((acc, c) => acc + (Number(c.distance) || 0), 0);
+  const dayCardioBurned = dayCardios.reduce((acc, c) => acc + (Number(c.caloriesBurned) || 0), 0);
 
   const calGoal = goals?.calories || 2400;
   const protGoal = goals?.protein || 150;
@@ -53,6 +99,9 @@ export default function HistoryView({ data, goals, onSelectDate }) {
   const protPercent = Math.min(Math.round((dayProtein / protGoal) * 100), 100);
   const tonPercent = Math.min(Math.round((dayTonnage / tonGoal) * 100), 100);
 
+  const levelProgress = calculateLevelProgress(data, selectedHistoryDate);
+  const cardioProgress = calculateCardioLevelProgress(data, cardioDiscipline, selectedHistoryDate);
+
   return (
     <div className="space-y-12 animate-slide-up">
       
@@ -60,7 +109,7 @@ export default function HistoryView({ data, goals, onSelectDate }) {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-purple-500/20 pb-6">
         <div>
           <span className="text-xs font-mono tracking-widest text-neon-purple uppercase">// BASE DE DATOS DIARIA</span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight font-display">
             HISTORIAL & <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple to-neon-cyan">REGISTROS</span>
           </h2>
         </div>
@@ -68,6 +117,532 @@ export default function HistoryView({ data, goals, onSelectDate }) {
         <div className="text-xs font-mono text-neutral-400 bg-space-900 px-4 py-2 rounded-xl border border-white/10">
           Total días registrados: <strong className="text-white">{allDates.length}</strong>
         </div>
+      </div>
+
+      {/* Pop-up Modal Explicativo: ¡Desafío de Musculación! */}
+      {showChallengeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#0E0926] border border-amber-500/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl shadow-amber-500/15 relative">
+            <button
+              type="button"
+              onClick={() => setShowChallengeModal(false)}
+              className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="border-b border-white/10 pb-3 pr-8">
+              <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest block font-bold">
+                // GUÍA RÁPIDA
+              </span>
+              <h3 className="text-2xl font-black text-white uppercase font-display tracking-tight mt-0.5">
+                ¡Desafío de Musculación!
+              </h3>
+            </div>
+
+            <div className="py-2 font-sans text-neutral-300 text-sm leading-relaxed">
+              <p>
+                El <strong className="text-white">Desafío de Musculación</strong> suma automáticamente el volumen total que levantas en la semana (<span className="text-neon-cyan font-mono font-semibold">Series × Reps × Peso</span>). Si antes del domingo completas la meta de tu rango actual, conquistas el reto y subes al siguiente nivel con una exigencia progresiva. Tu nivel <strong className="text-amber-400 font-semibold">nunca baja</strong> si una semana descansas o no alcanzas el peso; cada lunes comienza un nuevo ciclo limpio para que avances con calma y a tu propio ritmo, priorizando siempre la técnica y la salud de tus articulaciones.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowChallengeModal(false);
+                setIsChallengeOpen(true);
+              }}
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-black font-bold font-sans text-sm uppercase tracking-wide hover:opacity-95 transition-opacity shadow-lg shadow-amber-500/25 cursor-pointer"
+            >
+              ¡Entendido, a entrenar!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Pop-up Modal Explicativo: ¡Desafío de Resistencia! */}
+      {showCardioModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#0A161E] border border-emerald-500/40 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl shadow-emerald-500/15 relative">
+            <button
+              type="button"
+              onClick={() => setShowCardioModal(false)}
+              className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="border-b border-white/10 pb-3 pr-8">
+              <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest block font-bold">
+                // GUÍA RÁPIDA
+              </span>
+              <h3 className="text-2xl font-black text-white uppercase font-display tracking-tight mt-0.5">
+                ¡Desafío de Resistencia!
+              </h3>
+            </div>
+
+            <div className="py-2 font-sans text-neutral-300 text-sm leading-relaxed">
+              <p>
+                El <strong className="text-white">Desafío de Resistencia</strong> calcula automáticamente los kilómetros acumulados durante la semana (lunes a domingo) según la actividad que elijas: <strong className="text-emerald-400">caminata</strong>, <strong className="text-amber-400">running</strong> o <strong className="text-cyan-400">bicicleta</strong>. Cada disciplina cuenta con metas adaptadas a la fisiología humana: en caminata las distancias son moderadas, en running intermedias y en bicicleta más extensas. Si antes del domingo completas los kilómetros de tu rango actual, superas el reto y subes de nivel. Tu nivel <strong className="text-emerald-400 font-semibold">nunca baja</strong> si una semana descansas o no alcanzas la distancia; cada lunes el contador se reinicia a 0 km para continuar a tu propio ritmo.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowCardioModal(false);
+                setIsCardioChallengeOpen(true);
+              }}
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 text-black font-bold font-sans text-sm uppercase tracking-wide hover:opacity-95 transition-opacity shadow-lg shadow-emerald-500/25 cursor-pointer"
+            >
+              ¡Entendido, a sumar kilómetros!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* BOTÓN DESPLEGABLE MINIMIZADO: ¡DESAFÍO DE MUSCULACIÓN!                    */}
+      {/* ========================================================================= */}
+      <div className="pt-1 border-b border-white/10 pb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#161033] to-purple-950/25 border border-amber-500/30 shadow-lg shadow-amber-500/5">
+          <div
+            onClick={() => {
+              setIsChallengeOpen(true);
+              setShowChallengeModal(true);
+            }}
+            className="flex items-center gap-3 text-left group cursor-pointer hover:opacity-95 transition-opacity flex-1"
+          >
+            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.25)] flex-shrink-0">
+              <Trophy className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-display font-black text-base sm:text-lg text-white uppercase tracking-tight">
+                  ¡Desafío de Musculación!
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 border border-amber-400/30 font-bold">
+                  NIVEL {levelProgress.currentLevel.level}: {levelProgress.currentLevel.name.toUpperCase()}
+                </span>
+              </div>
+              <p className="text-xs text-neutral-400 font-sans mt-0.5">
+                Semana: <strong className="text-white font-mono">{levelProgress.currentWeekTonnage.toLocaleString()} kg</strong> / {levelProgress.weeklyGoal.toLocaleString()} kg ({levelProgress.progressPercent}%)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-center">
+            <button
+              type="button"
+              onClick={() => {
+                if (!isChallengeOpen) {
+                  setIsChallengeOpen(true);
+                  setShowChallengeModal(true);
+                } else {
+                  setIsChallengeOpen(false);
+                }
+              }}
+              className={`px-5 py-2.5 rounded-xl font-bold font-sans text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md ${
+                !isChallengeOpen
+                  ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-black shadow-amber-500/25 hover:opacity-95 hover:scale-[1.02]'
+                  : 'bg-space-900/80 hover:bg-space-850 text-neutral-300 border border-white/10'
+              }`}
+            >
+              <span>{isChallengeOpen ? 'Ocultar' : 'Jugar'}</span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isChallengeOpen ? 'rotate-180 text-amber-400' : ''}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* CONTENIDO DESPLEGABLE DEL DESAFÍO */}
+        {isChallengeOpen && (
+          <div className="space-y-4 animate-fade-in-up pt-2">
+            
+            {/* Barra de Progreso del Reto Semanal */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs font-mono">
+                <span className="text-neutral-400">
+                  Levantado esta semana: <strong className="text-white text-sm">{levelProgress.currentWeekTonnage.toLocaleString()} kg</strong>
+                </span>
+                <span className="text-amber-400 font-bold">
+                  Meta Reto: {levelProgress.weeklyGoal.toLocaleString()} kg ({levelProgress.progressPercent}%)
+                </span>
+              </div>
+
+              <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden p-0.5 border border-white/10">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.5)] transition-all duration-700 ease-out"
+                  style={{ width: `${levelProgress.progressPercent}%` }}
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-mono text-neutral-400 gap-1 pt-1">
+                <div>
+                  {levelProgress.isGoalAchieved ? (
+                    <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      ¡Reto semanal conquistado! Has superado el tonelaje y alcanzado este rango.
+                    </span>
+                  ) : (
+                    <span>
+                      Faltan <strong className="text-amber-400">{levelProgress.remainingKg.toLocaleString()} kg</strong> esta semana para subir al siguiente nivel.
+                    </span>
+                  )}
+                </div>
+
+                {levelProgress.nextLevel && (
+                  <span className="text-neutral-500">
+                    Próximo requisito: <span className="text-neutral-300 font-semibold">{levelProgress.nextLevel.name}</span> ({levelProgress.nextLevel.weeklyGoalKg.toLocaleString()} kg)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* RULETA DE RANGOS & OBJETIVOS (UNO AL LADO DEL OTRO EN MODO RULETA) */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between items-center font-mono text-xs text-neutral-400">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5 text-neutral-300">
+                    <Award className="w-3.5 h-3.5 text-amber-400" />
+                    // RULETA DE RANGOS & OBJETIVOS SEMANALES
+                  </span>
+                  <span className="text-[10px] text-neutral-500 hidden sm:inline">
+                    (Desliza para explorar los niveles)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => scrollRoulette('left')}
+                    className="p-1.5 rounded-lg bg-space-900 hover:bg-space-850 border border-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Anterior"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollRoulette('right')}
+                    className="p-1.5 rounded-lg bg-space-900 hover:bg-space-850 border border-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Siguiente"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Contenedor Ruleta Horizontal */}
+              <div
+                ref={rouletteRef}
+                className="flex items-stretch gap-3 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-none"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {TONNAGE_LEVELS.map((lvl) => {
+                  const isCurrent = lvl.level === levelProgress.currentLevel.level;
+                  const isUnlocked = lvl.level <= levelProgress.currentLevel.level;
+                  return (
+                    <div
+                      key={lvl.level}
+                      className={`flex-shrink-0 w-44 sm:w-48 snap-center p-4 rounded-2xl border transition-all flex flex-col justify-between select-none ${
+                        isCurrent
+                          ? 'border-amber-400 bg-gradient-to-b from-amber-500/20 via-[#181133] to-black/60 shadow-[0_0_20px_rgba(245,158,11,0.25)] ring-1 ring-amber-400'
+                          : isUnlocked
+                          ? 'border-white/10 bg-space-900/60 hover:border-white/20 text-neutral-300'
+                          : 'border-white/5 bg-black/40 text-neutral-600 opacity-60'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex justify-between items-center mb-1.5 text-xs font-mono">
+                          <span className={`font-bold ${isCurrent ? 'text-amber-400' : 'text-neutral-400'}`}>
+                            LVL {lvl.level}
+                          </span>
+                          {isCurrent ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-black font-sans uppercase shadow-sm">
+                              ACTUAL
+                            </span>
+                          ) : isUnlocked ? (
+                            <span className="text-emerald-400 font-bold text-xs">✓</span>
+                          ) : (
+                            <span className="text-neutral-600 text-xs">🔒</span>
+                          )}
+                        </div>
+                        <h4 className="font-display font-black text-sm text-white tracking-tight truncate">
+                          {lvl.name}
+                        </h4>
+                        <p className="text-[11px] text-neutral-400 font-sans mt-0.5 line-clamp-1">
+                          {lvl.title}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-2.5 border-t border-white/5">
+                        <span className="text-[10px] font-mono text-neutral-400 uppercase block">Meta Semanal</span>
+                        <span className="font-mono font-bold text-base text-amber-300">
+                          {lvl.weeklyGoalKg.toLocaleString()} <span className="text-xs font-sans text-neutral-400 font-normal">kg</span>
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CUADRO REDISEÑADO: RECOMENDACIÓN DE AVANCE & FUENTE MODERNA */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-[#150F2C] to-transparent border border-amber-500/25 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 font-sans shadow-lg shadow-black/20">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/25 flex-shrink-0">
+                  <Shield className="w-5 h-5 text-amber-400" />
+                </div>
+                <p className="text-neutral-200 text-xs sm:text-sm leading-relaxed font-sans font-normal">
+                  <strong className="text-amber-400 font-semibold">Progreso a tu propio ritmo:</strong> Ve despacio y prioriza siempre la técnica y la recuperación antes que el peso. El tonelaje subirá solo con la constancia; no te apresures ni sacrifiques la forma.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 text-xs text-neutral-300 bg-space-900/90 px-4 py-2.5 rounded-xl border border-cyan-500/25 flex-shrink-0 font-sans shadow-inner">
+                <Info className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <span>¿No llegaste a la meta esta semana? <strong className="text-white font-semibold">Tu nivel nunca baja</strong>; cada lunes tienes un nuevo intento limpio.</span>
+              </div>
+            </div>
+
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* BOTÓN DESPLEGABLE MINIMIZADO: ¡DESAFÍO DE RESISTENCIA!                   */}
+      {/* ========================================================================= */}
+      <div className="pt-1 border-b border-white/10 pb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-[#0d211d] to-teal-950/25 border border-emerald-500/30 shadow-lg shadow-emerald-500/5">
+          <div
+            onClick={() => {
+              setIsCardioChallengeOpen(true);
+              setShowCardioModal(true);
+            }}
+            className="flex items-center gap-3 text-left group cursor-pointer hover:opacity-95 transition-opacity flex-1"
+          >
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(16,185,129,0.25)] flex-shrink-0">
+              <Footprints className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-display font-black text-base sm:text-lg text-white uppercase tracking-tight">
+                  ¡Desafío de Resistencia!
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400 border border-emerald-400/30 font-bold uppercase">
+                  NIVEL {cardioProgress.currentLevel.level}: {cardioProgress.currentLevel.name} ({cardioProgress.disciplineInfo.name})
+                </span>
+              </div>
+              <p className="text-xs text-neutral-400 font-sans mt-0.5">
+                Semana: <strong className="text-white font-mono">{cardioProgress.currentWeekKm} km</strong> / {cardioProgress.weeklyGoal} km ({cardioProgress.progressPercent}%)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-center">
+            <button
+              type="button"
+              onClick={() => {
+                if (!isCardioChallengeOpen) {
+                  setIsCardioChallengeOpen(true);
+                  setShowCardioModal(true);
+                } else {
+                  setIsCardioChallengeOpen(false);
+                }
+              }}
+              className={`px-5 py-2.5 rounded-xl font-bold font-sans text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md ${
+                !isCardioChallengeOpen
+                  ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 text-black shadow-emerald-500/25 hover:opacity-95 hover:scale-[1.02]'
+                  : 'bg-space-900/80 hover:bg-space-850 text-neutral-300 border border-white/10'
+              }`}
+            >
+              <span>{isCardioChallengeOpen ? 'Ocultar' : 'Jugar'}</span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCardioChallengeOpen ? 'rotate-180 text-emerald-400' : ''}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* CONTENIDO DESPLEGABLE DEL DESAFÍO DE RESISTENCIA */}
+        {isCardioChallengeOpen && (
+          <div className="space-y-4 animate-fade-in-up pt-2">
+            
+            {/* Selector de Disciplina: Caminata, Running, Bicicleta */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-space-900/60 border border-white/5 font-sans">
+              <span className="text-xs font-mono text-neutral-400 uppercase">
+                // Elige tu disciplina para el reto:
+              </span>
+              <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-mono">
+                {[
+                  { id: 'caminata', label: 'Caminata', icon: Footprints, color: 'text-emerald-400' },
+                  { id: 'running', label: 'Running', icon: Flame, color: 'text-amber-400' },
+                  { id: 'bicicleta', label: 'Bicicleta', icon: Bike, color: 'text-cyan-400' }
+                ].map((d) => {
+                  const IconComp = d.icon;
+                  const isActive = cardioDiscipline === d.id;
+                  return (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => setCardioDiscipline(d.id)}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer uppercase text-xs ${
+                        isActive
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-black shadow-md shadow-emerald-500/20'
+                          : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <IconComp className="w-3.5 h-3.5" />
+                      <span>{d.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Barra de Progreso Semanal */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs font-mono">
+                <span className="text-neutral-400">
+                  Recorrido esta semana en {cardioProgress.disciplineInfo.name}: <strong className="text-white text-sm">{cardioProgress.currentWeekKm} km</strong>
+                </span>
+                <span className="text-emerald-400 font-bold">
+                  Meta Reto: {cardioProgress.weeklyGoal} km ({cardioProgress.progressPercent}%)
+                </span>
+              </div>
+
+              <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden p-0.5 border border-white/10">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 shadow-[0_0_12px_rgba(16,185,129,0.5)] transition-all duration-700 ease-out"
+                  style={{ width: `${cardioProgress.progressPercent}%` }}
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-mono text-neutral-400 gap-1 pt-1">
+                <div>
+                  {cardioProgress.isGoalAchieved ? (
+                    <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      ¡Reto semanal de resistencia conquistado! Has superado la distancia y alcanzado este rango.
+                    </span>
+                  ) : (
+                    <span>
+                      Faltan <strong className="text-emerald-400">{cardioProgress.remainingKm} km</strong> esta semana para subir al siguiente nivel.
+                    </span>
+                  )}
+                </div>
+
+                {cardioProgress.nextLevel && (
+                  <span className="text-neutral-500">
+                    Próximo requisito: <span className="text-neutral-300 font-semibold">{cardioProgress.nextLevel.name}</span> ({cardioProgress.nextLevel.weeklyGoalKm} km)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* RULETA DE RANGOS & METAS SEMANALES DE CARDIO */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between items-center font-mono text-xs text-neutral-400">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5 text-neutral-300">
+                    <Award className="w-3.5 h-3.5 text-emerald-400" />
+                    // RULETA DE RANGOS: {cardioProgress.disciplineInfo.name.toUpperCase()}
+                  </span>
+                  <span className="text-[10px] text-neutral-500 hidden sm:inline">
+                    (Desliza para explorar los niveles)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => scrollCardioRoulette('left')}
+                    className="p-1.5 rounded-lg bg-space-900 hover:bg-space-850 border border-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Anterior"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollCardioRoulette('right')}
+                    className="p-1.5 rounded-lg bg-space-900 hover:bg-space-850 border border-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                    title="Siguiente"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Contenedor Ruleta Horizontal */}
+              <div
+                ref={cardioRouletteRef}
+                className="flex items-stretch gap-3 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-none"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {cardioProgress.levels.map((lvl) => {
+                  const isCurrent = lvl.level === cardioProgress.currentLevel.level;
+                  const isUnlocked = lvl.level <= cardioProgress.currentLevel.level;
+                  return (
+                    <div
+                      key={lvl.level}
+                      className={`flex-shrink-0 w-44 sm:w-48 snap-center p-4 rounded-2xl border transition-all flex flex-col justify-between select-none ${
+                        isCurrent
+                          ? 'border-emerald-400 bg-gradient-to-b from-emerald-500/20 via-[#0d211d] to-black/60 shadow-[0_0_20px_rgba(16,185,129,0.25)] ring-1 ring-emerald-400'
+                          : isUnlocked
+                          ? 'border-white/10 bg-space-900/60 hover:border-white/20 text-neutral-300'
+                          : 'border-white/5 bg-black/40 text-neutral-600 opacity-60'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex justify-between items-center mb-1.5 text-xs font-mono">
+                          <span className={`font-bold ${isCurrent ? 'text-emerald-400' : 'text-neutral-400'}`}>
+                            LVL {lvl.level}
+                          </span>
+                          {isCurrent ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-400 text-black font-sans uppercase shadow-sm">
+                              ACTUAL
+                            </span>
+                          ) : isUnlocked ? (
+                            <span className="text-emerald-400 font-bold text-xs">✓</span>
+                          ) : (
+                            <span className="text-neutral-600 text-xs">🔒</span>
+                          )}
+                        </div>
+                        <h4 className="font-display font-black text-sm text-white tracking-tight truncate">
+                          {lvl.name}
+                        </h4>
+                        <p className="text-[11px] text-neutral-400 font-sans mt-0.5 line-clamp-1">
+                          {lvl.title}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-2.5 border-t border-white/5">
+                        <span className="text-[10px] font-mono text-neutral-400 uppercase block">Meta Semanal</span>
+                        <span className="font-mono font-bold text-base text-emerald-300">
+                          {lvl.weeklyGoalKm} <span className="text-xs font-sans text-neutral-400 font-normal">km</span>
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CUADRO REDISEÑADO: RECOMENDACIÓN DE AVANCE AERÓBICO */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-[#0d211d] to-transparent border border-emerald-500/25 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 font-sans shadow-lg shadow-black/20">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex-shrink-0">
+                  <Shield className="w-5 h-5 text-emerald-400" />
+                </div>
+                <p className="text-neutral-200 text-xs sm:text-sm leading-relaxed font-sans font-normal">
+                  <strong className="text-emerald-400 font-semibold">Resistencia a tu propio ritmo:</strong> Incrementa los kilómetros gradualmente y escucha a tu cuerpo. La capacidad aeróbica se construye con regularidad y descanso adecuado.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 text-xs text-neutral-300 bg-space-900/90 px-4 py-2.5 rounded-xl border border-teal-500/25 flex-shrink-0 font-sans shadow-inner">
+                <Info className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                <span>¿No llegaste a la meta esta semana? <strong className="text-white font-semibold">Tu nivel nunca baja</strong>; cada lunes tienes un nuevo intento limpio.</span>
+              </div>
+            </div>
+
+          </div>
+        )}
       </div>
 
       {/* RESUMEN DEL DÍA SELECCIONADO - DISEÑO MODERNO Y SUELTO (SIN CUADROS QUE LIMITEN) */}
@@ -164,6 +739,35 @@ export default function HistoryView({ data, goals, onSelectDate }) {
           </div>
 
         </section>
+
+        {/* Banner de Cardio del día - SOLO SI SE CARGÓ ALGO */}
+        {dayCardios.length > 0 && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in-up">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                <Footprints className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">
+                  // CARDIO & DESPLAZAMIENTOS ({dayCardios.length} {dayCardios.length === 1 ? 'SESIÓN' : 'SESIONES'})
+                </span>
+                <p className="text-white font-black text-base font-mono">
+                  {Math.round(dayCardioKm * 10) / 10} <span className="text-xs text-neutral-400 font-sans">KM</span> • <span className="text-amber-400">~{dayCardioBurned}</span> <span className="text-xs text-neutral-400 font-sans">KCAL QUEMADAS</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {dayCardios.map((c) => (
+                <span key={c.id} className="text-xs font-mono px-2.5 py-1 rounded-lg bg-[#0E0926] text-neutral-200 border border-emerald-500/30 flex items-center gap-1.5">
+                  <span className="text-emerald-400 font-bold uppercase">{c.type}:</span>
+                  <span>{c.from} ➔ {c.to}</span>
+                  <span className="text-white font-bold">({c.distance}km)</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Buscador & Lista de Días */}
@@ -192,13 +796,16 @@ export default function HistoryView({ data, goals, onSelectDate }) {
         ) : (
           <div className="space-y-4">
             {filteredDates.map((dateStr) => {
-              const dayData = data[dateStr] || { foods: [], workouts: [] };
+              const dayData = data[dateStr] || { foods: [], workouts: [], cardios: [] };
               const foods = dayData.foods || [];
               const workouts = dayData.workouts || [];
+              const cardios = dayData.cardios || [];
 
               const totalCalories = foods.reduce((acc, f) => acc + (Number(f.calories) || 0), 0);
               const totalProtein = foods.reduce((acc, f) => acc + (Number(f.protein) || 0), 0);
               const totalTonnage = workouts.reduce((acc, w) => acc + (Number(w.weight) || 0), 0);
+              const totalCardioKm = cardios.reduce((acc, c) => acc + (Number(c.distance) || 0), 0);
+              const totalCardioBurned = cardios.reduce((acc, c) => acc + (Number(c.caloriesBurned) || 0), 0);
 
               const isExpanded = expandedDate === dateStr;
               const isSelected = selectedHistoryDate === dateStr;
@@ -221,10 +828,19 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                           {dateStr}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-xs font-mono text-neutral-400 mt-1">
+                      <div className="flex items-center gap-4 text-xs font-mono text-neutral-400 mt-1 flex-wrap">
                         <span>{workouts.length} ejercicios</span>
                         <span>•</span>
                         <span>{foods.length} alimentos/suplementos</span>
+                        {cardios.length > 0 && (
+                          <>
+                            <span>•</span>
+                            <span className="text-emerald-400 font-bold flex items-center gap-1">
+                              <Footprints className="w-3.5 h-3.5" />
+                              {Math.round(totalCardioKm * 10) / 10} km cardio
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -235,6 +851,12 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                         <span className="text-neon-cyan">{totalCalories} kcal</span>
                         <span className="text-neutral-600">•</span>
                         <span className="text-neon-purple">{totalProtein}g prot</span>
+                        {cardios.length > 0 && (
+                          <>
+                            <span className="text-neutral-600">•</span>
+                            <span className="text-amber-400 font-semibold">~{totalCardioBurned} kcal quemadas</span>
+                          </>
+                        )}
                       </div>
 
                       <button
@@ -256,7 +878,7 @@ export default function HistoryView({ data, goals, onSelectDate }) {
 
                   {/* Desglose Expandible */}
                   {isExpanded && (
-                    <div className="p-6 border-t border-white/5 bg-space-950/80 grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in-up">
+                    <div className={`p-6 border-t border-white/5 bg-space-950/80 grid grid-cols-1 ${cardios.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 animate-fade-in-up`}>
                       
                       {/* Ejercicios */}
                       <div className="space-y-3">
@@ -312,6 +934,49 @@ export default function HistoryView({ data, goals, onSelectDate }) {
                           </div>
                         )}
                       </div>
+
+                      {/* Sesiones de Cardio - SOLO SI SE CARGÓ ALGO */}
+                      {cardios.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="text-xs font-mono text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <Footprints className="w-3.5 h-3.5" />
+                            <span>// CARDIO & DISTANCIA ({cardios.length})</span>
+                          </div>
+                          <div className="space-y-2">
+                            {cardios.map((c) => {
+                              const isRun = c.type === 'running';
+                              const isBike = c.type === 'bicicleta';
+                              return (
+                                <div key={c.id} className="p-3 bg-space-900/60 border border-emerald-500/20 rounded-lg flex flex-col justify-between gap-1 text-xs font-mono">
+                                  <div className="flex justify-between items-center">
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
+                                      isRun
+                                        ? 'bg-amber-400/10 text-amber-400 border border-amber-400/30'
+                                        : isBike
+                                        ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/30'
+                                        : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/30'
+                                    }`}>
+                                      {c.type}
+                                    </span>
+                                    {c.time && <span className="text-neutral-500 text-[10px]">({c.time})</span>}
+                                  </div>
+
+                                  <div className="text-white font-semibold flex items-center gap-1">
+                                    <span>{c.from}</span>
+                                    <span className="text-neutral-500 text-[10px]">➔</span>
+                                    <span className="text-emerald-300">{c.to}</span>
+                                  </div>
+
+                                  <div className="flex justify-between items-center text-neutral-400 text-[11px] pt-0.5">
+                                    <span className="text-white font-bold">{c.distance} km</span>
+                                    <span className="text-amber-400">~{c.caloriesBurned} kcal quemadas</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
 
                     </div>
                   )}

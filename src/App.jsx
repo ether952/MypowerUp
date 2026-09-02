@@ -26,7 +26,8 @@ import AuthModal from './components/AuthModal';
 import {
   getLocalDateString,
   formatDisplayDate,
-  shiftDate
+  shiftDate,
+  estimateNutrition
 } from './utils/helpers';
 import {
   subscribeToAuthChanges,
@@ -213,7 +214,20 @@ export default function App() {
   const currentDay = data[selectedDate] || { foods: [], workouts: [] };
 
   const handleAddFood = (food) => {
-    const newFood = { id: Date.now(), ...food };
+    let finalFood = { ...food };
+    // Si no se proveyeron calorías o proteínas, resolver en el back con la base de datos nutricional
+    if ((!finalFood.calories || Number(finalFood.calories) === 0) && (!finalFood.protein || Number(finalFood.protein) === 0)) {
+      const estimated = estimateNutrition(finalFood.name);
+      if (estimated.matched) {
+        finalFood.calories = estimated.calories;
+        finalFood.protein = estimated.protein;
+        if (estimated.defaultMealType && (!finalFood.mealType || finalFood.mealType === 'almuerzo')) {
+          finalFood.mealType = estimated.defaultMealType;
+        }
+      }
+    }
+
+    const newFood = { id: Date.now(), ...finalFood };
     setData((prev) => ({
       ...prev,
       [selectedDate]: {
@@ -221,7 +235,11 @@ export default function App() {
         foods: [...(currentDay.foods || []), newFood],
       },
     }));
-    showToast(`Guardado: ${food.name}`);
+
+    const macroTag = (finalFood.calories > 0 || finalFood.protein > 0)
+      ? ` (${finalFood.calories} kcal • ${finalFood.protein}g prot)`
+      : '';
+    showToast(`Guardado: ${finalFood.name}${macroTag}`);
   };
 
   const handleDeleteFood = (id) => {
@@ -256,6 +274,29 @@ export default function App() {
       },
     }));
     showToast('Ejercicio eliminado');
+  };
+
+  const handleAddCardio = (cardio) => {
+    const newCardio = { id: Date.now(), ...cardio };
+    setData((prev) => ({
+      ...prev,
+      [selectedDate]: {
+        ...currentDay,
+        cardios: [...(currentDay.cardios || []), newCardio],
+      },
+    }));
+    showToast(`Cardio registrado: ${cardio.distance} km (~${cardio.caloriesBurned} kcal)`);
+  };
+
+  const handleDeleteCardio = (id) => {
+    setData((prev) => ({
+      ...prev,
+      [selectedDate]: {
+        ...currentDay,
+        cardios: (currentDay.cardios || []).filter((item) => item.id !== id),
+      },
+    }));
+    showToast('Cardio eliminado');
   };
 
   const handleClearAllData = () => {
@@ -520,6 +561,8 @@ export default function App() {
             onDeleteFood={handleDeleteFood}
             onAddWorkout={handleAddWorkout}
             onDeleteWorkout={handleDeleteWorkout}
+            onAddCardio={handleAddCardio}
+            onDeleteCardio={handleDeleteCardio}
             rememberedWorkouts={rememberedWorkouts}
             onUpdateRememberedWorkouts={setRememberedWorkouts}
             rememberedFoods={rememberedFoods}

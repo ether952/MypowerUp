@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Plus,
   Trash2,
@@ -7,7 +7,12 @@ import {
   Clock,
   Dumbbell,
   Zap,
-  Check
+  Check,
+  Footprints,
+  Bike,
+  Flame,
+  MapPin,
+  Route
 } from 'lucide-react';
 import {
   calculate1RM,
@@ -15,7 +20,10 @@ import {
   QUICK_EXERCISES,
   QUICK_SUPPLEMENTS,
   MEAL_TYPES,
-  getCurrentTimeString
+  getCurrentTimeString,
+  estimateNutrition,
+  CARDIO_TYPES,
+  calculateCardioCalories
 } from '../utils/helpers';
 
 // Helper para animación suave de scroll
@@ -58,6 +66,8 @@ export default function DailyView({
   onDeleteFood,
   onAddWorkout,
   onDeleteWorkout,
+  onAddCardio,
+  onDeleteCardio,
   rememberedWorkouts: propRememberedWorkouts,
   onUpdateRememberedWorkouts,
   rememberedFoods: propRememberedFoods,
@@ -78,10 +88,48 @@ export default function DailyView({
   const [foodName, setFoodName] = useState('');
   const [calories, setCalories] = useState('');
   const [protein, setProtein] = useState('');
+  const currentNutritionEst = useMemo(() => estimateNutrition(foodName), [foodName]);
   const [showQuickFoods, setShowQuickFoods] = useState(false);
   const [showQuickSupps, setShowQuickSupps] = useState(false);
   const [foodSuggestions, setFoodSuggestions] = useState([]);
   const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
+
+  // === ESTADOS CARDIO & ACTIVIDAD AERÓBICA ===
+  const [cardioType, setCardioType] = useState('caminata');
+  const [cardioFrom, setCardioFrom] = useState('');
+  const [cardioTo, setCardioTo] = useState('');
+  const [cardioDistance, setCardioDistance] = useState('');
+  const [cardioTime, setCardioTime] = useState(() => getCurrentTimeString());
+  const cardioSectionRef = useRef(null);
+
+  const estimatedCardioBurn = useMemo(() => {
+    return calculateCardioCalories(cardioType, cardioDistance);
+  }, [cardioType, cardioDistance]);
+
+  const totalCardioKm = (currentDay.cardios || []).reduce((acc, curr) => acc + (Number(curr.distance) || 0), 0);
+  const totalCardioBurned = (currentDay.cardios || []).reduce((acc, curr) => acc + (Number(curr.caloriesBurned) || 0), 0);
+
+  const handleSubmitCardio = (e) => {
+    e.preventDefault();
+    if (!cardioDistance || parseFloat(cardioDistance) <= 0) return;
+
+    const payload = {
+      type: cardioType,
+      from: cardioFrom.trim() || 'Inicio',
+      to: cardioTo.trim() || 'Destino',
+      distance: parseFloat(cardioDistance),
+      caloriesBurned: estimatedCardioBurn,
+      time: cardioTime || getCurrentTimeString(),
+    };
+
+    if (onAddCardio) {
+      onAddCardio(payload);
+    }
+
+    setCardioFrom('');
+    setCardioTo('');
+    setCardioDistance('');
+  };
 
   // === BASE DE MEMORIA (Persiste en LocalStorage y Firebase) ===
   const [localRememberedWorkouts, setLocalRememberedWorkouts] = useState(() => {
@@ -261,27 +309,45 @@ export default function DailyView({
   // Guardar comida + actualizar memoria
   const handleSubmitFood = (e) => {
     e.preventDefault();
-    if (!foodName) return;
+    if (!foodName || !foodName.trim()) return;
+
+    let finalCalories = Number(calories) || 0;
+    let finalProtein = Number(protein) || 0;
+
+    // Si el usuario no ingresó calorías o proteínas, resolver en el "back"
+    const estimated = estimateNutrition(foodName);
+    if (estimated.matched) {
+      if (!calories || finalCalories === 0) {
+        finalCalories = estimated.calories;
+      }
+      if (!protein || finalProtein === 0) {
+        finalProtein = estimated.protein;
+      }
+    }
+
+    const finalMealType = (estimated.matched && estimated.defaultMealType && mealType === 'almuerzo')
+      ? estimated.defaultMealType
+      : (mealType || 'almuerzo');
 
     const foodPayload = {
       name: foodName.trim(),
-      calories: Number(calories) || 0,
-      protein: Number(protein) || 0,
-      mealType: mealType || 'almuerzo',
+      calories: finalCalories,
+      protein: finalProtein,
+      mealType: finalMealType,
       time: mealTime || getCurrentTimeString(),
     };
 
     onAddFood(foodPayload);
 
-    // Guardar en memoria
+    // Guardar en memoria inteligente aprendida
     const key = foodName.trim().toLowerCase();
     const updated = {
       ...rememberedFoods,
       [key]: {
         name: foodName.trim(),
-        calories: Number(calories) || 0,
-        protein: Number(protein) || 0,
-        mealType: mealType || 'almuerzo',
+        calories: finalCalories,
+        protein: finalProtein,
+        mealType: finalMealType,
         lastUsed: Date.now()
       }
     };
@@ -412,7 +478,7 @@ export default function DailyView({
                         setShowExerciseSuggestions(true);
                       }
                     }}
-                    className="w-full input-futuristic px-5 py-4 text-lg text-white placeholder-neutral-500 rounded-xl font-medium"
+                    className="w-full input-futuristic px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
                     required
                   />
 
@@ -455,7 +521,7 @@ export default function DailyView({
                 </div>
 
                 {/* Series */}
-                <div className="md:col-span-2 space-y-2">
+                <div className="md:col-span-2 space-y-1.5">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Series</label>
                   <input
                     type="number"
@@ -463,13 +529,13 @@ export default function DailyView({
                     placeholder="4"
                     value={sets}
                     onChange={(e) => setSets(e.target.value)}
-                    className="w-full input-futuristic px-4 py-4 text-lg text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic px-3 py-2.5 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
                     required
                   />
                 </div>
 
                 {/* Repeticiones */}
-                <div className="md:col-span-2 space-y-2">
+                <div className="md:col-span-2 space-y-1.5">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Reps</label>
                   <input
                     type="number"
@@ -477,13 +543,13 @@ export default function DailyView({
                     placeholder="8"
                     value={reps}
                     onChange={(e) => setReps(e.target.value)}
-                    className="w-full input-futuristic px-4 py-4 text-lg text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic px-3 py-2.5 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
                     required
                   />
                 </div>
 
                 {/* Peso */}
-                <div className="md:col-span-2 space-y-2">
+                <div className="md:col-span-2 space-y-1.5">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Peso (Kg)</label>
                   <input
                     type="number"
@@ -492,7 +558,7 @@ export default function DailyView({
                     placeholder="80"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className="w-full input-futuristic px-4 py-4 text-lg text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic px-3 py-2.5 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
                     required
                   />
                 </div>
@@ -500,10 +566,10 @@ export default function DailyView({
               </div>
 
               {/* Fila de acción & cálculo en tiempo real */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
                 <div className="text-xs font-mono text-neutral-400">
                   {Number(weight) > 0 ? (
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-4 text-xs">
                       <span>Peso: <strong className="text-neon-cyan font-bold">{Number(weight)} KG</strong></span>
                       {Number(reps) > 0 && live1RM > 0 && (
                         <>
@@ -519,9 +585,9 @@ export default function DailyView({
 
                 <button
                   type="submit"
-                  className="px-8 py-4 bg-gradient-to-r from-neon-purple to-neon-violet hover:from-neon-violet hover:to-neon-fuchsia text-white font-black text-sm tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-purple-600/30 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 bg-gradient-to-r from-neon-purple to-neon-violet hover:from-neon-violet hover:to-neon-fuchsia text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-purple-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Plus className="w-5 h-5 stroke-[3]" /> AGREGAR EJERCICIO
+                  <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR EJERCICIO
                 </button>
               </div>
 
@@ -647,7 +713,8 @@ export default function DailyView({
                 // TIPO DE REGISTRO
               </div>
 
-              <div className="flex flex-wrap gap-2.5 sm:gap-3">
+              {/* Selector Unificado estilo Cápsula (como barra de navegación) */}
+              <div className="inline-flex items-center gap-1.5 p-1.5 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
                 {MEAL_TYPES.map((type) => {
                   const isSelected = mealType === type.id;
                   const isSupp = type.id === 'suplementacion';
@@ -657,17 +724,15 @@ export default function DailyView({
                       key={type.id}
                       type="button"
                       onClick={() => setMealType(type.id)}
-                      className={`px-5 py-3.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer relative ${isSelected
-                        ? isSupp
-                          ? 'bg-neon-mint text-space-950 font-black shadow-[0_0_25px_rgba(0,245,160,0.5)] border-2 border-neon-mint scale-105'
-                          : 'bg-neon-cyan text-space-950 font-black shadow-[0_0_25px_rgba(6,182,212,0.5)] border-2 border-neon-cyan scale-105'
-                        : 'bg-[#0E0926] text-neutral-300 hover:text-white hover:bg-[#1A1242] border border-white/10 hover:border-neon-cyan/40'
-                        }`}
+                      className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${
+                        isSelected
+                          ? isSupp
+                            ? 'bg-neon-mint text-space-950 font-black shadow-md shadow-emerald-500/30'
+                            : 'bg-gradient-to-r from-neon-cyan to-neon-blue text-space-950 font-black shadow-md shadow-cyan-500/30'
+                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                      }`}
                     >
-                      <span className="flex items-center gap-2">
-                        {isSelected && <span className="inline-block w-2 h-2 rounded-full bg-space-950 animate-pulse"></span>}
-                        {type.tag} // {type.label}
-                      </span>
+                      {type.tag} // {type.label.toUpperCase()}
                     </button>
                   );
                 })}
@@ -677,24 +742,24 @@ export default function DailyView({
 
           {/* Formulario de Carga de Comida o Suplemento con Reveal y Memoria */}
           <ScrollReveal delay={200}>
-            <form onSubmit={handleSubmitFood} className="space-y-6 relative">
+            <form onSubmit={handleSubmitFood} className="space-y-5 relative">
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
 
                 {/* Horario */}
-                <div className="md:col-span-2 space-y-2">
+                <div className="md:col-span-2 space-y-1.5">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Horario</label>
                   <input
                     type="time"
                     value={mealTime}
                     onChange={(e) => setMealTime(e.target.value)}
-                    className="w-full input-futuristic-cyan px-4 py-4 text-base text-center text-white rounded-xl font-mono cursor-pointer"
+                    className="w-full input-futuristic-cyan px-3 py-2 text-xs text-center text-white rounded-xl font-mono cursor-pointer"
                     required
                   />
                 </div>
 
                 {/* Nombre Alimento / Suplemento con Dropdown 100% Opaco */}
-                <div ref={foodContainerRef} className="md:col-span-5 space-y-2 relative">
+                <div ref={foodContainerRef} className="md:col-span-5 space-y-1.5 relative">
                   <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
                     <label className="flex items-center gap-1.5">
                       <span>{mealType === 'suplementacion' ? 'Suplemento' : 'Alimento o Plato'}</span>
@@ -794,7 +859,7 @@ export default function DailyView({
                         setShowFoodSuggestions(true);
                       }
                     }}
-                    className="w-full input-futuristic-cyan px-5 py-4 text-lg text-white placeholder-neutral-500 rounded-xl font-medium"
+                    className="w-full input-futuristic-cyan px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
                     required
                   />
 
@@ -836,41 +901,55 @@ export default function DailyView({
                 </div>
 
                 {/* Calorías */}
-                <div className="md:col-span-2 space-y-2">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Calorías (Kcal)</label>
+                <div className="md:col-span-2 space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Calorías (Kcal)</label>
+                    {currentNutritionEst.matched && !calories && (
+                      <span className="text-[10px] font-mono text-neon-yellow/90 font-bold">
+                        Auto: {currentNutritionEst.calories}
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
                     min="0"
-                    placeholder="450"
+                    placeholder={currentNutritionEst.matched ? String(currentNutritionEst.calories) : "450"}
                     value={calories}
                     onChange={(e) => setCalories(e.target.value)}
-                    className="w-full input-futuristic-cyan px-4 py-4 text-lg text-center text-neon-yellow placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic-cyan px-3 py-2.5 text-sm text-center text-neon-yellow placeholder-neutral-500 rounded-xl font-mono font-bold"
                   />
                 </div>
 
                 {/* Proteína */}
-                <div className="md:col-span-3 space-y-2">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Proteína (G)</label>
+                <div className="md:col-span-3 space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Proteína (G)</label>
+                    {currentNutritionEst.matched && !protein && (
+                      <span className="text-[10px] font-mono text-neon-mint/90 font-bold">
+                        Auto: {currentNutritionEst.protein}g
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
                     min="0"
                     step="0.5"
-                    placeholder="35"
+                    placeholder={currentNutritionEst.matched ? String(currentNutritionEst.protein) : "35"}
                     value={protein}
                     onChange={(e) => setProtein(e.target.value)}
-                    className="w-full input-futuristic-cyan px-4 py-4 text-lg text-center text-neon-mint placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic-cyan px-3 py-2.5 text-sm text-center text-neon-mint placeholder-neutral-500 rounded-xl font-mono font-bold"
                   />
                 </div>
 
               </div>
 
               {/* Botón de envío */}
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end pt-1">
                 <button
                   type="submit"
-                  className="px-8 py-4 bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-blue hover:to-neon-purple text-white font-black text-sm tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-cyan-600/30 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-blue hover:to-neon-purple text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Plus className="w-5 h-5 stroke-[3]" /> AGREGAR {mealType === 'suplementacion' ? 'SUPLEMENTO' : 'COMIDA'}
+                  <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR {mealType === 'suplementacion' ? 'SUPLEMENTO' : 'COMIDA'}
                 </button>
               </div>
 
@@ -925,6 +1004,266 @@ export default function DailyView({
                           onClick={() => onDeleteFood(f.id)}
                           className="text-neutral-500 hover:text-rose-400 p-2 transition-colors cursor-pointer"
                           title="Eliminar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </ScrollReveal>
+
+        </div>
+      </section>
+
+      {/* Scroll indicator hacia la sección de cardio */}
+      <div className="flex justify-center -mt-12 mb-4">
+        <button
+          onClick={() => cardioSectionRef.current?.scrollIntoView({ behavior: 'smooth' })}
+          className="group flex flex-col items-center gap-2 text-xs font-mono tracking-widest text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
+        >
+          <span>SCROLL PARA CARDIO & DESPLAZAMIENTOS</span>
+          <ArrowDown className="w-4 h-4 text-emerald-400 group-hover:translate-y-1 transition-transform animate-bounce" />
+        </button>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 03. SECCIÓN INFERIOR: CARDIO & ACTIVIDAD AERÓBICA                         */}
+      {/* ========================================================================= */}
+      <section
+        ref={cardioSectionRef}
+        className="min-h-[85vh] py-12 px-4 sm:px-8 relative border-t border-emerald-500/10"
+      >
+        <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-20" />
+        <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-15" />
+
+        <div className="space-y-12 relative z-10 max-w-6xl mx-auto w-full">
+
+          {/* Cabecera Cardio con Reveal */}
+          <ScrollReveal delay={0}>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-emerald-500/20 pb-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-emerald-400 font-mono uppercase">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span>03 // ACTIVIDAD & DESPLAZAMIENTOS</span>
+                </div>
+                <h2 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white uppercase font-display">
+                  CARDIO & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">DISTANCIA</span>
+                </h2>
+              </div>
+
+              {/* Totales de Cardio */}
+              <div className="flex items-center gap-6 border-l-2 border-emerald-500/40 pl-6">
+                <div>
+                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Distancia Total</span>
+                  <span className="text-3xl sm:text-4xl font-black font-mono text-emerald-400">
+                    {Math.round(totalCardioKm * 10) / 10} <span className="text-sm font-sans text-neutral-400">KM</span>
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Gasto Estimado</span>
+                  <span className="text-3xl sm:text-4xl font-black font-mono text-amber-400">
+                    {totalCardioBurned.toLocaleString()} <span className="text-sm font-sans text-neutral-400">KCAL</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Selector de Actividad (Caminata, Running, Bicicleta) */}
+          <ScrollReveal delay={100}>
+            <div className="space-y-3">
+              <div className="text-xs font-mono tracking-wider text-neutral-400 uppercase">
+                // TIPO DE CARDIO
+              </div>
+
+              {/* Selector Unificado estilo Cápsula (como barra de navegación) */}
+              <div className="inline-flex items-center gap-1.5 p-1.5 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
+                {CARDIO_TYPES.map((c) => {
+                  const isSelected = cardioType === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setCardioType(c.id)}
+                      className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-space-950 font-black shadow-md shadow-emerald-500/25'
+                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {c.id === 'caminata' && <Footprints className="w-3.5 h-3.5" />}
+                      {c.id === 'running' && <Flame className="w-3.5 h-3.5" />}
+                      {c.id === 'bicicleta' && <Bike className="w-3.5 h-3.5" />}
+                      <span>{c.label.toUpperCase()}</span>
+                      <span className={`text-[10px] ${isSelected ? 'text-black/75 font-semibold' : 'text-neutral-500'}`}>
+                        ({c.desc})
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Formulario de Carga de Cardio */}
+          <ScrollReveal delay={150}>
+            <form onSubmit={handleSubmitCardio} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+
+                {/* Desde donde (Origen) */}
+                <div className="md:col-span-4 space-y-1.5">
+                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Desde dónde (Origen)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Casa, Gimnasio, Costanera..."
+                    value={cardioFrom}
+                    onChange={(e) => setCardioFrom(e.target.value)}
+                    className="w-full input-futuristic-emerald px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                    required
+                  />
+                </div>
+
+                {/* Hasta donde (Destino) */}
+                <div className="md:col-span-4 space-y-1.5">
+                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
+                    <Route className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Hasta dónde (Destino)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Parque, Trabajo, Vuelta al dique..."
+                    value={cardioTo}
+                    onChange={(e) => setCardioTo(e.target.value)}
+                    className="w-full input-futuristic-emerald px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                    required
+                  />
+                </div>
+
+                {/* Distancia en Kilómetros */}
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
+                    Distancia (KM)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    placeholder="5.0"
+                    value={cardioDistance}
+                    onChange={(e) => setCardioDistance(e.target.value)}
+                    className="w-full input-futuristic-emerald px-3 py-2.5 text-sm text-center text-emerald-400 placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    required
+                  />
+                </div>
+
+                {/* Gasto calórico calculado dinámicamente en tiempo real */}
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
+                    Gasto Est. (Kcal)
+                  </label>
+                  <div className="w-full h-[42px] bg-[#0E0926]/80 border border-amber-500/30 rounded-xl flex items-center justify-center gap-1.5 px-2">
+                    <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                    <span className="font-mono font-bold text-sm text-amber-400">
+                      {estimatedCardioBurn > 0 ? `~${estimatedCardioBurn}` : '0'}
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-400 uppercase">kcal</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Botón de Guardar Cardio */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-1">
+                <div className="text-xs font-mono text-neutral-400 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>Cálculo automático: {cardioType === 'caminata' ? '~55' : cardioType === 'running' ? '~75' : '~35'} kcal quemadas por km</span>
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-teal-500 hover:to-emerald-500 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-emerald-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR SESIÓN DE CARDIO
+                </button>
+              </div>
+            </form>
+          </ScrollReveal>
+
+          {/* Listado de Sesiones de Cardio de Hoy */}
+          <ScrollReveal delay={250}>
+            <div className="space-y-3 pt-6">
+              <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
+                <span>// SESIONES DE CARDIO DE HOY</span>
+                <span className="text-emerald-400">({currentDay.cardios?.length || 0})</span>
+              </div>
+
+              {(!currentDay.cardios || currentDay.cardios.length === 0) ? (
+                <div className="py-12 text-center text-neutral-600 font-mono text-sm border-t border-b border-emerald-500/10">
+                  No hay sesiones de cardio registradas hoy. Agrega una arriba.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentDay.cardios.map((c) => {
+                    const isRun = c.type === 'running';
+                    const isBike = c.type === 'bicicleta';
+
+                    return (
+                      <div
+                        key={c.id}
+                        className={`flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${
+                          isRun
+                            ? 'border-l-4 border-amber-400'
+                            : isBike
+                            ? 'border-l-4 border-cyan-400'
+                            : 'border-l-4 border-emerald-400'
+                        }`}
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold flex items-center gap-1.5 ${
+                                isRun
+                                  ? 'bg-amber-400/10 text-amber-400 border border-amber-400/30'
+                                  : isBike
+                                  ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/30'
+                                  : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/30'
+                              }`}
+                            >
+                              {c.type === 'caminata' && <Footprints className="w-3 h-3" />}
+                              {c.type === 'running' && <Flame className="w-3 h-3" />}
+                              {c.type === 'bicicleta' && <Bike className="w-3 h-3" />}
+                              {c.type.toUpperCase()}
+                            </span>
+                            {c.time && (
+                              <span className="text-xs font-mono text-neutral-400">{c.time}</span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 text-white font-bold text-base tracking-tight">
+                            <span>{c.from}</span>
+                            <span className="text-neutral-500 font-normal text-xs">➔</span>
+                            <span className="text-emerald-300">{c.to}</span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs font-mono text-neutral-400">
+                            <span className="text-white font-bold">{c.distance} km</span>
+                            <span>•</span>
+                            <span className="text-amber-400 font-semibold flex items-center gap-1">
+                              <Flame className="w-3.5 h-3.5 inline" /> ~{c.caloriesBurned} kcal quemadas
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => onDeleteCardio && onDeleteCardio(c.id)}
+                          className="text-neutral-500 hover:text-rose-400 p-2 transition-colors cursor-pointer"
+                          title="Eliminar sesión de cardio"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

@@ -88,6 +88,20 @@ body {
   outline: none;
 }
 
+.input-futuristic-emerald {
+  background: rgba(14, 9, 38, 0.7);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-bottom: 2px solid rgba(16, 185, 129, 0.5);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.input-futuristic-emerald:focus {
+  background: rgba(22, 14, 58, 0.9);
+  border-color: rgba(16, 185, 129, 0.7);
+  border-bottom-color: #10B981;
+  box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.35);
+  outline: none;
+}
+
 /* Scroll reveal helper classes */
 .reveal-hidden {
   opacity: 0;
