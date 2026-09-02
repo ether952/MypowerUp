@@ -43,7 +43,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
     if (code.includes('wrong-password') || code.includes('invalid-credential')) return 'Contraseña o correo incorrectos.';
     if (code.includes('email-already-in-use')) return 'Este correo ya está registrado. Inicia sesión.';
     if (code.includes('weak-password')) return 'La contraseña debe tener al menos 6 caracteres.';
-    if (code.includes('invalid-email')) return 'El formato del correo no es válido.';
+    if (code.includes('unauthorized-domain')) return 'Dominio no autorizado. Agrega tu enlace de Vercel en Firebase > Authentication > Configuración > Dominios autorizados.';
     if (code.includes('popup-closed-by-user')) return 'Ventana de inicio de sesión con Google cerrada.';
     if (code.includes('network-request-failed')) return 'Error de conexión a internet.';
     return err.message || 'Ocurrió un error inesperado. Revisa tus datos.';

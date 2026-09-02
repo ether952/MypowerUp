@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
+import {
   ChevronLeft,
   ChevronRight,
-  Download, 
-  Upload, 
+  Download,
+  Upload,
   Trash2,
   Sliders,
   Sparkles,
@@ -14,7 +14,8 @@ import {
   RefreshCw,
   User as UserIcon,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  MoreVertical
 } from 'lucide-react';
 
 import DailyView from './components/DailyView';
@@ -22,10 +23,10 @@ import ChartsView from './components/ChartsView';
 import HistoryView from './components/HistoryView';
 import GoalsModal from './components/GoalsModal';
 import AuthModal from './components/AuthModal';
-import { 
-  getLocalDateString, 
-  formatDisplayDate, 
-  shiftDate 
+import {
+  getLocalDateString,
+  formatDisplayDate,
+  shiftDate
 } from './utils/helpers';
 import {
   subscribeToAuthChanges,
@@ -88,13 +89,26 @@ export default function App() {
   });
 
   const [isGoalsOpen, setIsGoalsOpen] = useState(false);
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
+  const actionsMenuRef = useRef(null);
 
   const showToast = (message) => {
     setToast(message);
     setTimeout(() => setToast(null), 3000);
   };
+
+  // Cerrar menú de 3 puntitos al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(e.target)) {
+        setIsActionsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 1. Guardar siempre en LocalStorage como caché offline rápido
   useEffect(() => {
@@ -298,7 +312,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-space-950 text-neutral-100 flex flex-col font-sans selection:bg-neon-purple selection:text-white relative">
-      
+
       {/* Toast HUD */}
       {toast && (
         <div className="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-xl bg-neon-purple/90 text-white font-mono text-xs font-bold tracking-wider shadow-2xl backdrop-blur-md animate-fade-in-up border border-neon-violet">
@@ -309,22 +323,41 @@ export default function App() {
       {/* HEADER HUD FUTURISTA */}
       <header className="sticky top-0 z-40 bg-space-950/80 backdrop-blur-2xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
-          
-          {/* Logo, Marca & Estado de Sincronización */}
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-neon-purple to-neon-cyan flex items-center justify-center text-white font-black text-xl shadow-lg shadow-purple-500/20">
-              ⚡
+
+          {/* Logo Único, Marca & Estado de Sincronización */}
+          <div className="flex items-center gap-3.5">
+            <div className="relative group cursor-pointer">
+              <div className="absolute -inset-1 bg-gradient-to-r from-neon-purple via-neon-violet to-neon-cyan rounded-2xl blur-sm opacity-60 group-hover:opacity-100 transition duration-500"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-space-950 border border-white/15 flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="powerLogoGradNew" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#8B5CF6" />
+                      <stop offset="50%" stopColor="#A855F7" />
+                      <stop offset="100%" stopColor="#06B6D4" />
+                    </linearGradient>
+                  </defs>
+                  {/* P geométrica estilizada de alto impacto */}
+                  <path
+                    d="M7 5H18C22.4183 5 26 8.58172 26 13C26 17.4183 22.4183 21 18 21H13L9.5 27H6.5L10 21H7V5Z"
+                    fill="url(#powerLogoGradNew)"
+                  />
+                  {/* Rayo central integrado en el monograma */}
+                  <path
+                    d="M17 9L12 17H18L15 24L23 15H17.5L19.5 9H17Z"
+                    fill="#06B6D4"
+                    className="drop-shadow-[0_0_8px_#06B6D4]"
+                  />
+                </svg>
+              </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black tracking-tight text-white uppercase font-display">
                   MYPOWERUP
                 </h1>
-                <span className="text-[10px] font-mono tracking-widest text-neon-cyan px-2 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">
-                  SYSTEM v3.1
-                </span>
               </div>
-              
+
               {/* Indicador de Nube / Sincronización */}
               <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono">
                 {syncStatus === 'synced' && (
@@ -355,50 +388,47 @@ export default function App() {
             </div>
           </div>
 
-          {/* Navegación de Pestañas HUD */}
-          <nav className="flex items-center gap-1 sm:gap-2 bg-space-900/90 border border-white/10 p-1.5 rounded-xl font-mono text-xs">
+          {/* Navegación de Pestañas HUD (Suelto y sin recuadro limitante) */}
+          <nav className="flex items-center gap-1 sm:gap-2 font-mono text-xs">
             <button
               onClick={() => setActiveTab('daily')}
-              className={`px-4 py-2 rounded-lg font-bold tracking-wider transition-all uppercase ${
-                activeTab === 'daily'
+              className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'daily'
                   ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
+                  : 'text-neutral-400 hover:text-white'
+                }`}
             >
               01 // REGISTRO
             </button>
 
             <button
               onClick={() => setActiveTab('charts')}
-              className={`px-4 py-2 rounded-lg font-bold tracking-wider transition-all uppercase ${
-                activeTab === 'charts'
+              className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'charts'
                   ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
+                  : 'text-neutral-400 hover:text-white'
+                }`}
             >
               02 // GRÁFICOS
             </button>
 
             <button
               onClick={() => setActiveTab('history')}
-              className={`px-4 py-2 rounded-lg font-bold tracking-wider transition-all uppercase ${
-                activeTab === 'history'
+              className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'history'
                   ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
+                  : 'text-neutral-400 hover:text-white'
+                }`}
             >
               03 // HISTORIAL
             </button>
           </nav>
 
-          {/* Selector de Fecha & Controles de Usuario HUD */}
-          <div className="flex items-center gap-2.5">
-            
-            {/* Control de Fecha */}
-            <div className="flex items-center bg-space-900 border border-white/10 rounded-xl p-1 text-xs font-mono">
+          {/* Selector de Fecha & Controles de Usuario HUD (Suelto y sin recuadros) */}
+          <div className="flex items-center gap-3 sm:gap-4">
+
+            {/* Control de Fecha (Libre sin recuadro) */}
+            <div className="flex items-center gap-1 text-xs font-mono">
               <button
                 onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
-                className="p-1.5 hover:text-neon-cyan transition-colors"
+                className="p-1 text-neutral-400 hover:text-neon-cyan transition-colors"
                 title="Día anterior"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -406,7 +436,7 @@ export default function App() {
 
               <button
                 onClick={() => setSelectedDate(getLocalDateString())}
-                className="px-2 py-1 text-neutral-400 hover:text-white uppercase font-bold text-[11px]"
+                className="px-2 py-0.5 text-neutral-400 hover:text-white uppercase font-bold text-[11px] transition-colors"
               >
                 Hoy
               </button>
@@ -415,69 +445,81 @@ export default function App() {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-white px-2 py-1 focus:outline-none cursor-pointer text-xs font-mono font-bold"
+                className="bg-transparent text-white px-1 py-0.5 focus:outline-none cursor-pointer text-xs font-mono font-bold"
               />
 
               <button
                 onClick={() => setSelectedDate(shiftDate(selectedDate, 1))}
-                className="p-1.5 hover:text-neon-cyan transition-colors"
+                className="p-1 text-neutral-400 hover:text-neon-cyan transition-colors"
                 title="Día siguiente"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Acciones Rápidas */}
-            <div className="flex items-center gap-1.5">
+            {/* Botón de 3 Puntitos (Opciones una debajo de la otra) */}
+            <div className="relative" ref={actionsMenuRef}>
               <button
-                onClick={() => setIsGoalsOpen(true)}
-                className="p-2.5 bg-space-900 hover:bg-space-850 text-neutral-300 hover:text-neon-purple rounded-xl border border-white/10 transition-colors"
-                title="Configurar Metas"
+                onClick={() => setIsActionsOpen(!isActionsOpen)}
+                className="p-2 text-neutral-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                title="Más opciones"
               >
-                <Sliders className="w-4 h-4" />
+                <MoreVertical className="w-4 h-4" />
               </button>
 
-              <button
-                onClick={handleExportData}
-                className="p-2.5 bg-space-900 hover:bg-space-850 text-neutral-300 hover:text-white rounded-xl border border-white/10 transition-colors"
-                title="Exportar Backup"
-              >
-                <Download className="w-4 h-4" />
-              </button>
+              {isActionsOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-space-950/95 border border-purple-500/30 rounded-2xl shadow-2xl py-2 z-50 backdrop-blur-2xl font-mono text-xs divide-y divide-white/5 animate-fade-in-up">
+                  <button
+                    onClick={() => { setIsGoalsOpen(true); setIsActionsOpen(false); }}
+                    className="w-full px-4 py-2.5 text-left text-neutral-300 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors"
+                  >
+                    <Sliders className="w-4 h-4 text-neon-purple" />
+                    <span>Configurar Metas</span>
+                  </button>
 
-              <label
-                className="p-2.5 bg-space-900 hover:bg-space-850 text-neutral-300 hover:text-white rounded-xl border border-white/10 transition-colors cursor-pointer"
-                title="Importar Backup"
-              >
-                <Upload className="w-4 h-4" />
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleImportData} 
-                  accept=".json" 
-                  className="hidden" 
-                />
-              </label>
+                  <button
+                    onClick={() => { handleExportData(); setIsActionsOpen(false); }}
+                    className="w-full px-4 py-2.5 text-left text-neutral-300 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors"
+                  >
+                    <Download className="w-4 h-4 text-neon-cyan" />
+                    <span>Exportar Backup</span>
+                  </button>
 
-              {Object.keys(data).length > 0 && (
-                <button
-                  onClick={handleClearAllData}
-                  className="p-2.5 bg-space-900 hover:bg-space-850 text-neutral-500 hover:text-rose-400 rounded-xl border border-white/10 transition-colors"
-                  title="Vaciar Datos"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  <label
+                    className="w-full px-4 py-2.5 text-left text-neutral-300 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4 text-neon-cyan" />
+                    <span>Importar Backup</span>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={(e) => { handleImportData(e); setIsActionsOpen(false); }}
+                      accept=".json"
+                      className="hidden"
+                    />
+                  </label>
+
+                  {Object.keys(data).length > 0 && (
+                    <button
+                      onClick={() => { handleClearAllData(); setIsActionsOpen(false); }}
+                      className="w-full px-4 py-2.5 text-left text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Vaciar Todos los Datos</span>
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 
-            {/* SECCIÓN USUARIO / LOGIN HUD */}
-            <div className="pl-2 border-l border-white/10 flex items-center">
+            {/* SECCIÓN USUARIO / LOGIN HUD (Suelto sin línea separadora) */}
+            <div className="flex items-center">
               {user ? (
-                <div className="flex items-center gap-2 bg-space-900/90 border border-purple-500/30 rounded-xl p-1 pr-2 text-xs font-mono">
+                <div className="flex items-center gap-2 bg-space-900/60 rounded-xl p-1 pr-2 text-xs font-mono">
                   {user.photoURL ? (
-                    <img 
-                      src={user.photoURL} 
-                      alt="avatar" 
+                    <img
+                      src={user.photoURL}
+                      alt="avatar"
                       className="w-7 h-7 rounded-lg object-cover border border-neon-cyan/40"
                     />
                   ) : (
@@ -485,7 +527,7 @@ export default function App() {
                       {(user.displayName || user.email || 'U')[0].toUpperCase()}
                     </div>
                   )}
-                  
+
                   <div className="hidden sm:block text-left">
                     <p className="text-[11px] font-bold text-white leading-tight truncate max-w-[100px]">
                       {user.displayName || user.email.split('@')[0]}
@@ -506,12 +548,12 @@ export default function App() {
               ) : (
                 <button
                   onClick={() => setIsAuthModalOpen(true)}
-                  className="group relative p-2.5 rounded-xl bg-space-900/90 hover:bg-space-850 border border-purple-500/40 hover:border-neon-cyan/70 shadow-[0_0_15px_rgba(139,92,246,0.25)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all duration-300 flex items-center justify-center active:scale-95"
+                  className="group relative p-2 rounded-xl hover:bg-white/5 transition-all duration-300 flex items-center justify-center active:scale-95"
                   title="Iniciar Sesión / Cloud Sync"
                 >
                   <div className="relative flex items-center justify-center">
                     <UserIcon className="w-4 h-4 text-neutral-200 group-hover:text-white transition-colors" />
-                    <span className="absolute -top-1.5 -right-1.5 w-2 h-2 rounded-full bg-gradient-to-r from-neon-purple to-neon-cyan shadow-[0_0_8px_#06B6D4] animate-pulse"></span>
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-gradient-to-r from-neon-purple to-neon-cyan shadow-[0_0_8px_#06B6D4] animate-pulse"></span>
                   </div>
                 </button>
               )}
