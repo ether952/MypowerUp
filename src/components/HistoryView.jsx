@@ -33,12 +33,19 @@ import {
   filterDataForChallenge
 } from '../utils/challengeCalibration';
 
-export default function HistoryView({ data, goals, onSelectDate }) {
+export default function HistoryView({
+  data,
+  goals,
+  onSelectDate,
+  challengeCalibration,
+  onUpdateChallengeCalibration
+}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedDate, setExpandedDate] = useState(null);
 
-  // Calibrador / Medidor de Desafíos y Modal Unificado
-  const [calibrationProfile, setCalibrationProfile] = useState(() => getStoredChallengeCalibration());
+  // Calibrador / Medidor de Desafíos y Modal Unificado (sincronizado con Cloud/App o fallback local)
+  const [localCalibrationProfile, setLocalCalibrationProfile] = useState(() => getStoredChallengeCalibration());
+  const calibrationProfile = challengeCalibration !== undefined ? challengeCalibration : localCalibrationProfile;
   const [unifiedModalType, setUnifiedModalType] = useState(null); // 'muscle' | 'cardio' | null
 
   // Desafío de Musculación
@@ -53,8 +60,11 @@ export default function HistoryView({ data, goals, onSelectDate }) {
   const [selectedHistoryDate, setSelectedHistoryDate] = useState(() => getLocalDateString());
 
   const handleCompleteUnifiedModal = (newProfile) => {
-    setCalibrationProfile(newProfile);
+    setLocalCalibrationProfile(newProfile);
     saveStoredChallengeCalibration(newProfile);
+    if (onUpdateChallengeCalibration) {
+      onUpdateChallengeCalibration(newProfile);
+    }
     if (unifiedModalType === 'muscle') {
       setIsChallengeOpen(true);
     } else if (unifiedModalType === 'cardio') {

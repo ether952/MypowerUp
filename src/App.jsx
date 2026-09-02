@@ -30,10 +30,15 @@ import {
   estimateNutrition
 } from './utils/helpers';
 import {
+  getStoredChallengeCalibration,
+  saveStoredChallengeCalibration
+} from './utils/challengeCalibration';
+import {
   subscribeToAuthChanges,
   logoutUser,
   getUserCloudData,
   saveUserCloudData,
+  subscribeToUserCloudData,
   isFirebaseConfigured
 } from './lib/firebase';
 
@@ -47,6 +52,7 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState(isFirebaseConfigured ? 'syncing' : 'local'); // 'local' | 'syncing' | 'synced' | 'error'
   const isInitialLoadRef = useRef(true);
   const saveTimeoutRef = useRef(null);
+  const lastSyncedPayloadRef = useRef(null);
 
   // === ESTADOS DE DATOS (Con fallback a LocalStorage) ===
   const [data, setData] = useState(() => {
@@ -89,6 +95,10 @@ export default function App() {
     return {};
   });
 
+  const [challengeCalibration, setChallengeCalibration] = useState(() => {
+    return getStoredChallengeCalibration();
+  });
+
   const [isGoalsOpen, setIsGoalsOpen] = useState(false);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [toast, setToast] = useState(null);
@@ -128,77 +138,141 @@ export default function App() {
     localStorage.setItem('mypowerup_remembered_foods', JSON.stringify(rememberedFoods));
   }, [rememberedFoods]);
 
-  // 2. Suscripción al estado de Autenticación de Firebase
+  useEffect(() => {
+    if (challengeCalibration) {
+      saveStoredChallengeCalibration(challengeCalibration);
+    } else {
+      localStorage.removeItem('mypowerup_challenge_calibration');
+    }
+  }, [challengeCalibration]);
+
+  // 2. Suscripción a Autenticación y Sincronización en Tiempo Real con Firebase Firestore
   useEffect(() => {
     if (!isFirebaseConfigured) {
       setSyncStatus('local');
       return;
     }
 
-    const unsubscribe = subscribeToAuthChanges(async (currentUser) => {
+    let cloudDataUnsubscribe = null;
+
+    const authUnsubscribe = subscribeToAuthChanges((currentUser) => {
       setUser(currentUser);
+      if (cloudDataUnsubscribe) {
+        cloudDataUnsubscribe();
+        cloudDataUnsubscribe = null;
+      }
+
       if (currentUser) {
         setSyncStatus('syncing');
-        try {
-          const cloudData = await getUserCloudData(currentUser.uid);
-          if (cloudData) {
-            // Cargar datos de la nube
-            if (cloudData.data) setData(cloudData.data);
-            if (cloudData.goals) setGoals(cloudData.goals);
-            if (cloudData.rememberedWorkouts) setRememberedWorkouts(cloudData.rememberedWorkouts);
-            if (cloudData.rememberedFoods) setRememberedFoods(cloudData.rememberedFoods);
-            showToast(`Bienvenido ${currentUser.displayName || currentUser.email.split('@')[0]} // Datos sincronizados`);
-          } else {
-            // Primer login: subir datos locales actuales a la nube
-            await saveUserCloudData(currentUser.uid, {
-              data,
-              goals,
-              rememberedWorkouts,
-              rememberedFoods
-            });
-            showToast(`Cuenta inicializada en la nube`);
+
+        // Escuchar datos de Firestore en tiempo real para sincronización instantánea entre celular y PC
+        cloudDataUnsubscribe = subscribeToUserCloudData(
+          currentUser.uid,
+          async (cloudData) => {
+            if (cloudData) {
+              // Si la nube ya contiene datos, sincronizarlos
+              if (cloudData.data !== undefined) setData(cloudData.data);
+              if (cloudData.goals !== undefined) setGoals(cloudData.goals);
+              if (cloudData.rememberedWorkouts !== undefined) setRememberedWorkouts(cloudData.rememberedWorkouts);
+              if (cloudData.rememberedFoods !== undefined) setRememberedFoods(cloudData.rememberedFoods);
+
+              if (cloudData.challengeCalibration !== undefined) {
+                setChallengeCalibration(cloudData.challengeCalibration);
+                if (cloudData.challengeCalibration) {
+                  saveStoredChallengeCalibration(cloudData.challengeCalibration);
+                }
+              }
+
+              // Si en la nube no había calibración pero localmente sí tenemos (ej: hecha en este celu antes de sincronizar)
+              if (challengeCalibration && !cloudData.challengeCalibration) {
+                saveUserCloudData(currentUser.uid, { challengeCalibration });
+              }
+
+              const mergedPayload = {
+                data: cloudData.data !== undefined ? cloudData.data : data,
+                goals: cloudData.goals !== undefined ? cloudData.goals : goals,
+                rememberedWorkouts: cloudData.rememberedWorkouts !== undefined ? cloudData.rememberedWorkouts : rememberedWorkouts,
+                rememberedFoods: cloudData.rememberedFoods !== undefined ? cloudData.rememberedFoods : rememberedFoods,
+                challengeCalibration: cloudData.challengeCalibration !== undefined ? cloudData.challengeCalibration : challengeCalibration
+              };
+              lastSyncedPayloadRef.current = JSON.stringify(mergedPayload);
+
+              if (isInitialLoadRef.current) {
+                showToast(`Bienvenido ${currentUser.displayName || currentUser.email.split('@')[0]} // Sincronizado en tiempo real`);
+                isInitialLoadRef.current = false;
+              }
+              setSyncStatus('synced');
+            } else {
+              // Primer login: subir datos locales actuales a la nube
+              const initialPayload = {
+                data,
+                goals,
+                rememberedWorkouts,
+                rememberedFoods,
+                challengeCalibration: challengeCalibration || null
+              };
+              lastSyncedPayloadRef.current = JSON.stringify(initialPayload);
+              await saveUserCloudData(currentUser.uid, initialPayload);
+              showToast('Cuenta inicializada en la nube');
+              isInitialLoadRef.current = false;
+              setSyncStatus('synced');
+            }
+          },
+          (err) => {
+            console.error('Error al sincronizar con la nube:', err);
+            setSyncStatus('error');
+            if (isInitialLoadRef.current) {
+              showToast('Modo sin conexión');
+              isInitialLoadRef.current = false;
+            }
           }
-          setSyncStatus('synced');
-        } catch (err) {
-          console.error('Error al sincronizar con la nube:', err);
-          setSyncStatus('error');
-          showToast('Modo sin conexión');
-        }
+        );
       } else {
         setSyncStatus('local');
+        isInitialLoadRef.current = false;
       }
-      isInitialLoadRef.current = false;
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (cloudDataUnsubscribe) cloudDataUnsubscribe();
+      authUnsubscribe();
+    };
   }, []);
 
-  // 3. Auto-guardado en Firestore (Cloud Sync) al detectar cambios
+  // 3. Auto-guardado en Firestore (Cloud Sync) al detectar cambios locales
   useEffect(() => {
     if (!user || isInitialLoadRef.current) return;
+
+    const currentPayload = {
+      data,
+      goals,
+      rememberedWorkouts,
+      rememberedFoods,
+      challengeCalibration: challengeCalibration || null
+    };
+
+    const serialized = JSON.stringify(currentPayload);
+    // Si coincide con lo último sincronizado, omitir re-guardado
+    if (serialized === lastSyncedPayloadRef.current) return;
 
     setSyncStatus('syncing');
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        await saveUserCloudData(user.uid, {
-          data,
-          goals,
-          rememberedWorkouts,
-          rememberedFoods
-        });
+        await saveUserCloudData(user.uid, currentPayload);
+        lastSyncedPayloadRef.current = serialized;
         setSyncStatus('synced');
       } catch (err) {
         console.error('Error auto-guardando en la nube:', err);
         setSyncStatus('error');
       }
-    }, 1200); // 1.2 segundos de debounce
+    }, 1000); // 1 segundo de debounce
 
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [data, goals, rememberedWorkouts, rememberedFoods, user]);
+  }, [data, goals, rememberedWorkouts, rememberedFoods, challengeCalibration, user]);
 
   const handleLogout = async () => {
     if (window.confirm('¿Deseas cerrar tu sesión actual?')) {
@@ -302,9 +376,11 @@ export default function App() {
   const handleClearAllData = () => {
     if (window.confirm('¿Vaciar todos los datos de la aplicación?')) {
       setData({});
+      setChallengeCalibration(null);
       localStorage.removeItem('mypowerup_data');
+      localStorage.removeItem('mypowerup_challenge_calibration');
       if (user) {
-        saveUserCloudData(user.uid, { data: {} });
+        saveUserCloudData(user.uid, { data: {}, challengeCalibration: null });
       }
       showToast('Todos los datos han sido borrados');
     }
@@ -312,7 +388,14 @@ export default function App() {
 
   const handleExportData = () => {
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
-      JSON.stringify({ data, goals, rememberedWorkouts, rememberedFoods, version: '3.1' }, null, 2)
+      JSON.stringify({ 
+        data, 
+        goals, 
+        rememberedWorkouts, 
+        rememberedFoods, 
+        challengeCalibration,
+        version: '3.2' 
+      }, null, 2)
     )}`;
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', jsonString);
@@ -335,6 +418,12 @@ export default function App() {
             if (parsed.goals) setGoals(parsed.goals);
             if (parsed.rememberedWorkouts) setRememberedWorkouts(parsed.rememberedWorkouts);
             if (parsed.rememberedFoods) setRememberedFoods(parsed.rememberedFoods);
+            if (parsed.challengeCalibration !== undefined) {
+              setChallengeCalibration(parsed.challengeCalibration);
+              if (parsed.challengeCalibration) {
+                saveStoredChallengeCalibration(parsed.challengeCalibration);
+              }
+            }
           } else {
             setData(parsed);
           }
@@ -586,6 +675,8 @@ export default function App() {
               data={data}
               goals={goals}
               onSelectDate={handleSelectDateFromHistory}
+              challengeCalibration={challengeCalibration}
+              onUpdateChallengeCalibration={setChallengeCalibration}
             />
           </div>
         )}
