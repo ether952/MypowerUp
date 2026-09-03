@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Denegar acceso a cualquier colección no especificada explícitamente
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Colección de Usuarios y todas sus posibles subcolecciones futuras
+    match /users/{userId} {
+      
+      // Función auxiliar: verifica que el usuario esté autenticado y sea el dueño de los datos
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      // Función auxiliar: validación básica de integridad de datos
+      function isValidUserData() {
+        // Asegura que no se envíen payloads con tamaño desmedido
+        return request.resource.data.keys().size() <= 30;
+      }
+
+      // Lectura: Solo el dueño puede leer sus propios datos
+      allow get: if isOwner();
+      
+      // Listar/Buscar usuarios: Prohibido para evitar que alguien raspe la lista de atletas/usuarios
+      allow list: if false;
+
+      // Creación y Modificación: Solo el dueño puede escribir sus datos
+      allow create, update: if isOwner() && isValidUserData();
+
+      // Eliminación: El usuario puede borrar sus datos si desea darse de baja
+      allow delete: if isOwner();
+
+      // Regla recursiva: Protege automáticamente cualquier subcolección anidada (ej: users/{userId}/days/{date})
+      match /{allSubcollections=**} {
+        allow read, write: if isOwner();
+      }
+    }
+  }
+}

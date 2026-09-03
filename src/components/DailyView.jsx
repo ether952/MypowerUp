@@ -217,7 +217,7 @@ export default function DailyView({
   const totalCalories = (currentDay.foods || []).reduce((acc, curr) => acc + (Number(curr.calories) || 0), 0);
   const totalProtein = (currentDay.foods || []).reduce((acc, curr) => acc + (Number(curr.protein) || 0), 0);
   const totalTonnage = (currentDay.workouts || []).reduce(
-    (acc, curr) => acc + (Number(curr.weight) || 0), 
+    (acc, curr) => acc + (Number(curr.weight) || 0),
     0
   );
 
@@ -438,8 +438,7 @@ export default function DailyView({
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-neon-purple font-mono uppercase">
-                  <span className="inline-block w-2 h-2 rounded-full bg-neon-purple animate-ping"></span>
-                  <span>01 // GIMNASIO & CARGAS</span>
+                  <span>GIMNASIO & CARGAS</span>
                 </div>
                 <h2 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white uppercase font-display">
                   REGISTRA TU <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-mint">SESIÓN</span>
@@ -490,7 +489,7 @@ export default function DailyView({
                         }}
                         className="text-neon-purple hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold"
                       >
-                        [ sugerencias + ]
+                        [ Sugerencias ]
                       </button>
 
                       {/* Dropdown de Sugerencias con FONDO 100% OPACO SÓLIDO */}
@@ -647,7 +646,7 @@ export default function DailyView({
           <ScrollReveal delay={150}>
             <div className="space-y-3 pt-6">
               <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
-                <span>// REGISTROS DE ENTRENAMIENTO DE HOY</span>
+                <span>REGISTROS DE ENTRENAMIENTO DE HOY</span>
                 <span className="text-neon-purple">({currentDay.workouts?.length || 0})</span>
               </div>
 
@@ -739,8 +738,7 @@ export default function DailyView({
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-cyan-500/20 pb-6">
               <div className="space-y-2">
                 <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-neon-cyan font-mono uppercase">
-                  <span className="inline-block w-2 h-2 rounded-full bg-neon-cyan animate-ping"></span>
-                  <span>02 // DIETA & SUPLEMENTACIÓN</span>
+                  <span>DIETA & SUPLEMENTACIÓN</span>
                 </div>
                 <h2 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white uppercase font-display">
                   COMIDAS & <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-neon-mint to-neon-purple">SUPLEMENTOS</span>
@@ -769,7 +767,7 @@ export default function DailyView({
           <ScrollReveal delay={100}>
             <div className="space-y-3">
               <div className="text-xs font-mono tracking-wider text-neutral-400 uppercase">
-                // TIPO DE REGISTRO
+                TIPO DE REGISTRO
               </div>
 
               {/* Selector Unificado estilo Cápsula (como barra de navegación) */}
@@ -783,13 +781,12 @@ export default function DailyView({
                       key={type.id}
                       type="button"
                       onClick={() => setMealType(type.id)}
-                      className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${
-                        isSelected
-                          ? isSupp
-                            ? 'bg-neon-mint text-space-950 font-black shadow-md shadow-emerald-500/30'
-                            : 'bg-gradient-to-r from-neon-cyan to-neon-blue text-space-950 font-black shadow-md shadow-cyan-500/30'
-                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                      }`}
+                      className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${isSelected
+                        ? isSupp
+                          ? 'bg-neon-mint text-space-950 font-black shadow-md shadow-emerald-500/30'
+                          : 'bg-gradient-to-r from-neon-cyan to-neon-blue text-space-950 font-black shadow-md shadow-cyan-500/30'
+                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                        }`}
                     >
                       {type.tag} // {type.label.toUpperCase()}
                     </button>
@@ -837,7 +834,7 @@ export default function DailyView({
                           }}
                           className="text-neon-mint hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold"
                         >
-                          [ suplementos + ]
+                          [ suplementos ]
                         </button>
                       ) : (
                         <button
@@ -848,7 +845,7 @@ export default function DailyView({
                           }}
                           className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold"
                         >
-                          [ alimentos frecuentes + ]
+                          [ alimentos frecuentes  ]
                         </button>
                       )}
 
@@ -1019,7 +1016,7 @@ export default function DailyView({
           <ScrollReveal delay={250}>
             <div className="space-y-3 pt-6">
               <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
-                <span>// REGISTROS NUTRICIONALES DE HOY</span>
+                <span>REGISTROS NUTRICIONALES DE HOY</span>
                 <span className="text-neon-cyan">({currentDay.foods?.length || 0})</span>
               </div>
 
@@ -1115,8 +1112,7 @@ export default function DailyView({
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-emerald-500/20 pb-6">
               <div className="space-y-2">
                 <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-emerald-400 font-mono uppercase">
-                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span>03 // ACTIVIDAD & DESPLAZAMIENTOS</span>
+                  <span>ACTIVIDAD & DESPLAZAMIENTOS</span>
                 </div>
                 <h2 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white uppercase font-display">
                   CARDIO & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">DISTANCIA</span>
@@ -1145,7 +1141,7 @@ export default function DailyView({
           <ScrollReveal delay={100}>
             <div className="space-y-3">
               <div className="text-xs font-mono tracking-wider text-neutral-400 uppercase">
-                // TIPO DE CARDIO
+                TIPO DE CARDIO
               </div>
 
               {/* Selector Unificado estilo Cápsula (como barra de navegación) */}
@@ -1157,11 +1153,10 @@ export default function DailyView({
                       key={c.id}
                       type="button"
                       onClick={() => setCardioType(c.id)}
-                      className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${
-                        isSelected
-                          ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-space-950 font-black shadow-md shadow-emerald-500/25'
-                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                      }`}
+                      className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${isSelected
+                        ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-space-950 font-black shadow-md shadow-emerald-500/25'
+                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                        }`}
                     >
                       {c.id === 'caminata' && <Footprints className="w-3.5 h-3.5" />}
                       {c.id === 'running' && <Flame className="w-3.5 h-3.5" />}
@@ -1285,24 +1280,22 @@ export default function DailyView({
                     return (
                       <div
                         key={c.id}
-                        className={`flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${
-                          isRun
-                            ? 'border-l-4 border-amber-400'
-                            : isBike
+                        className={`flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${isRun
+                          ? 'border-l-4 border-amber-400'
+                          : isBike
                             ? 'border-l-4 border-cyan-400'
                             : 'border-l-4 border-emerald-400'
-                        }`}
+                          }`}
                       >
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold flex items-center gap-1.5 ${
-                                isRun
-                                  ? 'bg-amber-400/10 text-amber-400 border border-amber-400/30'
-                                  : isBike
+                              className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold flex items-center gap-1.5 ${isRun
+                                ? 'bg-amber-400/10 text-amber-400 border border-amber-400/30'
+                                : isBike
                                   ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/30'
                                   : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/30'
-                              }`}
+                                }`}
                             >
                               {c.type === 'caminata' && <Footprints className="w-3 h-3" />}
                               {c.type === 'running' && <Flame className="w-3 h-3" />}
