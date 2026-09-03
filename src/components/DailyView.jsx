@@ -25,6 +25,9 @@ import {
   CARDIO_TYPES,
   calculateCardioCalories
 } from '../utils/helpers';
+import bgMusculacion from '../assets/bg-musculacion-hd.png';
+import bgAlimentos from '../assets/bg-alimentos-hd.png';
+import bgCardio from '../assets/bg-cardio-hd.png';
 
 // Helper para animación suave de scroll
 function ScrollReveal({ children, className = '', delay = 0 }) {
@@ -101,6 +104,42 @@ export default function DailyView({
   const [cardioDistance, setCardioDistance] = useState('');
   const [cardioTime, setCardioTime] = useState(() => getCurrentTimeString());
   const cardioSectionRef = useRef(null);
+  const sec1ContentRef = useRef(null);
+  const sec2ContentRef = useRef(null);
+
+  useEffect(() => {
+    let rafId = null;
+    const handleScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const vh = window.innerHeight || 800;
+
+        // Sensación simultánea de descenso: el contenido activo asciende suavemente al hacer scroll
+        if (sec1ContentRef.current) {
+          const p1 = Math.min(1, Math.max(0, y / (vh * 0.75)));
+          sec1ContentRef.current.style.transform = `translate3d(0, ${-p1 * 130}px, 0)`;
+          sec1ContentRef.current.style.opacity = `${1 - p1 * 0.45}`;
+        }
+
+        if (sec2ContentRef.current) {
+          const sec2Top = vh * 0.75;
+          const p2 = Math.min(1, Math.max(0, (y - sec2Top) / (vh * 0.75)));
+          sec2ContentRef.current.style.transform = `translate3d(0, ${-p2 * 130}px, 0)`;
+          sec2ContentRef.current.style.opacity = `${1 - p2 * 0.45}`;
+        }
+
+        rafId = null;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   const estimatedCardioBurn = useMemo(() => {
     return calculateCardioCalories(cardioType, cardioDistance);
@@ -371,18 +410,28 @@ export default function DailyView({
   };
 
   return (
-    <div className="w-full space-y-24 pb-32">
+    <div className="w-full relative pb-32">
 
       {/* ========================================================================= */}
-      {/* 01. SECCIÓN SUPERIOR: ENTRENAMIENTO & GIMNASIO (OCUPA TODO EL ESPACIO)    */}
+      {/* 01. SECCIÓN SUPERIOR: ENTRENAMIENTO & GIMNASIO                            */}
       {/* ========================================================================= */}
-      <section className="min-h-[82vh] flex flex-col justify-between py-6 px-4 sm:px-8 border-b border-purple-500/20 relative">
+      <section className="sticky top-[68px] z-10 min-h-[85vh] flex flex-col justify-between py-6 px-4 sm:px-8 border-b border-purple-500/20 bg-[#050210] relative overflow-hidden">
 
         {/* Glows ambientales */}
         <div className="ambient-glow-purple w-96 h-96 -top-10 -left-10 opacity-30" />
         <div className="ambient-glow-cyan w-80 h-80 top-1/2 -right-10 opacity-25" />
 
-        <div className="space-y-10 relative z-10 max-w-6xl mx-auto w-full">
+        {/* Imagen de fondo decorativa con transparencia real, oscurecida y difuminada */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
+          <img
+            src={bgMusculacion}
+            alt=""
+            aria-hidden="true"
+            className="w-[340px] sm:w-[500px] md:w-[640px] lg:w-[740px] max-w-none opacity-10 brightness-75 filter blur-[5px] drop-shadow-[0_0_30px_rgba(168,85,247,0.3)] object-contain select-none transform-gpu"
+          />
+        </div>
+
+        <div ref={sec1ContentRef} className="space-y-10 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
 
           {/* Cabecera Principal */}
           <ScrollReveal delay={0}>
@@ -607,7 +656,7 @@ export default function DailyView({
                   No hay series registradas aún. Agrega tu primer ejercicio arriba.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-1">
                   {currentDay.workouts.map((w) => {
                     const rm = calculate1RM(Number(w.weight), Number(w.reps));
 
@@ -664,16 +713,26 @@ export default function DailyView({
 
 
       {/* ========================================================================= */}
-      {/* 02. SECCIÓN INFERIOR: NUTRICIÓN & SUPLEMENTOS (SCROLL REVEAL ANIMADO)     */}
+      {/* 02. SECCIÓN INFERIOR: NUTRICIÓN & SUPLEMENTOS                             */}
       {/* ========================================================================= */}
       <section
         ref={foodSectionRef}
-        className="min-h-[85vh] py-12 px-4 sm:px-8 relative"
+        className="sticky top-[68px] z-20 min-h-[85vh] py-12 px-4 sm:px-8 border-t border-cyan-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden"
       >
         <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-25" />
         <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-20" />
 
-        <div className="space-y-12 relative z-10 max-w-6xl mx-auto w-full">
+        {/* Imagen de fondo decorativa con transparencia real, oscurecida y difuminada */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
+          <img
+            src={bgAlimentos}
+            alt=""
+            aria-hidden="true"
+            className="w-[340px] sm:w-[500px] md:w-[640px] lg:w-[740px] max-w-none opacity-10 brightness-75 filter blur-[5px] drop-shadow-[0_0_30px_rgba(6,182,212,0.3)] object-contain select-none transform-gpu"
+          />
+        </div>
+
+        <div ref={sec2ContentRef} className="space-y-12 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
 
           {/* Cabecera Nutrición con Reveal */}
           <ScrollReveal delay={0}>
@@ -969,7 +1028,7 @@ export default function DailyView({
                   No hay comidas o suplementos registrados hoy. Agrega uno arriba.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-1">
                   {currentDay.foods.map((f) => {
                     const mealMeta = MEAL_TYPES.find(m => m.id === f.mealType) || { label: f.mealType || 'Comida', tag: '00' };
                     const isSupp = f.mealType === 'suplementacion';
@@ -1034,10 +1093,20 @@ export default function DailyView({
       {/* ========================================================================= */}
       <section
         ref={cardioSectionRef}
-        className="min-h-[85vh] py-12 px-4 sm:px-8 relative border-t border-emerald-500/10"
+        className="sticky top-[68px] z-30 min-h-[85vh] py-12 px-4 sm:px-8 border-t border-emerald-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden"
       >
         <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-20" />
         <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-15" />
+
+        {/* Imagen de fondo decorativa con transparencia real, oscurecida y difuminada */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
+          <img
+            src={bgCardio}
+            alt=""
+            aria-hidden="true"
+            className="w-[340px] sm:w-[500px] md:w-[640px] lg:w-[740px] max-w-none opacity-10 brightness-75 filter blur-[5px] drop-shadow-[0_0_30px_rgba(16,185,129,0.3)] object-contain select-none transform-gpu"
+          />
+        </div>
 
         <div className="space-y-12 relative z-10 max-w-6xl mx-auto w-full">
 
@@ -1208,7 +1277,7 @@ export default function DailyView({
                   No hay sesiones de cardio registradas hoy. Agrega una arriba.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-1">
                   {currentDay.cardios.map((c) => {
                     const isRun = c.type === 'running';
                     const isBike = c.type === 'bicicleta';
