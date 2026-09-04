@@ -3,6 +3,7 @@ import {
   Plus,
   Trash2,
   ArrowDown,
+  ArrowUp,
   ChevronDown,
   Clock,
   Dumbbell,
@@ -42,7 +43,7 @@ function ScrollReveal({ children, className = '', delay = 0 }) {
           setIsVisible(true);
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
     );
 
     if (ref.current) {
@@ -105,10 +106,14 @@ export default function DailyView({
   const [cardioTo, setCardioTo] = useState('');
   const [cardioDistance, setCardioDistance] = useState('');
   const [cardioTime, setCardioTime] = useState(() => getCurrentTimeString());
-  const cardioSectionRef = useRef(null);
+  
+  const sec1Ref = useRef(null);
+  const sec2Ref = useRef(null);
+  const sec3Ref = useRef(null);
   const sec1ContentRef = useRef(null);
   const sec2ContentRef = useRef(null);
 
+  // Animación suave de solapamiento: solo se eleva cuando la siguiente tarjeta entra en pantalla
   useEffect(() => {
     let rafId = null;
     const handleScroll = () => {
@@ -117,18 +122,28 @@ export default function DailyView({
         const y = window.scrollY;
         const vh = window.innerHeight || 800;
 
-        // Sensación simultánea de descenso: el contenido activo asciende suavemente al hacer scroll
-        if (sec1ContentRef.current) {
-          const p1 = Math.min(1, Math.max(0, y / (vh * 0.75)));
-          sec1ContentRef.current.style.transform = `translate3d(0, ${-p1 * 130}px, 0)`;
-          sec1ContentRef.current.style.opacity = `${1 - p1 * 0.45}`;
+        // Tarjeta 1: se mantiene intacta y solo asciende suavemente cuando Tarjeta 2 sube a cubrirla
+        if (sec1ContentRef.current && sec2Ref.current) {
+          const sec2Top = sec2Ref.current.offsetTop;
+          const startTrigger = Math.max(0, sec2Top - vh * 0.8);
+          const endTrigger = sec2Top - 68;
+          const range = Math.max(150, endTrigger - startTrigger);
+          const p1 = Math.min(1, Math.max(0, (y - startTrigger) / range));
+          
+          sec1ContentRef.current.style.transform = `translate3d(0, ${-p1 * 50}px, 0)`;
+          sec1ContentRef.current.style.opacity = `${1 - p1 * 0.35}`;
         }
 
-        if (sec2ContentRef.current) {
-          const sec2Top = vh * 0.75;
-          const p2 = Math.min(1, Math.max(0, (y - sec2Top) / (vh * 0.75)));
-          sec2ContentRef.current.style.transform = `translate3d(0, ${-p2 * 130}px, 0)`;
-          sec2ContentRef.current.style.opacity = `${1 - p2 * 0.45}`;
+        // Tarjeta 2: se mantiene intacta y solo asciende suavemente cuando Tarjeta 3 sube a cubrirla
+        if (sec2ContentRef.current && sec3Ref.current) {
+          const sec3Top = sec3Ref.current.offsetTop;
+          const startTrigger = Math.max(0, sec3Top - vh * 0.8);
+          const endTrigger = sec3Top - 68;
+          const range = Math.max(150, endTrigger - startTrigger);
+          const p2 = Math.min(1, Math.max(0, (y - startTrigger) / range));
+          
+          sec2ContentRef.current.style.transform = `translate3d(0, ${-p2 * 50}px, 0)`;
+          sec2ContentRef.current.style.opacity = `${1 - p2 * 0.35}`;
         }
 
         rafId = null;
@@ -408,7 +423,21 @@ export default function DailyView({
   };
 
   const scrollToFood = () => {
-    foodSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (sec2Ref.current) {
+      const top = sec2Ref.current.offsetTop - 68;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  };
+
+  const scrollToCardio = () => {
+    if (sec3Ref.current) {
+      const top = sec3Ref.current.offsetTop - 68;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -417,7 +446,10 @@ export default function DailyView({
       {/* ========================================================================= */}
       {/* 01. SECCIÓN SUPERIOR: ENTRENAMIENTO & GIMNASIO                            */}
       {/* ========================================================================= */}
-      <section className="sticky top-[68px] z-10 min-h-[85vh] flex flex-col justify-between py-6 px-4 sm:px-8 border-b border-purple-500/20 bg-[#050210] relative overflow-hidden">
+      <section
+        ref={sec1Ref}
+        className="sticky top-[68px] z-10 min-h-[85vh] pb-16 sm:pb-24 flex flex-col justify-between py-6 px-4 sm:px-8 border-b border-purple-500/20 bg-[#050210] relative overflow-hidden"
+      >
 
         {/* Glows ambientales */}
         <div className="ambient-glow-purple w-96 h-96 -top-10 -left-10 opacity-30" />
@@ -771,8 +803,8 @@ export default function DailyView({
       {/* 02. SECCIÓN INFERIOR: NUTRICIÓN & SUPLEMENTOS                             */}
       {/* ========================================================================= */}
       <section
-        ref={foodSectionRef}
-        className="sticky top-[68px] z-20 min-h-[85vh] py-12 px-4 sm:px-8 border-t border-cyan-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden"
+        ref={sec2Ref}
+        className="sticky top-[68px] z-20 min-h-[85vh] pb-16 sm:pb-24 py-10 px-4 sm:px-8 border-t border-cyan-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden"
       >
         <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-25" />
         <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-20" />
@@ -1132,25 +1164,27 @@ export default function DailyView({
           </ScrollReveal>
 
         </div>
-      </section>
 
-      {/* Scroll indicator hacia la sección de cardio */}
-      <div className="flex justify-center -mt-12 mb-4">
-        <button
-          onClick={() => cardioSectionRef.current?.scrollIntoView({ behavior: 'smooth' })}
-          className="group flex flex-col items-center gap-2 text-xs font-mono tracking-widest text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
-        >
-          <span>SCROLL PARA CARDIO & DESPLAZAMIENTOS</span>
-          <ArrowDown className="w-4 h-4 text-emerald-400 group-hover:translate-y-1 transition-transform animate-bounce" />
-        </button>
-      </div>
+        {/* Botón para scrolear a cardio */}
+        <div className="flex justify-center pt-8 pb-4">
+          <button
+            type="button"
+            onClick={scrollToCardio}
+            className="group flex flex-col items-center gap-2 text-xs font-mono tracking-widest text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
+          >
+            <span>SCROLL PARA CARDIO & DESPLAZAMIENTOS</span>
+            <ArrowDown className="w-4 h-4 text-emerald-400 group-hover:translate-y-1 transition-transform animate-bounce" />
+          </button>
+        </div>
+
+      </section>
 
       {/* ========================================================================= */}
       {/* 03. SECCIÓN INFERIOR: CARDIO & ACTIVIDAD AERÓBICA                         */}
       {/* ========================================================================= */}
       <section
-        ref={cardioSectionRef}
-        className="sticky top-[68px] z-30 min-h-[85vh] py-12 px-4 sm:px-8 border-t border-emerald-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden"
+        ref={sec3Ref}
+        className="sticky top-[68px] z-30 min-h-[85vh] pb-16 sm:pb-24 py-10 px-4 sm:px-8 border-t border-emerald-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden"
       >
         <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-20" />
         <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-15" />
@@ -1398,6 +1432,19 @@ export default function DailyView({
           </ScrollReveal>
 
         </div>
+
+        {/* Botón para volver arriba */}
+        <div className="flex justify-center pt-8 pb-4">
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className="group flex flex-col items-center gap-2 text-xs font-mono tracking-widest text-neutral-400 hover:text-neon-purple transition-colors cursor-pointer"
+          >
+            <ArrowUp className="w-4 h-4 text-emerald-400 group-hover:-translate-y-1 transition-transform animate-bounce" />
+            <span>VOLVER AL INICIO</span>
+          </button>
+        </div>
+
       </section>
 
     </div>
