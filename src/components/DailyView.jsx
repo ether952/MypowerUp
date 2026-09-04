@@ -106,14 +106,10 @@ export default function DailyView({
   const [cardioTo, setCardioTo] = useState('');
   const [cardioDistance, setCardioDistance] = useState('');
   const [cardioTime, setCardioTime] = useState(() => getCurrentTimeString());
-  
-  const sec1Ref = useRef(null);
-  const sec2Ref = useRef(null);
-  const sec3Ref = useRef(null);
+  const cardioSectionRef = useRef(null);
   const sec1ContentRef = useRef(null);
   const sec2ContentRef = useRef(null);
 
-  // Animación suave de solapamiento: solo se eleva cuando la siguiente tarjeta entra en pantalla
   useEffect(() => {
     let rafId = null;
     const handleScroll = () => {
@@ -122,28 +118,18 @@ export default function DailyView({
         const y = window.scrollY;
         const vh = window.innerHeight || 800;
 
-        // Tarjeta 1: se mantiene intacta y solo asciende suavemente cuando Tarjeta 2 sube a cubrirla
-        if (sec1ContentRef.current && sec2Ref.current) {
-          const sec2Top = sec2Ref.current.offsetTop;
-          const startTrigger = Math.max(0, sec2Top - vh * 0.8);
-          const endTrigger = sec2Top - 68;
-          const range = Math.max(150, endTrigger - startTrigger);
-          const p1 = Math.min(1, Math.max(0, (y - startTrigger) / range));
-          
-          sec1ContentRef.current.style.transform = `translate3d(0, ${-p1 * 50}px, 0)`;
-          sec1ContentRef.current.style.opacity = `${1 - p1 * 0.35}`;
+        // Sensación simultánea de descenso: el contenido activo asciende suavemente al hacer scroll
+        if (sec1ContentRef.current) {
+          const p1 = Math.min(1, Math.max(0, y / (vh * 0.75)));
+          sec1ContentRef.current.style.transform = `translate3d(0, ${-p1 * 90}px, 0)`;
+          sec1ContentRef.current.style.opacity = `${1 - p1 * 0.45}`;
         }
 
-        // Tarjeta 2: se mantiene intacta y solo asciende suavemente cuando Tarjeta 3 sube a cubrirla
-        if (sec2ContentRef.current && sec3Ref.current) {
-          const sec3Top = sec3Ref.current.offsetTop;
-          const startTrigger = Math.max(0, sec3Top - vh * 0.8);
-          const endTrigger = sec3Top - 68;
-          const range = Math.max(150, endTrigger - startTrigger);
-          const p2 = Math.min(1, Math.max(0, (y - startTrigger) / range));
-          
-          sec2ContentRef.current.style.transform = `translate3d(0, ${-p2 * 50}px, 0)`;
-          sec2ContentRef.current.style.opacity = `${1 - p2 * 0.35}`;
+        if (sec2ContentRef.current) {
+          const sec2Top = vh * 0.75;
+          const p2 = Math.min(1, Math.max(0, (y - sec2Top) / (vh * 0.75)));
+          sec2ContentRef.current.style.transform = `translate3d(0, ${-p2 * 90}px, 0)`;
+          sec2ContentRef.current.style.opacity = `${1 - p2 * 0.45}`;
         }
 
         rafId = null;
@@ -423,21 +409,7 @@ export default function DailyView({
   };
 
   const scrollToFood = () => {
-    if (sec2Ref.current) {
-      const top = sec2Ref.current.offsetTop - 68;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }
-  };
-
-  const scrollToCardio = () => {
-    if (sec3Ref.current) {
-      const top = sec3Ref.current.offsetTop - 68;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    foodSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -446,10 +418,7 @@ export default function DailyView({
       {/* ========================================================================= */}
       {/* 01. SECCIÓN SUPERIOR: ENTRENAMIENTO & GIMNASIO                            */}
       {/* ========================================================================= */}
-      <section
-        ref={sec1Ref}
-        className="sticky top-[68px] z-10 min-h-[85vh] pb-16 sm:pb-24 flex flex-col justify-between py-6 px-4 sm:px-8 border-b border-purple-500/20 bg-[#050210] relative overflow-hidden"
-      >
+      <section className="sticky top-[68px] z-10 min-h-[calc(100vh-68px)] flex flex-col justify-between py-4 sm:py-6 px-3 sm:px-8 border-b border-purple-500/20 bg-[#050210] relative overflow-hidden">
 
         {/* Glows ambientales */}
         <div className="ambient-glow-purple w-96 h-96 -top-10 -left-10 opacity-30" />
@@ -465,31 +434,31 @@ export default function DailyView({
           />
         </div>
 
-        <div ref={sec1ContentRef} className="space-y-10 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
+        <div ref={sec1ContentRef} className="space-y-4 sm:space-y-6 md:space-y-8 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
 
           {/* Cabecera Principal */}
           <ScrollReveal delay={0}>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-4">
-              <div className="space-y-2">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2">
+              <div className="space-y-1">
                 <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-neon-purple font-mono uppercase">
                   <span>GIMNASIO & CARGAS</span>
                 </div>
-                <h2 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white uppercase font-display">
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase font-display">
                   REGISTRA TU <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-mint">SESIÓN</span>
                 </h2>
               </div>
 
               {/* Tonelaje Total en Vivo */}
-              <div className="flex items-center gap-6 border-l-2 border-neon-purple/40 pl-6">
+              <div className="flex items-center gap-6 border-l-2 border-neon-purple/40 pl-4 sm:pl-6">
                 <div>
-                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Peso Total</span>
-                  <span className="text-3xl sm:text-4xl font-black font-mono text-neon-cyan">
-                    {totalTonnage.toLocaleString()} <span className="text-sm font-sans text-neutral-400">KG</span>
+                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Peso Total</span>
+                  <span className="text-2xl sm:text-4xl font-black font-mono text-neon-cyan">
+                    {totalTonnage.toLocaleString()} <span className="text-xs sm:text-sm font-sans text-neutral-400">KG</span>
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Ejercicios</span>
-                  <span className="text-3xl sm:text-4xl font-black font-mono text-white">
+                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Ejercicios</span>
+                  <span className="text-2xl sm:text-4xl font-black font-mono text-white">
                     {currentDay.workouts?.length || 0}
                   </span>
                 </div>
@@ -499,12 +468,12 @@ export default function DailyView({
 
           {/* Formulario de Carga de Ejercicios */}
           <ScrollReveal delay={100} className="relative z-30">
-            <form onSubmit={handleSubmitWorkout} className="space-y-6 pt-2 relative">
+            <form onSubmit={handleSubmitWorkout} className="space-y-4 sm:space-y-5 pt-1 relative">
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
 
                 {/* Ejercicio con Dropdown 100% Opaco y sin solapamiento */}
-                <div ref={exerciseContainerRef} className="md:col-span-6 space-y-2 relative z-40">
+                <div ref={exerciseContainerRef} className="md:col-span-6 space-y-1.5 relative z-40">
                   <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
                     <label className="flex items-center gap-1.5">
                       <span>Nombre del Ejercicio</span>
@@ -665,7 +634,7 @@ export default function DailyView({
                     placeholder="4"
                     value={sets}
                     onChange={(e) => setSets(e.target.value)}
-                    className="w-full input-futuristic px-3 py-2.5 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic px-3 py-2 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
                     required
                   />
                 </div>
@@ -679,7 +648,7 @@ export default function DailyView({
                     placeholder="8"
                     value={reps}
                     onChange={(e) => setReps(e.target.value)}
-                    className="w-full input-futuristic px-3 py-2.5 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic px-3 py-2 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
                     required
                   />
                 </div>
@@ -694,7 +663,7 @@ export default function DailyView({
                     placeholder="80"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className="w-full input-futuristic px-3 py-2.5 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
                     required
                   />
                 </div>
@@ -702,26 +671,26 @@ export default function DailyView({
               </div>
 
               {/* Fila de acción & cálculo en tiempo real */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
                 <div className="text-xs font-mono text-neutral-400">
                   {Number(weight) > 0 ? (
-                    <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-3 text-xs">
                       <span>Peso: <strong className="text-neon-cyan font-bold">{Number(weight)} KG</strong></span>
                       {Number(reps) > 0 && live1RM > 0 && (
                         <>
                           <span className="text-neutral-600">//</span>
-                          <span>1RM Estimado: <strong className="text-neon-mint font-bold">{live1RM} KG</strong></span>
+                          <span>1RM: <strong className="text-neon-mint font-bold">{live1RM} KG</strong></span>
                         </>
                       )}
                     </div>
                   ) : (
-                    <span className="text-neutral-500">Completa los datos para registrar tu ejercicio.</span>
+                    <span className="text-neutral-500 text-xs">Completa los datos para registrar tu ejercicio.</span>
                   )}
                 </div>
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-gradient-to-r from-neon-purple to-neon-violet hover:from-neon-violet hover:to-neon-fuchsia text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-purple-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 bg-gradient-to-r from-neon-purple to-neon-violet hover:from-neon-violet hover:to-neon-fuchsia text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-purple-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                 >
                   <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR EJERCICIO
                 </button>
@@ -732,30 +701,30 @@ export default function DailyView({
 
           {/* Listado de Ejercicios del Día */}
           <ScrollReveal delay={150} className="relative z-10">
-            <div className="space-y-3 pt-6">
+            <div className="space-y-2 pt-2 sm:pt-4">
               <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
                 <span>REGISTROS DE ENTRENAMIENTO DE HOY</span>
                 <span className="text-neon-purple">({currentDay.workouts?.length || 0})</span>
               </div>
 
               {(!currentDay.workouts || currentDay.workouts.length === 0) ? (
-                <div className="py-12 text-center text-neutral-600 font-mono text-sm border-t border-b border-purple-500/10">
+                <div className="py-6 text-center text-neutral-600 font-mono text-xs border-t border-b border-purple-500/10">
                   No hay series registradas aún. Agrega tu primer ejercicio arriba.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[140px] sm:max-h-[180px] md:max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
                   {currentDay.workouts.map((w) => {
                     const rm = calculate1RM(Number(w.weight), Number(w.reps));
 
                     return (
                       <div
                         key={w.id}
-                        className="flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-l-4 border-neon-purple border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1"
+                        className="flex justify-between items-center p-3.5 bg-[#0E0926] hover:bg-[#150F38] border-l-4 border-neon-purple border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1"
                       >
-                        <div className="space-y-1">
-                          <h4 className="font-bold text-white text-base tracking-tight">{w.name}</h4>
-                          <div className="flex items-center gap-3 text-xs font-mono text-neutral-400">
-                            <span className="text-white font-semibold">{w.sets} series × {w.reps} reps</span>
+                        <div className="space-y-0.5">
+                          <h4 className="font-bold text-white text-sm tracking-tight">{w.name}</h4>
+                          <div className="flex items-center gap-2.5 text-xs font-mono text-neutral-400">
+                            <span className="text-white font-semibold">{w.sets}s × {w.reps}r</span>
                             <span>•</span>
                             <span className="text-neon-cyan font-bold">{w.weight} KG</span>
                             {rm > 0 && (
@@ -769,10 +738,10 @@ export default function DailyView({
 
                         <button
                           onClick={() => onDeleteWorkout(w.id)}
-                          className="text-neutral-500 hover:text-rose-400 p-2 transition-colors cursor-pointer"
+                          className="text-neutral-500 hover:text-rose-400 p-1.5 transition-colors cursor-pointer"
                           title="Eliminar"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     );
@@ -785,14 +754,14 @@ export default function DailyView({
         </div>
 
         {/* Botón para scrolear a comidas */}
-        <div className="flex justify-center pt-8 pb-4">
+        <div className="flex justify-center pt-4 pb-3">
           <button
             type="button"
             onClick={scrollToFood}
-            className="group flex flex-col items-center gap-2 text-xs font-mono tracking-widest text-neutral-400 hover:text-neon-cyan transition-colors cursor-pointer"
+            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-neutral-400 hover:text-neon-cyan transition-colors cursor-pointer"
           >
             <span>SCROLL PARA NUTRICIÓN & SUPLEMENTOS</span>
-            <ArrowDown className="w-4 h-4 text-neon-purple group-hover:translate-y-1 transition-transform animate-bounce" />
+            <ArrowDown className="w-3.5 h-3.5 text-neon-purple group-hover:translate-y-1 transition-transform animate-bounce" />
           </button>
         </div>
 
@@ -803,8 +772,8 @@ export default function DailyView({
       {/* 02. SECCIÓN INFERIOR: NUTRICIÓN & SUPLEMENTOS                             */}
       {/* ========================================================================= */}
       <section
-        ref={sec2Ref}
-        className="sticky top-[68px] z-20 min-h-[85vh] pb-16 sm:pb-24 py-10 px-4 sm:px-8 border-t border-cyan-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden"
+        ref={foodSectionRef}
+        className="sticky top-[68px] z-20 min-h-[calc(100vh-68px)] py-4 sm:py-6 px-3 sm:px-8 border-t border-cyan-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden flex flex-col justify-between"
       >
         <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-25" />
         <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-20" />
@@ -819,32 +788,32 @@ export default function DailyView({
           />
         </div>
 
-        <div ref={sec2ContentRef} className="space-y-12 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
+        <div ref={sec2ContentRef} className="space-y-4 sm:space-y-6 md:space-y-8 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
 
           {/* Cabecera Nutrición con Reveal */}
           <ScrollReveal delay={0}>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-cyan-500/20 pb-6">
-              <div className="space-y-2">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-cyan-500/20 pb-3">
+              <div className="space-y-1">
                 <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-neon-cyan font-mono uppercase">
                   <span>DIETA & SUPLEMENTACIÓN</span>
                 </div>
-                <h2 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white uppercase font-display">
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase font-display">
                   COMIDAS & <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-neon-mint to-neon-purple">SUPLEMENTOS</span>
                 </h2>
               </div>
 
               {/* Totales Nutricionales */}
-              <div className="flex items-center gap-6 border-l-2 border-neon-cyan/40 pl-6">
+              <div className="flex items-center gap-6 border-l-2 border-neon-cyan/40 pl-4 sm:pl-6">
                 <div>
-                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Calorías Totales</span>
-                  <span className="text-3xl sm:text-4xl font-black font-mono text-neon-blue">
-                    {totalCalories.toLocaleString()} <span className="text-sm font-sans text-neutral-400">KCAL</span>
+                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Calorías Totales</span>
+                  <span className="text-2xl sm:text-4xl font-black font-mono text-neon-blue">
+                    {totalCalories.toLocaleString()} <span className="text-xs sm:text-sm font-sans text-neutral-400">KCAL</span>
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Proteínas</span>
-                  <span className="text-3xl sm:text-4xl font-black font-mono text-neon-white">
-                    {totalProtein} <span className="text-sm font-sans text-neutral-400">G</span>
+                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Proteínas</span>
+                  <span className="text-2xl sm:text-4xl font-black font-mono text-neon-white">
+                    {totalProtein} <span className="text-xs sm:text-sm font-sans text-neutral-400">G</span>
                   </span>
                 </div>
               </div>
@@ -853,13 +822,13 @@ export default function DailyView({
 
           {/* Selector de Momentos & Suplementos con Contraste y Brillo Perfecto */}
           <ScrollReveal delay={100}>
-            <div className="space-y-3">
-              <div className="text-xs font-mono tracking-wider text-neutral-400 uppercase">
+            <div className="space-y-2">
+              <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
                 TIPO DE REGISTRO
               </div>
 
-              {/* Selector Unificado estilo Cápsula (como barra de navegación) */}
-              <div className="inline-flex items-center gap-1.5 p-1.5 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
+              {/* Selector Unificado estilo Cápsula */}
+              <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
                 {MEAL_TYPES.map((type) => {
                   const isSelected = mealType === type.id;
                   const isSupp = type.id === 'suplementacion';
@@ -869,7 +838,7 @@ export default function DailyView({
                       key={type.id}
                       type="button"
                       onClick={() => setMealType(type.id)}
-                      className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${isSelected
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${isSelected
                         ? isSupp
                           ? 'bg-neon-mint text-space-950 font-black shadow-md shadow-emerald-500/30'
                           : 'bg-gradient-to-r from-neon-cyan to-neon-blue text-space-950 font-black shadow-md shadow-cyan-500/30'
@@ -886,12 +855,12 @@ export default function DailyView({
 
           {/* Formulario de Carga de Comida o Suplemento con Reveal y Memoria */}
           <ScrollReveal delay={200} className="relative z-30">
-            <form onSubmit={handleSubmitFood} className="space-y-5 relative">
+            <form onSubmit={handleSubmitFood} className="space-y-3 sm:space-y-4 relative">
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
 
                 {/* Horario */}
-                <div className="md:col-span-2 space-y-1.5">
+                <div className="md:col-span-2 space-y-1">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Horario</label>
                   <input
                     type="time"
@@ -903,7 +872,7 @@ export default function DailyView({
                 </div>
 
                 {/* Nombre Alimento / Suplemento con Dropdown 100% Opaco */}
-                <div ref={foodContainerRef} className="md:col-span-5 space-y-1.5 relative z-40">
+                <div ref={foodContainerRef} className="md:col-span-5 space-y-1 relative z-40">
                   <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
                     <label className="flex items-center gap-1.5">
                       <span>{mealType === 'suplementacion' ? 'Suplemento' : 'Alimento o Plato'}</span>
@@ -933,59 +902,79 @@ export default function DailyView({
                           }}
                           className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
                         >
-                          [ alimentos frecuentes  ]
+                          [ alimentos ]
                         </button>
                       )}
 
-                      {/* Menú de suplementos con FONDO 100% OPACO SÓLIDO */}
-                      {showQuickSupps && (
-                        <div className="absolute right-0 top-full mt-2 w-80 bg-[#0E0926] border-2 border-emerald-500/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
-                          <div className="px-4 py-2.5 bg-[#080419] border-b border-white/10 text-[10px] font-mono text-neon-mint uppercase font-bold tracking-wider select-none shrink-0">
-                            Suplementación Deportiva
+                      {/* Dropdown de Alimentos Rápidos con Acordeón por Categorías */}
+                      {showQuickFoods && (
+                        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-cyan/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
+                          <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-cyan uppercase font-bold tracking-wider select-none shrink-0">
+                            <span>Base de Alimentos</span>
+                            <span className="text-[10px] text-gray-400 font-mono font-normal">
+                              {Object.keys(QUICK_FOODS).length} categorías
+                            </span>
                           </div>
+
                           <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
-                            {QUICK_SUPPLEMENTS.map((item, idx) => (
-                              <button
-                                key={idx}
-                                type="button"
-                                onClick={() => {
-                                  setFoodName(item.name);
-                                  setCalories(item.calories);
-                                  setProtein(item.protein);
-                                  setShowQuickSupps(false);
-                                }}
-                                className="w-full text-left px-4 py-2.5 text-xs text-white hover:bg-[#231B54] hover:text-neon-mint transition-colors flex justify-between items-center font-medium cursor-pointer"
-                              >
-                                <span>{item.name}</span>
-                                <span className="text-neon-mint font-mono text-[11px] font-bold">{item.protein}g prot</span>
-                              </button>
+                            {Object.entries(QUICK_FOODS).map(([category, items]) => (
+                              <div key={category} className="py-2">
+                                <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-neon-cyan/70 font-bold bg-[#140D36]">
+                                  {category}
+                                </div>
+                                <div className="divide-y divide-white/5">
+                                  {items.map((item, idx) => (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => handleSelectQuickFood(item)}
+                                      className="w-full text-left px-5 py-2 hover:bg-[#1D1445] flex items-center justify-between text-xs text-neutral-300 hover:text-white transition-colors font-medium cursor-pointer"
+                                    >
+                                      <span>{item.name}</span>
+                                      <span className="text-[10px] font-mono text-neon-mint font-bold">
+                                        {item.calories} kcal ({item.protein}g P)
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </div>
                       )}
 
-                      {/* Menú de alimentos con FONDO 100% OPACO SÓLIDO */}
-                      {showQuickFoods && (
-                        <div className="absolute right-0 top-full mt-2 w-80 bg-[#0E0926] border-2 border-cyan-500/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
-                          <div className="px-4 py-2.5 bg-[#080419] border-b border-white/10 text-[10px] font-mono text-neon-cyan uppercase font-bold tracking-wider select-none shrink-0">
-                            Alimentos Frecuentes
+                      {/* Dropdown de Suplementos con Acordeón por Categorías */}
+                      {showQuickSupps && (
+                        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-mint/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
+                          <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-mint uppercase font-bold tracking-wider select-none shrink-0">
+                            <span>Base de Suplementación</span>
+                            <span className="text-[10px] text-gray-400 font-mono font-normal">
+                              {Object.keys(QUICK_SUPPLEMENTS).length} categorías
+                            </span>
                           </div>
+
                           <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
-                            {QUICK_FOODS.map((item, idx) => (
-                              <button
-                                key={idx}
-                                type="button"
-                                onClick={() => {
-                                  setFoodName(item.name);
-                                  setCalories(item.calories);
-                                  setProtein(item.protein);
-                                  setShowQuickFoods(false);
-                                }}
-                                className="w-full text-left px-4 py-2.5 text-xs text-white hover:bg-[#231B54] hover:text-neon-cyan transition-colors flex justify-between items-center font-medium cursor-pointer"
-                              >
-                                <span>{item.name}</span>
-                                <span className="text-neon-cyan font-mono text-[11px] font-bold">{item.calories} kcal</span>
-                              </button>
+                            {Object.entries(QUICK_SUPPLEMENTS).map(([category, items]) => (
+                              <div key={category} className="py-2">
+                                <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-neon-mint/70 font-bold bg-[#0D261E]">
+                                  {category}
+                                </div>
+                                <div className="divide-y divide-white/5">
+                                  {items.map((item, idx) => (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => handleSelectQuickSupp(item)}
+                                      className="w-full text-left px-5 py-2 hover:bg-[#143D30] flex items-center justify-between text-xs text-neutral-300 hover:text-white transition-colors font-medium cursor-pointer"
+                                    >
+                                      <span>{item.name}</span>
+                                      <span className="text-[10px] font-mono text-neon-mint font-bold">
+                                        {item.calories} kcal ({item.protein}g P)
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -995,11 +984,7 @@ export default function DailyView({
 
                   <input
                     type="text"
-                    placeholder={
-                      mealType === 'suplementacion'
-                        ? 'Ej: Creatina Creapure 5g, Proteína Whey 30g...'
-                        : 'Escribe para buscar o agregar (ej: Pollo con papas, Avena...)'
-                    }
+                    placeholder={mealType === 'suplementacion' ? "Ej: Proteína Whey 30g, Creatina 5g..." : "Ej: Pechuga de pollo 200g, Arroz con huevo..."}
                     value={foodName}
                     onChange={handleFoodNameChange}
                     onFocus={() => {
@@ -1007,15 +992,15 @@ export default function DailyView({
                         setShowFoodSuggestions(true);
                       }
                     }}
-                    className="w-full input-futuristic-cyan px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                    className="w-full input-futuristic-cyan px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
                     required
                   />
 
-                  {/* Dropdown de Autocompletado / Memoria inteligente con FONDO 100% OPACO */}
+                  {/* Dropdown de Autocompletado / Memoria inteligente */}
                   {showFoodSuggestions && foodSuggestions.length > 0 && (
                     <div className="absolute left-0 right-0 top-full mt-2 bg-[#0E0926] border-2 border-neon-cyan/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 overflow-hidden divide-y divide-white/10 animate-fade-in-up">
                       <div className="px-4 py-2 bg-[#080419] text-[10px] font-mono text-neon-cyan uppercase tracking-wider flex items-center justify-between font-bold">
-                        <span>Memoria Inteligente</span>
+                        <span>Memoria Nutricional Inteligente</span>
                         <span className="text-neutral-400 font-normal">Click para autorrellenar</span>
                       </div>
                       {foodSuggestions.map((item, idx) => (
@@ -1023,25 +1008,20 @@ export default function DailyView({
                           key={idx}
                           type="button"
                           onClick={() => handleSelectFoodSuggestion(item)}
-                          className="w-full text-left px-5 py-3 hover:bg-[#231B54] flex items-center justify-between text-xs transition-colors group cursor-pointer"
+                          className="w-full text-left px-5 py-3 hover:bg-[#1D1445] flex items-center justify-between text-xs transition-colors group cursor-pointer"
                         >
                           <div className="flex items-center gap-2.5">
-                            <Zap className="w-3.5 h-3.5 text-neon-mint" />
-                            <span className="font-bold text-white group-hover:text-neon-mint transition-colors">
+                            <span className="font-bold text-white group-hover:text-neon-cyan transition-colors">
                               {item.name}
                             </span>
-                            {item.mealType && (
-                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-neutral-300 capitalize">
-                                {item.mealType}
-                              </span>
-                            )}
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-neutral-300 uppercase">
+                              {item.mealType || 'comida'}
+                            </span>
                           </div>
 
-                          <div className="font-mono text-[11px] text-neutral-200 font-bold">
-                            <span className="text-neon-yellow">{item.calories || 0} kcal</span>
-                            <span className="mx-1">•</span>
-                            <span className="text-neon-mint">{item.protein || 0}g prot</span>
-                          </div>
+                          <span className="font-mono text-neon-mint text-[11px] font-bold">
+                            {item.calories} kcal • {item.protein}g P
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -1049,33 +1029,30 @@ export default function DailyView({
                 </div>
 
                 {/* Calorías */}
-                <div className="md:col-span-2 space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Calorías (Kcal)</label>
-                    {currentNutritionEst.matched && !calories && (
-                      <span className="text-[10px] font-mono text-neon-yellow/90 font-bold">
-                        Auto: {currentNutritionEst.calories}
-                      </span>
+                <div className="md:col-span-2 space-y-1">
+                  <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                    <label>Calorías</label>
+                    {currentNutritionEst.matched && (
+                      <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.calories}]</span>
                     )}
                   </div>
                   <input
                     type="number"
                     min="0"
-                    placeholder={currentNutritionEst.matched ? String(currentNutritionEst.calories) : "450"}
+                    placeholder={currentNutritionEst.matched ? String(currentNutritionEst.calories) : "350"}
                     value={calories}
                     onChange={(e) => setCalories(e.target.value)}
-                    className="w-full input-futuristic-cyan px-3 py-2.5 text-sm text-center text-neon-yellow placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    required
                   />
                 </div>
 
                 {/* Proteína */}
-                <div className="md:col-span-3 space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Proteína (G)</label>
-                    {currentNutritionEst.matched && !protein && (
-                      <span className="text-[10px] font-mono text-neon-mint/90 font-bold">
-                        Auto: {currentNutritionEst.protein}g
-                      </span>
+                <div className="md:col-span-3 space-y-1">
+                  <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                    <label>Proteína (g)</label>
+                    {currentNutritionEst.matched && (
+                      <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.protein}g]</span>
                     )}
                   </div>
                   <input
@@ -1085,17 +1062,17 @@ export default function DailyView({
                     placeholder={currentNutritionEst.matched ? String(currentNutritionEst.protein) : "35"}
                     value={protein}
                     onChange={(e) => setProtein(e.target.value)}
-                    className="w-full input-futuristic-cyan px-3 py-2.5 text-sm text-center text-neon-mint placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-mint placeholder-neutral-500 rounded-xl font-mono font-bold"
                   />
                 </div>
 
               </div>
 
               {/* Botón de envío */}
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-end pt-0.5">
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-blue hover:to-neon-purple text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-blue hover:to-neon-purple text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR {mealType === 'suplementacion' ? 'SUPLEMENTO' : 'COMIDA'}
                 </button>
@@ -1106,18 +1083,18 @@ export default function DailyView({
 
           {/* Listado de Comidas y Suplementos con Reveal */}
           <ScrollReveal delay={250} className="relative z-10">
-            <div className="space-y-3 pt-6">
+            <div className="space-y-2 pt-2 sm:pt-4">
               <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
                 <span>REGISTROS NUTRICIONALES DE HOY</span>
                 <span className="text-neon-cyan">({currentDay.foods?.length || 0})</span>
               </div>
 
               {(!currentDay.foods || currentDay.foods.length === 0) ? (
-                <div className="py-12 text-center text-neutral-600 font-mono text-sm border-t border-b border-cyan-500/10">
+                <div className="py-6 text-center text-neutral-600 font-mono text-xs border-t border-b border-cyan-500/10">
                   No hay comidas o suplementos registrados hoy. Agrega uno arriba.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[140px] sm:max-h-[180px] md:max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
                   {currentDay.foods.map((f) => {
                     const mealMeta = MEAL_TYPES.find(m => m.id === f.mealType) || { label: f.mealType || 'Comida', tag: '00' };
                     const isSupp = f.mealType === 'suplementacion';
@@ -1125,10 +1102,10 @@ export default function DailyView({
                     return (
                       <div
                         key={f.id}
-                        className={`flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${isSupp ? 'border-l-4 border-neon-mint' : 'border-l-4 border-neon-cyan'
+                        className={`flex justify-between items-center p-3.5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${isSupp ? 'border-l-4 border-neon-mint' : 'border-l-4 border-neon-cyan'
                           }`}
                       >
-                        <div className="space-y-1">
+                        <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
                             <span className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold ${isSupp ? 'bg-neon-mint/10 text-neon-mint border border-neon-mint/30' : 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30'
                               }`}>
@@ -1139,9 +1116,9 @@ export default function DailyView({
                             )}
                           </div>
 
-                          <h4 className="font-bold text-white text-base tracking-tight">{f.name}</h4>
+                          <h4 className="font-bold text-white text-sm tracking-tight">{f.name}</h4>
 
-                          <div className="flex items-center gap-3 text-xs font-mono text-neutral-400">
+                          <div className="flex items-center gap-2.5 text-xs font-mono text-neutral-400">
                             <span className="text-neon-yellow font-semibold">{f.calories} kcal</span>
                             <span>•</span>
                             <span className="text-neon-mint font-bold">{f.protein || 0}g proteína</span>
@@ -1150,10 +1127,10 @@ export default function DailyView({
 
                         <button
                           onClick={() => onDeleteFood(f.id)}
-                          className="text-neutral-500 hover:text-rose-400 p-2 transition-colors cursor-pointer"
+                          className="text-neutral-500 hover:text-rose-400 p-1.5 transition-colors cursor-pointer"
                           title="Eliminar"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     );
@@ -1166,14 +1143,14 @@ export default function DailyView({
         </div>
 
         {/* Botón para scrolear a cardio */}
-        <div className="flex justify-center pt-8 pb-4">
+        <div className="flex justify-center pt-4 pb-3">
           <button
             type="button"
-            onClick={scrollToCardio}
-            className="group flex flex-col items-center gap-2 text-xs font-mono tracking-widest text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
+            onClick={() => cardioSectionRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
           >
             <span>SCROLL PARA CARDIO & DESPLAZAMIENTOS</span>
-            <ArrowDown className="w-4 h-4 text-emerald-400 group-hover:translate-y-1 transition-transform animate-bounce" />
+            <ArrowDown className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-y-1 transition-transform animate-bounce" />
           </button>
         </div>
 
@@ -1183,8 +1160,8 @@ export default function DailyView({
       {/* 03. SECCIÓN INFERIOR: CARDIO & ACTIVIDAD AERÓBICA                         */}
       {/* ========================================================================= */}
       <section
-        ref={sec3Ref}
-        className="sticky top-[68px] z-30 min-h-[85vh] pb-16 sm:pb-24 py-10 px-4 sm:px-8 border-t border-emerald-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden"
+        ref={cardioSectionRef}
+        className="sticky top-[68px] z-30 min-h-[calc(100vh-68px)] py-4 sm:py-6 px-3 sm:px-8 border-t border-emerald-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden flex flex-col justify-between"
       >
         <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-20" />
         <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-15" />
@@ -1199,32 +1176,32 @@ export default function DailyView({
           />
         </div>
 
-        <div className="space-y-12 relative z-10 max-w-6xl mx-auto w-full">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 relative z-10 max-w-6xl mx-auto w-full">
 
           {/* Cabecera Cardio con Reveal */}
           <ScrollReveal delay={0}>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-emerald-500/20 pb-6">
-              <div className="space-y-2">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-emerald-500/20 pb-3">
+              <div className="space-y-1">
                 <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-emerald-400 font-mono uppercase">
                   <span>ACTIVIDAD & DESPLAZAMIENTOS</span>
                 </div>
-                <h2 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white uppercase font-display">
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase font-display">
                   CARDIO & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">DISTANCIA</span>
                 </h2>
               </div>
 
               {/* Totales de Cardio */}
-              <div className="flex items-center gap-6 border-l-2 border-emerald-500/40 pl-6">
+              <div className="flex items-center gap-6 border-l-2 border-emerald-500/40 pl-4 sm:pl-6">
                 <div>
-                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Distancia Total</span>
-                  <span className="text-3xl sm:text-4xl font-black font-mono text-emerald-400">
-                    {Math.round(totalCardioKm * 10) / 10} <span className="text-sm font-sans text-neutral-400">KM</span>
+                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Distancia Total</span>
+                  <span className="text-2xl sm:text-4xl font-black font-mono text-emerald-400">
+                    {Math.round(totalCardioKm * 10) / 10} <span className="text-xs sm:text-sm font-sans text-neutral-400">KM</span>
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Gasto Estimado</span>
-                  <span className="text-3xl sm:text-4xl font-black font-mono text-amber-400">
-                    {totalCardioBurned.toLocaleString()} <span className="text-sm font-sans text-neutral-400">KCAL</span>
+                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Gasto Estimado</span>
+                  <span className="text-2xl sm:text-4xl font-black font-mono text-amber-400">
+                    {totalCardioBurned.toLocaleString()} <span className="text-xs sm:text-sm font-sans text-neutral-400">KCAL</span>
                   </span>
                 </div>
               </div>
@@ -1233,13 +1210,13 @@ export default function DailyView({
 
           {/* Selector de Actividad (Caminata, Running, Bicicleta) */}
           <ScrollReveal delay={100}>
-            <div className="space-y-3">
-              <div className="text-xs font-mono tracking-wider text-neutral-400 uppercase">
+            <div className="space-y-2">
+              <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
                 TIPO DE CARDIO
               </div>
 
-              {/* Selector Unificado estilo Cápsula (como barra de navegación) */}
-              <div className="inline-flex items-center gap-1.5 p-1.5 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
+              {/* Selector Unificado estilo Cápsula */}
+              <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
                 {CARDIO_TYPES.map((c) => {
                   const isSelected = cardioType === c.id;
                   return (
@@ -1247,7 +1224,7 @@ export default function DailyView({
                       key={c.id}
                       type="button"
                       onClick={() => setCardioType(c.id)}
-                      className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${isSelected
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${isSelected
                         ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-space-950 font-black shadow-md shadow-emerald-500/25'
                         : 'text-neutral-400 hover:text-white hover:bg-white/5'
                         }`}
@@ -1268,11 +1245,11 @@ export default function DailyView({
 
           {/* Formulario de Carga de Cardio */}
           <ScrollReveal delay={150}>
-            <form onSubmit={handleSubmitCardio} className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <form onSubmit={handleSubmitCardio} className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
 
                 {/* Desde donde (Origen) */}
-                <div className="md:col-span-4 space-y-1.5">
+                <div className="md:col-span-4 space-y-1">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Desde dónde (Origen)</span>
@@ -1282,13 +1259,13 @@ export default function DailyView({
                     placeholder="Ej: Casa, Gimnasio, Costanera..."
                     value={cardioFrom}
                     onChange={(e) => setCardioFrom(e.target.value)}
-                    className="w-full input-futuristic-emerald px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                    className="w-full input-futuristic-emerald px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
                     required
                   />
                 </div>
 
                 {/* Hasta donde (Destino) */}
-                <div className="md:col-span-4 space-y-1.5">
+                <div className="md:col-span-4 space-y-1">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
                     <Route className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Hasta dónde (Destino)</span>
@@ -1298,13 +1275,13 @@ export default function DailyView({
                     placeholder="Ej: Parque, Trabajo, Vuelta al dique..."
                     value={cardioTo}
                     onChange={(e) => setCardioTo(e.target.value)}
-                    className="w-full input-futuristic-emerald px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                    className="w-full input-futuristic-emerald px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
                     required
                   />
                 </div>
 
                 {/* Distancia en Kilómetros */}
-                <div className="md:col-span-2 space-y-1.5">
+                <div className="md:col-span-2 space-y-1">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
                     Distancia (KM)
                   </label>
@@ -1315,17 +1292,17 @@ export default function DailyView({
                     placeholder="5.0"
                     value={cardioDistance}
                     onChange={(e) => setCardioDistance(e.target.value)}
-                    className="w-full input-futuristic-emerald px-3 py-2.5 text-sm text-center text-emerald-400 placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    className="w-full input-futuristic-emerald px-3 py-2 text-sm text-center text-emerald-400 placeholder-neutral-500 rounded-xl font-mono font-bold"
                     required
                   />
                 </div>
 
                 {/* Gasto calórico calculado dinámicamente en tiempo real */}
-                <div className="md:col-span-2 space-y-1.5">
+                <div className="md:col-span-2 space-y-1">
                   <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
                     Gasto Est. (Kcal)
                   </label>
-                  <div className="w-full h-[42px] bg-[#0E0926]/80 border border-amber-500/30 rounded-xl flex items-center justify-center gap-1.5 px-2">
+                  <div className="w-full h-[38px] bg-[#0E0926]/80 border border-amber-500/30 rounded-xl flex items-center justify-center gap-1.5 px-2">
                     <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
                     <span className="font-mono font-bold text-sm text-amber-400">
                       {estimatedCardioBurn > 0 ? `~${estimatedCardioBurn}` : '0'}
@@ -1337,15 +1314,15 @@ export default function DailyView({
               </div>
 
               {/* Botón de Guardar Cardio */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-0.5">
                 <div className="text-xs font-mono text-neutral-400 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  <span>Cálculo automático: {cardioType === 'caminata' ? '~55' : cardioType === 'running' ? '~75' : '~35'} kcal quemadas por km</span>
+                  <span>Cálculo auto: {cardioType === 'caminata' ? '~55' : cardioType === 'running' ? '~75' : '~35'} kcal/km</span>
                 </div>
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-teal-500 hover:to-emerald-500 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-emerald-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-teal-500 hover:to-emerald-500 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-emerald-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR SESIÓN DE CARDIO
                 </button>
@@ -1355,18 +1332,18 @@ export default function DailyView({
 
           {/* Listado de Sesiones de Cardio de Hoy */}
           <ScrollReveal delay={250}>
-            <div className="space-y-3 pt-6">
+            <div className="space-y-2 pt-2 sm:pt-4">
               <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
                 <span>// SESIONES DE CARDIO DE HOY</span>
                 <span className="text-emerald-400">({currentDay.cardios?.length || 0})</span>
               </div>
 
               {(!currentDay.cardios || currentDay.cardios.length === 0) ? (
-                <div className="py-12 text-center text-neutral-600 font-mono text-sm border-t border-b border-emerald-500/10">
+                <div className="py-6 text-center text-neutral-600 font-mono text-xs border-t border-b border-emerald-500/10">
                   No hay sesiones de cardio registradas hoy. Agrega una arriba.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[140px] sm:max-h-[180px] md:max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
                   {currentDay.cardios.map((c) => {
                     const isRun = c.type === 'running';
                     const isBike = c.type === 'bicicleta';
@@ -1374,14 +1351,14 @@ export default function DailyView({
                     return (
                       <div
                         key={c.id}
-                        className={`flex justify-between items-center p-5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${isRun
+                        className={`flex justify-between items-center p-3.5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${isRun
                           ? 'border-l-4 border-amber-400'
                           : isBike
                             ? 'border-l-4 border-cyan-400'
                             : 'border-l-4 border-emerald-400'
                           }`}
                       >
-                        <div className="space-y-1.5">
+                        <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
                             <span
                               className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold flex items-center gap-1.5 ${isRun
@@ -1401,7 +1378,7 @@ export default function DailyView({
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 text-white font-bold text-base tracking-tight">
+                          <div className="flex items-center gap-2 text-white font-bold text-sm tracking-tight">
                             <span>{c.from}</span>
                             <span className="text-neutral-500 font-normal text-xs">➔</span>
                             <span className="text-emerald-300">{c.to}</span>
@@ -1418,10 +1395,10 @@ export default function DailyView({
 
                         <button
                           onClick={() => onDeleteCardio && onDeleteCardio(c.id)}
-                          className="text-neutral-500 hover:text-rose-400 p-2 transition-colors cursor-pointer"
+                          className="text-neutral-500 hover:text-rose-400 p-1.5 transition-colors cursor-pointer"
                           title="Eliminar sesión de cardio"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     );
@@ -1434,13 +1411,13 @@ export default function DailyView({
         </div>
 
         {/* Botón para volver arriba */}
-        <div className="flex justify-center pt-8 pb-4">
+        <div className="flex justify-center pt-4 pb-3">
           <button
             type="button"
-            onClick={scrollToTop}
-            className="group flex flex-col items-center gap-2 text-xs font-mono tracking-widest text-neutral-400 hover:text-neon-purple transition-colors cursor-pointer"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-neutral-400 hover:text-neon-purple transition-colors cursor-pointer"
           >
-            <ArrowUp className="w-4 h-4 text-emerald-400 group-hover:-translate-y-1 transition-transform animate-bounce" />
+            <ArrowUp className="w-3.5 h-3.5 text-emerald-400 group-hover:-translate-y-1 transition-transform animate-bounce" />
             <span>VOLVER AL INICIO</span>
           </button>
         </div>
