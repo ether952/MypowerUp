@@ -50,7 +50,7 @@ export function formatDisplayDate(dateStr) {
   if (!dateStr) return '';
   const [year, month, day] = dateStr.split('-').map(Number);
   const date = new Date(year, month - 1, day);
-  
+
   const todayStr = getLocalDateString();
   const yesterdayDate = new Date();
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
@@ -146,23 +146,80 @@ export const QUICK_FOODS = [
   { name: 'Yogur griego natural (200g)', calories: 140, protein: 20 },
 ];
 
-// Opciones rápidas de ejercicios comunes
-export const QUICK_EXERCISES = [
-  'Press de banca plano',
-  'Sentadilla trasera',
-  'Peso muerto convencional',
-  'Press militar con barra',
-  'Dominadas con lastre',
-  'Remo con barra (Pendlay)',
-  'Press inclinado con mancuernas',
-  'Prensa de piernas 45°',
-  'Elevaciones laterales en polea',
-  'Curl de bíceps con barra Z',
-  'Fondos en paralelas (Dips)',
-  'Extensiones de tríceps en polea',
-  'Hip Thrust',
-  'Jalón al pecho en polea'
-];
+// Opciones rápidas de ejercicios organizados por grupo muscular
+export const EXERCISES_BY_MUSCLE = {
+  'Pecho (Pectoral)': [
+    'Press de banca plano con barra',
+    'Press inclinado con mancuernas',
+    'Press inclinado con barra',
+    'Press de banca con mancuernas',
+    'Aperturas con mancuernas',
+    'Cruces de poleas (Crossover)',
+    'Fondos en paralelas (Dips - Pecho)',
+    'Contractora / Pec Deck',
+    'Press declinado con barra',
+    'Flexiones de brazos (Push-ups)'
+  ],
+  'Espalda (Dorsales / Espalda Alta)': [
+    'Peso muerto convencional',
+    'Dominadas (Pull-ups)',
+    'Dominadas con lastre',
+    'Jalón al pecho en polea',
+    'Remo con barra (Pendlay / 45°)',
+    'Remo con mancuerna a una mano',
+    'Remo en polea baja (Gironde)',
+    'Remo en máquina en T',
+    'Pullover en polea alta con cuerda',
+    'Encogimientos con barra (Trapecios)'
+  ],
+  'Piernas (Cuádriceps, Isquios y Glúteos)': [
+    'Sentadilla trasera con barra (Back Squat)',
+    'Sentadilla frontal (Front Squat)',
+    'Sentadilla búlgara con mancuernas',
+    'Prensa de piernas 45°',
+    'Extensiones de cuádriceps en máquina',
+    'Peso muerto rumano (RDL)',
+    'Curl femoral acostado / sentado',
+    'Hip Thrust con barra',
+    'Zancadas / Estocadas caminando',
+    'Elevación de talones (Gemelos)',
+    'Abductores en máquina'
+  ],
+  'Hombros (Deltoides)': [
+    'Press militar con barra (OHP)',
+    'Press de hombros con mancuernas',
+    'Elevaciones laterales en polea',
+    'Elevaciones laterales con mancuernas',
+    'Pájaros / Deltoides posterior en polea',
+    'Face Pulls en polea',
+    'Press Arnold con mancuernas',
+    'Elevaciones frontales con disco/mancuerna'
+  ],
+  'Brazos (Bíceps y Tríceps)': [
+    'Curl de bíceps con barra Z',
+    'Curl de bíceps alterno con mancuernas',
+    'Curl martillo con mancuernas',
+    'Curl en banco Scott (Predicador)',
+    'Curl de bíceps inclinado con mancuernas',
+    'Extensiones de tríceps en polea alta',
+    'Press francés con barra Z',
+    'Fondos para tríceps en paralelas',
+    'Press de banca agarre cerrado',
+    'Copa trasnuca con mancuerna',
+    'Curl de antebrazos con barra'
+  ],
+  'Abdomen y Core': [
+    'Elevación de piernas colgado',
+    'Rueda abdominal (Ab Wheel)',
+    'Plancha isométrica (Plank)',
+    'Crunches en polea alta',
+    'Giros rusos (Russian twists)',
+    'Elevaciones de piernas en suelo'
+  ]
+};
+
+// Opciones rápidas de ejercicios comunes (lista aplanada para autocompletado y compatibilidad total)
+export const QUICK_EXERCISES = Object.values(EXERCISES_BY_MUSCLE).flat();
 
 // Opciones de cardio y tasas de gasto calórico estimado por km
 export const CARDIO_TYPES = [
@@ -171,21 +228,21 @@ export const CARDIO_TYPES = [
     label: 'Caminata',
     tag: 'WALK',
     kcalPerKm: 55, // Promedio caminata moderada: ~55 kcal / km
-    desc: '~55 kcal / km'
+    desc: '~'
   },
   {
     id: 'running',
     label: 'Running',
     tag: 'RUN',
     kcalPerKm: 75, // Promedio running: ~75 kcal / km
-    desc: '~75 kcal / km'
+    desc: '~'
   },
   {
     id: 'bicicleta',
     label: 'Bicicleta',
     tag: 'BIKE',
     kcalPerKm: 35, // Promedio ciclismo ritmo recreativo/medio: ~35 kcal / km
-    desc: '~35 kcal / km'
+    desc: '~'
   }
 ];
 

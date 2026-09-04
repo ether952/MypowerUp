@@ -18,6 +18,7 @@ import {
   calculate1RM,
   QUICK_FOODS,
   QUICK_EXERCISES,
+  EXERCISES_BY_MUSCLE,
   QUICK_SUPPLEMENTS,
   MEAL_TYPES,
   getCurrentTimeString,
@@ -82,6 +83,7 @@ export default function DailyView({
   const [reps, setReps] = useState('');
   const [weight, setWeight] = useState('');
   const [showQuickExercises, setShowQuickExercises] = useState(false);
+  const [expandedMuscle, setExpandedMuscle] = useState(null);
   const [exerciseSuggestions, setExerciseSuggestions] = useState([]);
   const [showExerciseSuggestions, setShowExerciseSuggestions] = useState(false);
 
@@ -464,13 +466,13 @@ export default function DailyView({
           </ScrollReveal>
 
           {/* Formulario de Carga de Ejercicios */}
-          <ScrollReveal delay={100}>
+          <ScrollReveal delay={100} className="relative z-30">
             <form onSubmit={handleSubmitWorkout} className="space-y-6 pt-2 relative">
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
                 {/* Ejercicio con Dropdown 100% Opaco y sin solapamiento */}
-                <div ref={exerciseContainerRef} className="md:col-span-6 space-y-2 relative">
+                <div ref={exerciseContainerRef} className="md:col-span-6 space-y-2 relative z-40">
                   <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
                     <label className="flex items-center gap-1.5">
                       <span>Nombre del Ejercicio</span>
@@ -480,37 +482,91 @@ export default function DailyView({
                     </label>
 
                     {/* Botón sugerencias */}
-                    <div className="relative">
+                    <div className="relative z-50">
                       <button
                         type="button"
                         onClick={() => {
                           setShowQuickExercises(!showQuickExercises);
                           setShowExerciseSuggestions(false);
                         }}
-                        className="text-neon-purple hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold"
+                        className="text-neon-purple hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
                       >
                         [ Sugerencias ]
                       </button>
 
-                      {/* Dropdown de Sugerencias con FONDO 100% OPACO SÓLIDO */}
+                      {/* Dropdown de Sugerencias con Acordeón y Encabezado Fijo Superior */}
                       {showQuickExercises && (
-                        <div className="absolute right-0 mt-3 w-80 bg-[#0E0926] border-2 border-neon-purple/70 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.9)] py-2.5 z-50 max-h-64 overflow-y-auto divide-y divide-white/10">
-                          <div className="px-4 py-2 text-[10px] font-mono text-neon-purple uppercase font-bold tracking-wider">
-                            Ejercicios Frecuentes
+                        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-purple/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
+                          {/* Encabezado Fijo Superior - Nada se solapa ni se ve por detrás */}
+                          <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-purple uppercase font-bold tracking-wider select-none shrink-0">
+                            <span className="flex items-center gap-2">
+                              <Dumbbell className="w-3.5 h-3.5 text-neon-purple" />
+                              <span>Ejercicios por Músculo</span>
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-mono font-normal">
+                              {Object.keys(EXERCISES_BY_MUSCLE).length} categorías
+                            </span>
                           </div>
-                          {QUICK_EXERCISES.map((name, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                setExerciseName(name);
-                                setShowQuickExercises(false);
-                              }}
-                              className="w-full text-left px-4 py-2.5 text-xs text-white hover:bg-[#231B54] hover:text-neon-cyan transition-colors font-medium"
-                            >
-                              {name}
-                            </button>
-                          ))}
+
+                          {/* Lista scrolleable con categorías en acordeón */}
+                          <div className="max-h-80 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                            {Object.entries(EXERCISES_BY_MUSCLE).map(([muscle, exercises]) => {
+                              const isExpanded = expandedMuscle === muscle;
+                              return (
+                                <div key={muscle} className="transition-colors">
+                                  {/* Botón de cada músculo para abrir/cerrar */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
+                                    className={`w-full px-4 py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${
+                                      isExpanded
+                                        ? 'bg-[#1D1445] text-neon-cyan font-bold'
+                                        : 'text-neutral-300 hover:bg-[#18113A] hover:text-white font-medium'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className={`w-2 h-2 rounded-full transition-all ${
+                                          isExpanded
+                                            ? 'bg-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.8)]'
+                                            : 'bg-neon-purple/60'
+                                        }`}
+                                      />
+                                      <span className="text-xs font-semibold">{muscle}</span>
+                                      <span className="text-[10px] font-mono text-neutral-400">({exercises.length})</span>
+                                    </div>
+                                    <ChevronDown
+                                      className={`w-4 h-4 transition-transform duration-200 ${
+                                        isExpanded ? 'rotate-180 text-neon-cyan' : 'text-neutral-400'
+                                      }`}
+                                    />
+                                  </button>
+
+                                  {/* Lista de ejercicios desplegada al hacer clic */}
+                                  {isExpanded && (
+                                    <div className="bg-[#080419] py-1 border-t border-white/5 divide-y divide-white/5">
+                                      {exercises.map((name, idx) => (
+                                        <button
+                                          key={idx}
+                                          type="button"
+                                          onClick={() => {
+                                            setExerciseName(name);
+                                            setShowQuickExercises(false);
+                                          }}
+                                          className="w-full text-left px-5 py-2.5 text-xs text-white/90 hover:bg-[#231B54] hover:text-neon-cyan transition-colors font-medium flex items-center justify-between group cursor-pointer"
+                                        >
+                                          <span className="group-hover:translate-x-0.5 transition-transform">{name}</span>
+                                          <span className="text-[10px] text-white/30 group-hover:text-neon-cyan/80 transition-colors font-mono">
+                                            elegir +
+                                          </span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -643,7 +699,7 @@ export default function DailyView({
           </ScrollReveal>
 
           {/* Listado de Ejercicios del Día */}
-          <ScrollReveal delay={150}>
+          <ScrollReveal delay={150} className="relative z-10">
             <div className="space-y-3 pt-6">
               <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
                 <span>REGISTROS DE ENTRENAMIENTO DE HOY</span>
@@ -797,7 +853,7 @@ export default function DailyView({
           </ScrollReveal>
 
           {/* Formulario de Carga de Comida o Suplemento con Reveal y Memoria */}
-          <ScrollReveal delay={200}>
+          <ScrollReveal delay={200} className="relative z-30">
             <form onSubmit={handleSubmitFood} className="space-y-5 relative">
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -815,7 +871,7 @@ export default function DailyView({
                 </div>
 
                 {/* Nombre Alimento / Suplemento con Dropdown 100% Opaco */}
-                <div ref={foodContainerRef} className="md:col-span-5 space-y-1.5 relative">
+                <div ref={foodContainerRef} className="md:col-span-5 space-y-1.5 relative z-40">
                   <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
                     <label className="flex items-center gap-1.5">
                       <span>{mealType === 'suplementacion' ? 'Suplemento' : 'Alimento o Plato'}</span>
@@ -824,7 +880,7 @@ export default function DailyView({
                       )}
                     </label>
 
-                    <div className="relative">
+                    <div className="relative z-50">
                       {mealType === 'suplementacion' ? (
                         <button
                           type="button"
@@ -832,7 +888,7 @@ export default function DailyView({
                             setShowQuickSupps(!showQuickSupps);
                             setShowFoodSuggestions(false);
                           }}
-                          className="text-neon-mint hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold"
+                          className="text-neon-mint hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
                         >
                           [ suplementos ]
                         </button>
@@ -843,7 +899,7 @@ export default function DailyView({
                             setShowQuickFoods(!showQuickFoods);
                             setShowFoodSuggestions(false);
                           }}
-                          className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold"
+                          className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
                         >
                           [ alimentos frecuentes  ]
                         </button>
@@ -851,51 +907,55 @@ export default function DailyView({
 
                       {/* Menú de suplementos con FONDO 100% OPACO SÓLIDO */}
                       {showQuickSupps && (
-                        <div className="absolute right-0 mt-3 w-80 bg-[#0E0926] border-2 border-emerald-500/70 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.9)] py-2.5 z-50 max-h-64 overflow-y-auto divide-y divide-white/10">
-                          <div className="px-4 py-2 text-[10px] font-mono text-neon-mint uppercase font-bold tracking-wider">
+                        <div className="absolute right-0 top-full mt-2 w-80 bg-[#0E0926] border-2 border-emerald-500/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
+                          <div className="px-4 py-2.5 bg-[#080419] border-b border-white/10 text-[10px] font-mono text-neon-mint uppercase font-bold tracking-wider select-none shrink-0">
                             Suplementación Deportiva
                           </div>
-                          {QUICK_SUPPLEMENTS.map((item, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                setFoodName(item.name);
-                                setCalories(item.calories);
-                                setProtein(item.protein);
-                                setShowQuickSupps(false);
-                              }}
-                              className="w-full text-left px-4 py-2.5 text-xs text-white hover:bg-[#231B54] hover:text-neon-mint transition-colors flex justify-between items-center font-medium"
-                            >
-                              <span>{item.name}</span>
-                              <span className="text-neon-mint font-mono text-[11px] font-bold">{item.protein}g prot</span>
-                            </button>
-                          ))}
+                          <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                            {QUICK_SUPPLEMENTS.map((item, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                  setFoodName(item.name);
+                                  setCalories(item.calories);
+                                  setProtein(item.protein);
+                                  setShowQuickSupps(false);
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-xs text-white hover:bg-[#231B54] hover:text-neon-mint transition-colors flex justify-between items-center font-medium cursor-pointer"
+                              >
+                                <span>{item.name}</span>
+                                <span className="text-neon-mint font-mono text-[11px] font-bold">{item.protein}g prot</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
 
                       {/* Menú de alimentos con FONDO 100% OPACO SÓLIDO */}
                       {showQuickFoods && (
-                        <div className="absolute right-0 mt-3 w-80 bg-[#0E0926] border-2 border-cyan-500/70 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.9)] py-2.5 z-50 max-h-64 overflow-y-auto divide-y divide-white/10">
-                          <div className="px-4 py-2 text-[10px] font-mono text-neon-cyan uppercase font-bold tracking-wider">
+                        <div className="absolute right-0 top-full mt-2 w-80 bg-[#0E0926] border-2 border-cyan-500/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
+                          <div className="px-4 py-2.5 bg-[#080419] border-b border-white/10 text-[10px] font-mono text-neon-cyan uppercase font-bold tracking-wider select-none shrink-0">
                             Alimentos Frecuentes
                           </div>
-                          {QUICK_FOODS.map((item, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                setFoodName(item.name);
-                                setCalories(item.calories);
-                                setProtein(item.protein);
-                                setShowQuickFoods(false);
-                              }}
-                              className="w-full text-left px-4 py-2.5 text-xs text-white hover:bg-[#231B54] hover:text-neon-cyan transition-colors flex justify-between items-center font-medium"
-                            >
-                              <span>{item.name}</span>
-                              <span className="text-neon-cyan font-mono text-[11px] font-bold">{item.calories} kcal</span>
-                            </button>
-                          ))}
+                          <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                            {QUICK_FOODS.map((item, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                  setFoodName(item.name);
+                                  setCalories(item.calories);
+                                  setProtein(item.protein);
+                                  setShowQuickFoods(false);
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-xs text-white hover:bg-[#231B54] hover:text-neon-cyan transition-colors flex justify-between items-center font-medium cursor-pointer"
+                              >
+                                <span>{item.name}</span>
+                                <span className="text-neon-cyan font-mono text-[11px] font-bold">{item.calories} kcal</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1013,7 +1073,7 @@ export default function DailyView({
           </ScrollReveal>
 
           {/* Listado de Comidas y Suplementos con Reveal */}
-          <ScrollReveal delay={250}>
+          <ScrollReveal delay={250} className="relative z-10">
             <div className="space-y-3 pt-6">
               <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
                 <span>REGISTROS NUTRICIONALES DE HOY</span>
