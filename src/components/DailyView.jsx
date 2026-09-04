@@ -87,6 +87,7 @@ export default function DailyView({
   const [expandedMuscle, setExpandedMuscle] = useState(null);
   const [exerciseSuggestions, setExerciseSuggestions] = useState([]);
   const [showExerciseSuggestions, setShowExerciseSuggestions] = useState(false);
+  const [isWorkoutFormOpen, setIsWorkoutFormOpen] = useState(false);
 
   // === ESTADOS COMIDAS & SUPLEMENTOS ===
   const [mealType, setMealType] = useState('almuerzo');
@@ -99,6 +100,7 @@ export default function DailyView({
   const [showQuickSupps, setShowQuickSupps] = useState(false);
   const [foodSuggestions, setFoodSuggestions] = useState([]);
   const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
+  const [isFoodFormOpen, setIsFoodFormOpen] = useState(false);
 
   // === ESTADOS CARDIO & ACTIVIDAD AERÓBICA ===
   const [cardioType, setCardioType] = useState('caminata');
@@ -106,6 +108,7 @@ export default function DailyView({
   const [cardioTo, setCardioTo] = useState('');
   const [cardioDistance, setCardioDistance] = useState('');
   const [cardioTime, setCardioTime] = useState(() => getCurrentTimeString());
+  const [isCardioFormOpen, setIsCardioFormOpen] = useState(false);
   const cardioSectionRef = useRef(null);
   const sec1ContentRef = useRef(null);
   const sec2ContentRef = useRef(null);
@@ -448,26 +451,39 @@ export default function DailyView({
                 </h2>
               </div>
 
-              {/* Tonelaje Total en Vivo */}
-              <div className="flex items-center gap-6 border-l-2 border-neon-purple/40 pl-4 sm:pl-6">
-                <div>
-                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Peso Total</span>
-                  <span className="text-2xl sm:text-4xl font-black font-mono text-neon-cyan">
-                    {totalTonnage.toLocaleString()} <span className="text-xs sm:text-sm font-sans text-neutral-400">KG</span>
-                  </span>
+              {/* Tonelaje Total en Vivo & Botón Móvil */}
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-neon-purple/40 md:pl-6">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Peso Total</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-neon-cyan">
+                      {totalTonnage.toLocaleString()} <span className="text-xs font-sans text-neutral-400">KG</span>
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Ejercicios</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-white">
+                      {currentDay.workouts?.length || 0}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Ejercicios</span>
-                  <span className="text-2xl sm:text-4xl font-black font-mono text-white">
-                    {currentDay.workouts?.length || 0}
-                  </span>
-                </div>
+
+                {/* Botón para desplegar / plegar (SOLO en mobile cuando no entra la pantalla) */}
+                <button
+                  type="button"
+                  onClick={() => setIsWorkoutFormOpen(!isWorkoutFormOpen)}
+                  className="md:hidden px-2.5 py-1 bg-neon-purple/15 hover:bg-neon-purple/25 border border-neon-purple/40 rounded-lg text-xs font-mono font-bold text-neon-purple tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
+                >
+                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isWorkoutFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-neon-cyan'}`} />
+                  <span>{isWorkoutFormOpen ? 'Cerrar' : '+ Cargar'}</span>
+                </button>
               </div>
             </div>
           </ScrollReveal>
 
-          {/* Formulario de Carga de Ejercicios */}
-          <ScrollReveal delay={100} className="relative z-30">
+          {/* Formulario de Carga de Ejercicios (Visible siempre en Desktop, desplegable en Mobile) */}
+          <div className={`${isWorkoutFormOpen ? 'block' : 'hidden'} md:block`}>
+            <ScrollReveal delay={100} className="relative z-30">
             <form onSubmit={handleSubmitWorkout} className="space-y-4 sm:space-y-5 pt-1 relative">
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
@@ -698,6 +714,7 @@ export default function DailyView({
 
             </form>
           </ScrollReveal>
+        </div>
 
           {/* Listado de Ejercicios del Día */}
           <ScrollReveal delay={150} className="relative z-10">
@@ -802,26 +819,40 @@ export default function DailyView({
                 </h2>
               </div>
 
-              {/* Totales Nutricionales */}
-              <div className="flex items-center gap-6 border-l-2 border-neon-cyan/40 pl-4 sm:pl-6">
-                <div>
-                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Calorías Totales</span>
-                  <span className="text-2xl sm:text-4xl font-black font-mono text-neon-blue">
-                    {totalCalories.toLocaleString()} <span className="text-xs sm:text-sm font-sans text-neutral-400">KCAL</span>
-                  </span>
+              {/* Totales Nutricionales & Botón Móvil */}
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-neon-cyan/40 md:pl-6">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Calorías Totales</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-neon-blue">
+                      {totalCalories.toLocaleString()} <span className="text-xs font-sans text-neutral-400">KCAL</span>
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Proteínas</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-white">
+                      {totalProtein} <span className="text-xs font-sans text-neutral-400">G</span>
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Proteínas</span>
-                  <span className="text-2xl sm:text-4xl font-black font-mono text-neon-white">
-                    {totalProtein} <span className="text-xs sm:text-sm font-sans text-neutral-400">G</span>
-                  </span>
-                </div>
+
+                {/* Botón para desplegar / plegar (SOLO en mobile cuando no entra la pantalla) */}
+                <button
+                  type="button"
+                  onClick={() => setIsFoodFormOpen(!isFoodFormOpen)}
+                  className="md:hidden px-2.5 py-1 bg-neon-cyan/15 hover:bg-neon-cyan/25 border border-neon-cyan/40 rounded-lg text-xs font-mono font-bold text-neon-cyan tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
+                >
+                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isFoodFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-neon-cyan'}`} />
+                  <span>{isFoodFormOpen ? 'Cerrar' : '+ Cargar'}</span>
+                </button>
               </div>
             </div>
           </ScrollReveal>
 
-          {/* Selector de Momentos & Suplementos con Contraste y Brillo Perfecto */}
-          <ScrollReveal delay={100}>
+          {/* Selector de Momentos & Formulario (Visible siempre en Desktop, desplegable en Mobile) */}
+          <div className={`${isFoodFormOpen ? 'block' : 'hidden'} md:block space-y-3 sm:space-y-4 pt-1`}>
+            {/* Selector de Momentos & Suplementos con Contraste y Brillo Perfecto */}
+            <ScrollReveal delay={100}>
             <div className="space-y-2">
               <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
                 TIPO DE REGISTRO
@@ -1080,6 +1111,7 @@ export default function DailyView({
 
             </form>
           </ScrollReveal>
+        </div>
 
           {/* Listado de Comidas y Suplementos con Reveal */}
           <ScrollReveal delay={250} className="relative z-10">
@@ -1190,26 +1222,40 @@ export default function DailyView({
                 </h2>
               </div>
 
-              {/* Totales de Cardio */}
-              <div className="flex items-center gap-6 border-l-2 border-emerald-500/40 pl-4 sm:pl-6">
-                <div>
-                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Distancia Total</span>
-                  <span className="text-2xl sm:text-4xl font-black font-mono text-emerald-400">
-                    {Math.round(totalCardioKm * 10) / 10} <span className="text-xs sm:text-sm font-sans text-neutral-400">KM</span>
-                  </span>
+              {/* Totales de Cardio & Botón Móvil */}
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-emerald-500/40 md:pl-6">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Distancia Total</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-emerald-400">
+                      {Math.round(totalCardioKm * 10) / 10} <span className="text-xs font-sans text-neutral-400">KM</span>
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Gasto Estimado</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-amber-400">
+                      {totalCardioBurned.toLocaleString()} <span className="text-xs font-sans text-neutral-400">KCAL</span>
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-widest text-neutral-400 font-mono">Gasto Estimado</span>
-                  <span className="text-2xl sm:text-4xl font-black font-mono text-amber-400">
-                    {totalCardioBurned.toLocaleString()} <span className="text-xs sm:text-sm font-sans text-neutral-400">KCAL</span>
-                  </span>
-                </div>
+
+                {/* Botón para desplegar / plegar (SOLO en mobile cuando no entra la pantalla) */}
+                <button
+                  type="button"
+                  onClick={() => setIsCardioFormOpen(!isCardioFormOpen)}
+                  className="md:hidden px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 rounded-lg text-xs font-mono font-bold text-emerald-400 tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
+                >
+                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isCardioFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-emerald-400'}`} />
+                  <span>{isCardioFormOpen ? 'Cerrar' : '+ Cargar'}</span>
+                </button>
               </div>
             </div>
           </ScrollReveal>
 
-          {/* Selector de Actividad (Caminata, Running, Bicicleta) */}
-          <ScrollReveal delay={100}>
+          {/* Selector de Actividad & Formulario (Visible siempre en Desktop, desplegable en Mobile) */}
+          <div className={`${isCardioFormOpen ? 'block' : 'hidden'} md:block space-y-3 sm:space-y-4 pt-1`}>
+            {/* Selector de Actividad (Caminata, Running, Bicicleta) */}
+            <ScrollReveal delay={100}>
             <div className="space-y-2">
               <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
                 TIPO DE CARDIO
@@ -1329,6 +1375,7 @@ export default function DailyView({
               </div>
             </form>
           </ScrollReveal>
+        </div>
 
           {/* Listado de Sesiones de Cardio de Hoy */}
           <ScrollReveal delay={250}>
