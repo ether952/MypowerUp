@@ -22,7 +22,7 @@ import {
   Gauge
 } from 'lucide-react';
 import { formatDisplayDate, getLocalDateString } from '../utils/helpers';
-import { calculateLevelProgress, TONNAGE_LEVELS } from '../utils/levelSystem';
+import { calculateLevelProgress } from '../utils/levelSystem';
 import { calculateCardioLevelProgress } from '../utils/cardioLevelSystem';
 import ChallengeUnifiedModal from './ChallengeUnifiedModal';
 import {
@@ -324,7 +324,7 @@ export default function HistoryView({
                 className="flex items-stretch gap-3 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-none"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
-                {TONNAGE_LEVELS.map((lvl) => {
+                {levelProgress.levels.map((lvl) => {
                   const isCurrent = lvl.level === levelProgress.currentLevel.level;
                   const isUnlocked = lvl.level <= levelProgress.currentLevel.level;
                   return (
