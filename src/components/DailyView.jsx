@@ -494,7 +494,7 @@ export default function DailyView({
                       <label className="flex items-center gap-1.5">
                         <span>Nombre del Ejercicio</span>
                         {Object.keys(rememberedWorkouts).length > 0 && (
-                          <span className="text-[10px] text-neon-cyan lowercase font-normal">(con memoria)</span>
+                          <span className="text-[10px] text-neon-cyan lowercase font-normal"></span>
                         )}
                       </label>
 
@@ -536,15 +536,15 @@ export default function DailyView({
                                       type="button"
                                       onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
                                       className={`w-full px-4 py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${isExpanded
-                                          ? 'bg-[#1D1445] text-neon-cyan font-bold'
-                                          : 'text-neutral-300 hover:bg-[#18113A] hover:text-white font-medium'
+                                        ? 'bg-[#1D1445] text-neon-cyan font-bold'
+                                        : 'text-neutral-300 hover:bg-[#18113A] hover:text-white font-medium'
                                         }`}
                                     >
                                       <div className="flex items-center gap-2">
                                         <span
                                           className={`w-2 h-2 rounded-full transition-all ${isExpanded
-                                              ? 'bg-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.8)]'
-                                              : 'bg-neon-purple/60'
+                                            ? 'bg-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.8)]'
+                                            : 'bg-neon-purple/60'
                                             }`}
                                         />
                                         <span className="text-xs font-semibold">{muscle}</span>
@@ -840,7 +840,7 @@ export default function DailyView({
                   className="md:hidden px-2.5 py-1 bg-neon-cyan/15 hover:bg-neon-cyan/25 border border-neon-cyan/40 rounded-lg text-xs font-mono font-bold text-neon-cyan tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
                 >
                   <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isFoodFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-neon-cyan'}`} />
-                  <span>{isFoodFormOpen ? 'Cerrar' : '+ Cargar'}</span>
+                  <span>{isFoodFormOpen ? 'Cerrar' : 'Cargar'}</span>
                 </button>
               </div>
             </div>
@@ -905,7 +905,7 @@ export default function DailyView({
                       <label className="flex items-center gap-1.5">
                         <span>{mealType === 'suplementacion' ? 'Suplemento' : 'Alimento o Plato'}</span>
                         {Object.keys(rememberedFoods).length > 0 && (
-                          <span className="text-[10px] text-neon-mint lowercase font-normal">(con memoria)</span>
+                          <span className="text-[10px] text-neon-mint lowercase font-normal"></span>
                         )}
                       </label>
 
@@ -1243,7 +1243,7 @@ export default function DailyView({
                   className="md:hidden px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 rounded-lg text-xs font-mono font-bold text-emerald-400 tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
                 >
                   <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isCardioFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-emerald-400'}`} />
-                  <span>{isCardioFormOpen ? 'Cerrar' : '+ Cargar'}</span>
+                  <span>{isCardioFormOpen ? 'Cerrar' : 'Cargar'}</span>
                 </button>
               </div>
             </div>
