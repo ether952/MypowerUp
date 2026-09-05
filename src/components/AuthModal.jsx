@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
-import { 
-  X, 
-  Mail, 
-  Lock, 
-  User, 
-  Sparkles, 
-  LogIn, 
-  UserPlus, 
-  AlertCircle, 
-  CheckCircle2, 
-  Eye, 
+import {
+  X,
+  Mail,
+  Lock,
+  User,
+  Sparkles,
+  LogIn,
+  UserPlus,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
   EyeOff,
   Cloud,
   ShieldCheck,
   Flame
 } from 'lucide-react';
-import { 
-  loginWithEmail, 
-  registerWithEmail, 
-  loginWithGoogle, 
+import {
+  loginWithEmail,
+  registerWithEmail,
+  loginWithGoogle,
   resetPassword,
-  isFirebaseConfigured 
+  isFirebaseConfigured
 } from '../lib/firebase';
 
 export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
@@ -98,7 +98,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in-up">
       <div className="bg-space-900/95 border border-purple-500/30 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden relative backdrop-blur-xl">
-        
+
         {/* Glow de fondo */}
         <div className="ambient-glow-purple -top-20 -left-20 w-48 h-48 opacity-40"></div>
         <div className="ambient-glow-cyan -bottom-20 -right-20 w-48 h-48 opacity-30"></div>
@@ -114,16 +114,16 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                 // SISTEMA CLOUD SYNC
               </span>
               <h3 className="text-lg font-black text-white uppercase tracking-tight font-display">
-                {isResetMode 
-                  ? 'Recuperar Cuenta' 
-                  : isLogin 
-                    ? 'Acceso de Usuario' 
+                {isResetMode
+                  ? 'Recuperar Cuenta'
+                  : isLogin
+                    ? 'Acceso de Usuario'
                     : 'Registro de Atleta'}
               </h3>
             </div>
           </div>
 
-          <button 
+          <button
             onClick={onClose}
             className="text-neutral-400 hover:text-white p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
           >
@@ -138,7 +138,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             <div>
               <p className="font-bold">// MODO LOCAL ACTIVO</p>
               <p className="text-[11px] text-amber-200/80 mt-0.5">
-                Para activar la sincronización multi-dispositivo en tiempo real, conecta las variables de Firebase en tu archivo <code className="bg-black/40 px-1 py-0.5 rounded text-amber-300">.env</code>.
+                Error de conexion.
               </p>
             </div>
           </div>
@@ -150,11 +150,10 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             <button
               type="button"
               onClick={() => { setIsLogin(true); setError(null); }}
-              className={`py-2 rounded-lg font-bold transition-all uppercase flex items-center justify-center gap-2 ${
-                isLogin
-                  ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
+              className={`py-2 rounded-lg font-bold transition-all uppercase flex items-center justify-center gap-2 ${isLogin
+                ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
+                : 'text-neutral-400 hover:text-white'
+                }`}
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Ingresar</span>
@@ -162,11 +161,10 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             <button
               type="button"
               onClick={() => { setIsLogin(false); setError(null); }}
-              className={`py-2 rounded-lg font-bold transition-all uppercase flex items-center justify-center gap-2 ${
-                !isLogin
-                  ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
+              className={`py-2 rounded-lg font-bold transition-all uppercase flex items-center justify-center gap-2 ${!isLogin
+                ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
+                : 'text-neutral-400 hover:text-white'
+                }`}
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>Registrarse</span>
@@ -232,12 +230,12 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-3.5 font-mono text-xs">
-            
+
             {/* Campo Nombre (Solo en Registro) */}
             {!isLogin && !isResetMode && (
               <div className="space-y-1">
                 <label className="block text-[11px] text-neutral-400 uppercase tracking-wider">
-                  // Nombre o Apodo
+                  Nombre o Apodo
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -255,7 +253,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             {/* Campo Correo */}
             <div className="space-y-1">
               <label className="block text-[11px] text-neutral-400 uppercase tracking-wider">
-                // Correo Electrónico
+                Correo Electrónico
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -275,7 +273,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
                   <label className="block text-[11px] text-neutral-400 uppercase tracking-wider">
-                    // Contraseña
+                    Contraseña
                   </label>
                   {isLogin && (
                     <button
@@ -324,10 +322,10 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                 <>
                   <Sparkles className="w-4 h-4 text-neon-cyan" />
                   <span>
-                    {isResetMode 
-                      ? 'Enviar Correo de Recuperación' 
-                      : isLogin 
-                        ? 'Iniciar Sesión' 
+                    {isResetMode
+                      ? 'Enviar Correo de Recuperación'
+                      : isLogin
+                        ? 'Iniciar Sesión'
                         : 'Crear Mi Cuenta Cloud'}
                   </span>
                 </>

@@ -475,7 +475,7 @@ export default function DailyView({
                   className="md:hidden px-2.5 py-1 bg-neon-purple/15 hover:bg-neon-purple/25 border border-neon-purple/40 rounded-lg text-xs font-mono font-bold text-neon-purple tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
                 >
                   <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isWorkoutFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-neon-cyan'}`} />
-                  <span>{isWorkoutFormOpen ? 'Cerrar' : '+ Cargar'}</span>
+                  <span>{isWorkoutFormOpen ? 'Cerrar' : 'Cargar'}</span>
                 </button>
               </div>
             </div>
@@ -484,237 +484,234 @@ export default function DailyView({
           {/* Formulario de Carga de Ejercicios (Visible siempre en Desktop, desplegable en Mobile) */}
           <div className={`${isWorkoutFormOpen ? 'block' : 'hidden'} md:block`}>
             <ScrollReveal delay={100} className="relative z-30">
-            <form onSubmit={handleSubmitWorkout} className="space-y-4 sm:space-y-5 pt-1 relative">
+              <form onSubmit={handleSubmitWorkout} className="space-y-4 sm:space-y-5 pt-1 relative">
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
 
-                {/* Ejercicio con Dropdown 100% Opaco y sin solapamiento */}
-                <div ref={exerciseContainerRef} className="md:col-span-6 space-y-1.5 relative z-40">
-                  <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
-                    <label className="flex items-center gap-1.5">
-                      <span>Nombre del Ejercicio</span>
-                      {Object.keys(rememberedWorkouts).length > 0 && (
-                        <span className="text-[10px] text-neon-cyan lowercase font-normal">(con memoria)</span>
-                      )}
-                    </label>
+                  {/* Ejercicio con Dropdown 100% Opaco y sin solapamiento */}
+                  <div ref={exerciseContainerRef} className="md:col-span-6 space-y-1.5 relative z-40">
+                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                      <label className="flex items-center gap-1.5">
+                        <span>Nombre del Ejercicio</span>
+                        {Object.keys(rememberedWorkouts).length > 0 && (
+                          <span className="text-[10px] text-neon-cyan lowercase font-normal">(con memoria)</span>
+                        )}
+                      </label>
 
-                    {/* Botón sugerencias */}
-                    <div className="relative z-50">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowQuickExercises(!showQuickExercises);
-                          setShowExerciseSuggestions(false);
-                        }}
-                        className="text-neon-purple hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
-                      >
-                        [ Sugerencias ]
-                      </button>
+                      {/* Botón sugerencias */}
+                      <div className="relative z-50">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowQuickExercises(!showQuickExercises);
+                            setShowExerciseSuggestions(false);
+                          }}
+                          className="text-neon-purple hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
+                        >
+                          [ Sugerencias ]
+                        </button>
 
-                      {/* Dropdown de Sugerencias con Acordeón y Encabezado Fijo Superior */}
-                      {showQuickExercises && (
-                        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-purple/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
-                          {/* Encabezado Fijo Superior - Nada se solapa ni se ve por detrás */}
-                          <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-purple uppercase font-bold tracking-wider select-none shrink-0">
-                            <span className="flex items-center gap-2">
-                              <Dumbbell className="w-3.5 h-3.5 text-neon-purple" />
-                              <span>Ejercicios por Músculo</span>
-                            </span>
-                            <span className="text-[10px] text-gray-400 font-mono font-normal">
-                              {Object.keys(EXERCISES_BY_MUSCLE).length} categorías
-                            </span>
-                          </div>
+                        {/* Dropdown de Sugerencias con Acordeón y Encabezado Fijo Superior */}
+                        {showQuickExercises && (
+                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-purple/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
+                            {/* Encabezado Fijo Superior - Nada se solapa ni se ve por detrás */}
+                            <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-purple uppercase font-bold tracking-wider select-none shrink-0">
+                              <span className="flex items-center gap-2">
+                                <Dumbbell className="w-3.5 h-3.5 text-neon-purple" />
+                                <span>Ejercicios por Músculo</span>
+                              </span>
+                              <span className="text-[10px] text-gray-400 font-mono font-normal">
+                                {Object.keys(EXERCISES_BY_MUSCLE).length} categorías
+                              </span>
+                            </div>
 
-                          {/* Lista scrolleable con categorías en acordeón */}
-                          <div className="max-h-80 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
-                            {Object.entries(EXERCISES_BY_MUSCLE).map(([muscle, exercises]) => {
-                              const isExpanded = expandedMuscle === muscle;
-                              return (
-                                <div key={muscle} className="transition-colors">
-                                  {/* Botón de cada músculo para abrir/cerrar */}
-                                  <button
-                                    type="button"
-                                    onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
-                                    className={`w-full px-4 py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${
-                                      isExpanded
-                                        ? 'bg-[#1D1445] text-neon-cyan font-bold'
-                                        : 'text-neutral-300 hover:bg-[#18113A] hover:text-white font-medium'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <span
-                                        className={`w-2 h-2 rounded-full transition-all ${
-                                          isExpanded
-                                            ? 'bg-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.8)]'
-                                            : 'bg-neon-purple/60'
+                            {/* Lista scrolleable con categorías en acordeón */}
+                            <div className="max-h-80 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                              {Object.entries(EXERCISES_BY_MUSCLE).map(([muscle, exercises]) => {
+                                const isExpanded = expandedMuscle === muscle;
+                                return (
+                                  <div key={muscle} className="transition-colors">
+                                    {/* Botón de cada músculo para abrir/cerrar */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
+                                      className={`w-full px-4 py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${isExpanded
+                                          ? 'bg-[#1D1445] text-neon-cyan font-bold'
+                                          : 'text-neutral-300 hover:bg-[#18113A] hover:text-white font-medium'
                                         }`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className={`w-2 h-2 rounded-full transition-all ${isExpanded
+                                              ? 'bg-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.8)]'
+                                              : 'bg-neon-purple/60'
+                                            }`}
+                                        />
+                                        <span className="text-xs font-semibold">{muscle}</span>
+                                        <span className="text-[10px] font-mono text-neutral-400">({exercises.length})</span>
+                                      </div>
+                                      <ChevronDown
+                                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-neon-cyan' : 'text-neutral-400'
+                                          }`}
                                       />
-                                      <span className="text-xs font-semibold">{muscle}</span>
-                                      <span className="text-[10px] font-mono text-neutral-400">({exercises.length})</span>
-                                    </div>
-                                    <ChevronDown
-                                      className={`w-4 h-4 transition-transform duration-200 ${
-                                        isExpanded ? 'rotate-180 text-neon-cyan' : 'text-neutral-400'
-                                      }`}
-                                    />
-                                  </button>
+                                    </button>
 
-                                  {/* Lista de ejercicios desplegada al hacer clic */}
-                                  {isExpanded && (
-                                    <div className="bg-[#080419] py-1 border-t border-white/5 divide-y divide-white/5">
-                                      {exercises.map((name, idx) => (
-                                        <button
-                                          key={idx}
-                                          type="button"
-                                          onClick={() => {
-                                            setExerciseName(name);
-                                            setShowQuickExercises(false);
-                                          }}
-                                          className="w-full text-left px-5 py-2.5 text-xs text-white/90 hover:bg-[#231B54] hover:text-neon-cyan transition-colors font-medium flex items-center justify-between group cursor-pointer"
-                                        >
-                                          <span className="group-hover:translate-x-0.5 transition-transform">{name}</span>
-                                          <span className="text-[10px] text-white/30 group-hover:text-neon-cyan/80 transition-colors font-mono">
-                                            elegir +
-                                          </span>
-                                        </button>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
+                                    {/* Lista de ejercicios desplegada al hacer clic */}
+                                    {isExpanded && (
+                                      <div className="bg-[#080419] py-1 border-t border-white/5 divide-y divide-white/5">
+                                        {exercises.map((name, idx) => (
+                                          <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => {
+                                              setExerciseName(name);
+                                              setShowQuickExercises(false);
+                                            }}
+                                            className="w-full text-left px-5 py-2.5 text-xs text-white/90 hover:bg-[#231B54] hover:text-neon-cyan transition-colors font-medium flex items-center justify-between group cursor-pointer"
+                                          >
+                                            <span className="group-hover:translate-x-0.5 transition-transform">{name}</span>
+                                            <span className="text-[10px] text-white/30 group-hover:text-neon-cyan/80 transition-colors font-mono">
+                                              elegir +
+                                            </span>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
+
+                    <input
+                      type="text"
+                      placeholder="Ej: Press banca, Sentadilla, Dominadas..."
+                      value={exerciseName}
+                      onChange={handleExerciseNameChange}
+                      onFocus={() => {
+                        if (exerciseName.trim().length > 0 && exerciseSuggestions.length > 0) {
+                          setShowExerciseSuggestions(true);
+                        }
+                      }}
+                      className="w-full input-futuristic px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                      required
+                    />
+
+                    {/* Dropdown de Autocompletado / Memoria inteligente con FONDO SÓLIDO */}
+                    {showExerciseSuggestions && exerciseSuggestions.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full mt-2 bg-[#0E0926] border-2 border-neon-purple/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 overflow-hidden divide-y divide-white/10 animate-fade-in-up">
+                        <div className="px-4 py-2 bg-[#080419] text-[10px] font-mono text-neon-purple uppercase tracking-wider flex items-center justify-between font-bold">
+                          <span>Memoria Inteligente</span>
+                          <span className="text-neutral-400 font-normal">Click para autorrellenar</span>
+                        </div>
+                        {exerciseSuggestions.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSelectExerciseSuggestion(item)}
+                            className="w-full text-left px-5 py-3 hover:bg-[#231B54] flex items-center justify-between text-xs transition-colors group cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              {item.sets ? (
+                                <Zap className="w-3.5 h-3.5 text-neon-cyan" />
+                              ) : (
+                                <Dumbbell className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neon-purple" />
+                              )}
+                              <span className="font-bold text-white group-hover:text-neon-cyan transition-colors">
+                                {item.name}
+                              </span>
+                            </div>
+
+                            {item.sets ? (
+                              <span className="font-mono text-neon-mint text-[11px] font-bold">
+                                {item.sets}s × {item.reps}r @ <strong className="text-neon-cyan">{item.weight}kg</strong>
+                              </span>
+                            ) : (
+                              <span className="text-neutral-400 text-[10px] font-mono">Ejercicio sugerido</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  <input
-                    type="text"
-                    placeholder="Ej: Press banca, Sentadilla, Dominadas..."
-                    value={exerciseName}
-                    onChange={handleExerciseNameChange}
-                    onFocus={() => {
-                      if (exerciseName.trim().length > 0 && exerciseSuggestions.length > 0) {
-                        setShowExerciseSuggestions(true);
-                      }
-                    }}
-                    className="w-full input-futuristic px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
-                    required
-                  />
+                  {/* Series */}
+                  <div className="md:col-span-2 space-y-1.5">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Series</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="4"
+                      value={sets}
+                      onChange={(e) => setSets(e.target.value)}
+                      className="w-full input-futuristic px-3 py-2 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
+                      required
+                    />
+                  </div>
 
-                  {/* Dropdown de Autocompletado / Memoria inteligente con FONDO SÓLIDO */}
-                  {showExerciseSuggestions && exerciseSuggestions.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-2 bg-[#0E0926] border-2 border-neon-purple/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 overflow-hidden divide-y divide-white/10 animate-fade-in-up">
-                      <div className="px-4 py-2 bg-[#080419] text-[10px] font-mono text-neon-purple uppercase tracking-wider flex items-center justify-between font-bold">
-                        <span>Memoria Inteligente</span>
-                        <span className="text-neutral-400 font-normal">Click para autorrellenar</span>
+                  {/* Repeticiones */}
+                  <div className="md:col-span-2 space-y-1.5">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Reps</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="8"
+                      value={reps}
+                      onChange={(e) => setReps(e.target.value)}
+                      className="w-full input-futuristic px-3 py-2 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
+                      required
+                    />
+                  </div>
+
+                  {/* Peso */}
+                  <div className="md:col-span-2 space-y-1.5">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Peso (Kg)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      placeholder="80"
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      className="w-full input-futuristic px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
+                      required
+                    />
+                  </div>
+
+                </div>
+
+                {/* Fila de acción & cálculo en tiempo real */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
+                  <div className="text-xs font-mono text-neutral-400">
+                    {Number(weight) > 0 ? (
+                      <div className="flex items-center gap-3 text-xs">
+                        <span>Peso: <strong className="text-neon-cyan font-bold">{Number(weight)} KG</strong></span>
+                        {Number(reps) > 0 && live1RM > 0 && (
+                          <>
+                            <span className="text-neutral-600">//</span>
+                            <span>1RM: <strong className="text-neon-mint font-bold">{live1RM} KG</strong></span>
+                          </>
+                        )}
                       </div>
-                      {exerciseSuggestions.map((item, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleSelectExerciseSuggestion(item)}
-                          className="w-full text-left px-5 py-3 hover:bg-[#231B54] flex items-center justify-between text-xs transition-colors group cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            {item.sets ? (
-                              <Zap className="w-3.5 h-3.5 text-neon-cyan" />
-                            ) : (
-                              <Dumbbell className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neon-purple" />
-                            )}
-                            <span className="font-bold text-white group-hover:text-neon-cyan transition-colors">
-                              {item.name}
-                            </span>
-                          </div>
+                    ) : (
+                      <span className="text-neutral-500 text-xs">Completa los datos para registrar tu ejercicio.</span>
+                    )}
+                  </div>
 
-                          {item.sets ? (
-                            <span className="font-mono text-neon-mint text-[11px] font-bold">
-                              {item.sets}s × {item.reps}r @ <strong className="text-neon-cyan">{item.weight}kg</strong>
-                            </span>
-                          ) : (
-                            <span className="text-neutral-400 text-[10px] font-mono">Ejercicio sugerido</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-gradient-to-r from-neon-purple to-neon-violet hover:from-neon-violet hover:to-neon-fuchsia text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-purple-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR EJERCICIO
+                  </button>
                 </div>
 
-                {/* Series */}
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Series</label>
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="4"
-                    value={sets}
-                    onChange={(e) => setSets(e.target.value)}
-                    className="w-full input-futuristic px-3 py-2 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
-                    required
-                  />
-                </div>
-
-                {/* Repeticiones */}
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Reps</label>
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="8"
-                    value={reps}
-                    onChange={(e) => setReps(e.target.value)}
-                    className="w-full input-futuristic px-3 py-2 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
-                    required
-                  />
-                </div>
-
-                {/* Peso */}
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Peso (Kg)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    placeholder="80"
-                    value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
-                    className="w-full input-futuristic px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
-                    required
-                  />
-                </div>
-
-              </div>
-
-              {/* Fila de acción & cálculo en tiempo real */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
-                <div className="text-xs font-mono text-neutral-400">
-                  {Number(weight) > 0 ? (
-                    <div className="flex items-center gap-3 text-xs">
-                      <span>Peso: <strong className="text-neon-cyan font-bold">{Number(weight)} KG</strong></span>
-                      {Number(reps) > 0 && live1RM > 0 && (
-                        <>
-                          <span className="text-neutral-600">//</span>
-                          <span>1RM: <strong className="text-neon-mint font-bold">{live1RM} KG</strong></span>
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-neutral-500 text-xs">Completa los datos para registrar tu ejercicio.</span>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-gradient-to-r from-neon-purple to-neon-violet hover:from-neon-violet hover:to-neon-fuchsia text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-purple-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR EJERCICIO
-                </button>
-              </div>
-
-            </form>
-          </ScrollReveal>
-        </div>
+              </form>
+            </ScrollReveal>
+          </div>
 
           {/* Listado de Ejercicios del Día */}
           <ScrollReveal delay={150} className="relative z-10">
@@ -853,265 +850,265 @@ export default function DailyView({
           <div className={`${isFoodFormOpen ? 'block' : 'hidden'} md:block space-y-3 sm:space-y-4 pt-1`}>
             {/* Selector de Momentos & Suplementos con Contraste y Brillo Perfecto */}
             <ScrollReveal delay={100}>
-            <div className="space-y-2">
-              <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
-                TIPO DE REGISTRO
-              </div>
-
-              {/* Selector Unificado estilo Cápsula */}
-              <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
-                {MEAL_TYPES.map((type) => {
-                  const isSelected = mealType === type.id;
-                  const isSupp = type.id === 'suplementacion';
-
-                  return (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => setMealType(type.id)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${isSelected
-                        ? isSupp
-                          ? 'bg-neon-mint text-space-950 font-black shadow-md shadow-emerald-500/30'
-                          : 'bg-gradient-to-r from-neon-cyan to-neon-blue text-space-950 font-black shadow-md shadow-cyan-500/30'
-                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                        }`}
-                    >
-                      {type.tag} // {type.label.toUpperCase()}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </ScrollReveal>
-
-          {/* Formulario de Carga de Comida o Suplemento con Reveal y Memoria */}
-          <ScrollReveal delay={200} className="relative z-30">
-            <form onSubmit={handleSubmitFood} className="space-y-3 sm:space-y-4 relative">
-
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
-
-                {/* Horario */}
-                <div className="md:col-span-2 space-y-1">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Horario</label>
-                  <input
-                    type="time"
-                    value={mealTime}
-                    onChange={(e) => setMealTime(e.target.value)}
-                    className="w-full input-futuristic-cyan px-3 py-2 text-xs text-center text-white rounded-xl font-mono cursor-pointer"
-                    required
-                  />
+              <div className="space-y-2">
+                <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
+                  TIPO DE REGISTRO
                 </div>
 
-                {/* Nombre Alimento / Suplemento con Dropdown 100% Opaco */}
-                <div ref={foodContainerRef} className="md:col-span-5 space-y-1 relative z-40">
-                  <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
-                    <label className="flex items-center gap-1.5">
-                      <span>{mealType === 'suplementacion' ? 'Suplemento' : 'Alimento o Plato'}</span>
-                      {Object.keys(rememberedFoods).length > 0 && (
-                        <span className="text-[10px] text-neon-mint lowercase font-normal">(con memoria)</span>
-                      )}
-                    </label>
+                {/* Selector Unificado estilo Cápsula */}
+                <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
+                  {MEAL_TYPES.map((type) => {
+                    const isSelected = mealType === type.id;
+                    const isSupp = type.id === 'suplementacion';
 
-                    <div className="relative z-50">
-                      {mealType === 'suplementacion' ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowQuickSupps(!showQuickSupps);
-                            setShowFoodSuggestions(false);
-                          }}
-                          className="text-neon-mint hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
-                        >
-                          [ suplementos ]
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowQuickFoods(!showQuickFoods);
-                            setShowFoodSuggestions(false);
-                          }}
-                          className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
-                        >
-                          [ alimentos ]
-                        </button>
-                      )}
+                    return (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => setMealType(type.id)}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${isSelected
+                          ? isSupp
+                            ? 'bg-neon-mint text-space-950 font-black shadow-md shadow-emerald-500/30'
+                            : 'bg-gradient-to-r from-neon-cyan to-neon-blue text-space-950 font-black shadow-md shadow-cyan-500/30'
+                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                          }`}
+                      >
+                        {type.tag} // {type.label.toUpperCase()}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </ScrollReveal>
 
-                      {/* Dropdown de Alimentos Rápidos con Acordeón por Categorías */}
-                      {showQuickFoods && (
-                        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-cyan/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
-                          <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-cyan uppercase font-bold tracking-wider select-none shrink-0">
-                            <span>Base de Alimentos</span>
-                            <span className="text-[10px] text-gray-400 font-mono font-normal">
-                              {Object.keys(QUICK_FOODS).length} categorías
-                            </span>
-                          </div>
+            {/* Formulario de Carga de Comida o Suplemento con Reveal y Memoria */}
+            <ScrollReveal delay={200} className="relative z-30">
+              <form onSubmit={handleSubmitFood} className="space-y-3 sm:space-y-4 relative">
 
-                          <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
-                            {Object.entries(QUICK_FOODS).map(([category, items]) => (
-                              <div key={category} className="py-2">
-                                <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-neon-cyan/70 font-bold bg-[#140D36]">
-                                  {category}
-                                </div>
-                                <div className="divide-y divide-white/5">
-                                  {items.map((item, idx) => (
-                                    <button
-                                      key={idx}
-                                      type="button"
-                                      onClick={() => handleSelectQuickFood(item)}
-                                      className="w-full text-left px-5 py-2 hover:bg-[#1D1445] flex items-center justify-between text-xs text-neutral-300 hover:text-white transition-colors font-medium cursor-pointer"
-                                    >
-                                      <span>{item.name}</span>
-                                      <span className="text-[10px] font-mono text-neon-mint font-bold">
-                                        {item.calories} kcal ({item.protein}g P)
-                                      </span>
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
 
-                      {/* Dropdown de Suplementos con Acordeón por Categorías */}
-                      {showQuickSupps && (
-                        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-mint/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
-                          <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-mint uppercase font-bold tracking-wider select-none shrink-0">
-                            <span>Base de Suplementación</span>
-                            <span className="text-[10px] text-gray-400 font-mono font-normal">
-                              {Object.keys(QUICK_SUPPLEMENTS).length} categorías
-                            </span>
-                          </div>
-
-                          <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
-                            {Object.entries(QUICK_SUPPLEMENTS).map(([category, items]) => (
-                              <div key={category} className="py-2">
-                                <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-neon-mint/70 font-bold bg-[#0D261E]">
-                                  {category}
-                                </div>
-                                <div className="divide-y divide-white/5">
-                                  {items.map((item, idx) => (
-                                    <button
-                                      key={idx}
-                                      type="button"
-                                      onClick={() => handleSelectQuickSupp(item)}
-                                      className="w-full text-left px-5 py-2 hover:bg-[#143D30] flex items-center justify-between text-xs text-neutral-300 hover:text-white transition-colors font-medium cursor-pointer"
-                                    >
-                                      <span>{item.name}</span>
-                                      <span className="text-[10px] font-mono text-neon-mint font-bold">
-                                        {item.calories} kcal ({item.protein}g P)
-                                      </span>
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  {/* Horario */}
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Horario</label>
+                    <input
+                      type="time"
+                      value={mealTime}
+                      onChange={(e) => setMealTime(e.target.value)}
+                      className="w-full input-futuristic-cyan px-3 py-2 text-xs text-center text-white rounded-xl font-mono cursor-pointer"
+                      required
+                    />
                   </div>
 
-                  <input
-                    type="text"
-                    placeholder={mealType === 'suplementacion' ? "Ej: Proteína Whey 30g, Creatina 5g..." : "Ej: Pechuga de pollo 200g, Arroz con huevo..."}
-                    value={foodName}
-                    onChange={handleFoodNameChange}
-                    onFocus={() => {
-                      if (foodName.trim().length > 0 && foodSuggestions.length > 0) {
-                        setShowFoodSuggestions(true);
-                      }
-                    }}
-                    className="w-full input-futuristic-cyan px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
-                    required
-                  />
+                  {/* Nombre Alimento / Suplemento con Dropdown 100% Opaco */}
+                  <div ref={foodContainerRef} className="md:col-span-5 space-y-1 relative z-40">
+                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                      <label className="flex items-center gap-1.5">
+                        <span>{mealType === 'suplementacion' ? 'Suplemento' : 'Alimento o Plato'}</span>
+                        {Object.keys(rememberedFoods).length > 0 && (
+                          <span className="text-[10px] text-neon-mint lowercase font-normal">(con memoria)</span>
+                        )}
+                      </label>
 
-                  {/* Dropdown de Autocompletado / Memoria inteligente */}
-                  {showFoodSuggestions && foodSuggestions.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-2 bg-[#0E0926] border-2 border-neon-cyan/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 overflow-hidden divide-y divide-white/10 animate-fade-in-up">
-                      <div className="px-4 py-2 bg-[#080419] text-[10px] font-mono text-neon-cyan uppercase tracking-wider flex items-center justify-between font-bold">
-                        <span>Memoria Nutricional Inteligente</span>
-                        <span className="text-neutral-400 font-normal">Click para autorrellenar</span>
+                      <div className="relative z-50">
+                        {mealType === 'suplementacion' ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowQuickSupps(!showQuickSupps);
+                              setShowFoodSuggestions(false);
+                            }}
+                            className="text-neon-mint hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
+                          >
+                            [ suplementos ]
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowQuickFoods(!showQuickFoods);
+                              setShowFoodSuggestions(false);
+                            }}
+                            className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
+                          >
+                            [ alimentos ]
+                          </button>
+                        )}
+
+                        {/* Dropdown de Alimentos Rápidos con Acordeón por Categorías */}
+                        {showQuickFoods && (
+                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-cyan/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
+                            <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-cyan uppercase font-bold tracking-wider select-none shrink-0">
+                              <span>Base de Alimentos</span>
+                              <span className="text-[10px] text-gray-400 font-mono font-normal">
+                                {Object.keys(QUICK_FOODS).length} categorías
+                              </span>
+                            </div>
+
+                            <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                              {Object.entries(QUICK_FOODS).map(([category, items]) => (
+                                <div key={category} className="py-2">
+                                  <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-neon-cyan/70 font-bold bg-[#140D36]">
+                                    {category}
+                                  </div>
+                                  <div className="divide-y divide-white/5">
+                                    {items.map((item, idx) => (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => handleSelectQuickFood(item)}
+                                        className="w-full text-left px-5 py-2 hover:bg-[#1D1445] flex items-center justify-between text-xs text-neutral-300 hover:text-white transition-colors font-medium cursor-pointer"
+                                      >
+                                        <span>{item.name}</span>
+                                        <span className="text-[10px] font-mono text-neon-mint font-bold">
+                                          {item.calories} kcal ({item.protein}g P)
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Dropdown de Suplementos con Acordeón por Categorías */}
+                        {showQuickSupps && (
+                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-mint/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
+                            <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-mint uppercase font-bold tracking-wider select-none shrink-0">
+                              <span>Base de Suplementación</span>
+                              <span className="text-[10px] text-gray-400 font-mono font-normal">
+                                {Object.keys(QUICK_SUPPLEMENTS).length} categorías
+                              </span>
+                            </div>
+
+                            <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                              {Object.entries(QUICK_SUPPLEMENTS).map(([category, items]) => (
+                                <div key={category} className="py-2">
+                                  <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-neon-mint/70 font-bold bg-[#0D261E]">
+                                    {category}
+                                  </div>
+                                  <div className="divide-y divide-white/5">
+                                    {items.map((item, idx) => (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => handleSelectQuickSupp(item)}
+                                        className="w-full text-left px-5 py-2 hover:bg-[#143D30] flex items-center justify-between text-xs text-neutral-300 hover:text-white transition-colors font-medium cursor-pointer"
+                                      >
+                                        <span>{item.name}</span>
+                                        <span className="text-[10px] font-mono text-neon-mint font-bold">
+                                          {item.calories} kcal ({item.protein}g P)
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      {foodSuggestions.map((item, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleSelectFoodSuggestion(item)}
-                          className="w-full text-left px-5 py-3 hover:bg-[#1D1445] flex items-center justify-between text-xs transition-colors group cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <span className="font-bold text-white group-hover:text-neon-cyan transition-colors">
-                              {item.name}
-                            </span>
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-neutral-300 uppercase">
-                              {item.mealType || 'comida'}
-                            </span>
-                          </div>
-
-                          <span className="font-mono text-neon-mint text-[11px] font-bold">
-                            {item.calories} kcal • {item.protein}g P
-                          </span>
-                        </button>
-                      ))}
                     </div>
-                  )}
-                </div>
 
-                {/* Calorías */}
-                <div className="md:col-span-2 space-y-1">
-                  <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
-                    <label>Calorías</label>
-                    {currentNutritionEst.matched && (
-                      <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.calories}]</span>
+                    <input
+                      type="text"
+                      placeholder={mealType === 'suplementacion' ? "Ej: Proteína Whey 30g, Creatina 5g..." : "Ej: Pechuga de pollo 200g, Arroz con huevo..."}
+                      value={foodName}
+                      onChange={handleFoodNameChange}
+                      onFocus={() => {
+                        if (foodName.trim().length > 0 && foodSuggestions.length > 0) {
+                          setShowFoodSuggestions(true);
+                        }
+                      }}
+                      className="w-full input-futuristic-cyan px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                      required
+                    />
+
+                    {/* Dropdown de Autocompletado / Memoria inteligente */}
+                    {showFoodSuggestions && foodSuggestions.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full mt-2 bg-[#0E0926] border-2 border-neon-cyan/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 overflow-hidden divide-y divide-white/10 animate-fade-in-up">
+                        <div className="px-4 py-2 bg-[#080419] text-[10px] font-mono text-neon-cyan uppercase tracking-wider flex items-center justify-between font-bold">
+                          <span>Memoria Nutricional Inteligente</span>
+                          <span className="text-neutral-400 font-normal">Click para autorrellenar</span>
+                        </div>
+                        {foodSuggestions.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSelectFoodSuggestion(item)}
+                            className="w-full text-left px-5 py-3 hover:bg-[#1D1445] flex items-center justify-between text-xs transition-colors group cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="font-bold text-white group-hover:text-neon-cyan transition-colors">
+                                {item.name}
+                              </span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-neutral-300 uppercase">
+                                {item.mealType || 'comida'}
+                              </span>
+                            </div>
+
+                            <span className="font-mono text-neon-mint text-[11px] font-bold">
+                              {item.calories} kcal • {item.protein}g P
+                            </span>
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder={currentNutritionEst.matched ? String(currentNutritionEst.calories) : "350"}
-                    value={calories}
-                    onChange={(e) => setCalories(e.target.value)}
-                    className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
-                    required
-                  />
-                </div>
 
-                {/* Proteína */}
-                <div className="md:col-span-3 space-y-1">
-                  <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
-                    <label>Proteína (g)</label>
-                    {currentNutritionEst.matched && (
-                      <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.protein}g]</span>
-                    )}
+                  {/* Calorías */}
+                  <div className="md:col-span-2 space-y-1">
+                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                      <label>Calorías</label>
+                      {currentNutritionEst.matched && (
+                        <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.calories}]</span>
+                      )}
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder={currentNutritionEst.matched ? String(currentNutritionEst.calories) : "350"}
+                      value={calories}
+                      onChange={(e) => setCalories(e.target.value)}
+                      className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
+                      required
+                    />
                   </div>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    placeholder={currentNutritionEst.matched ? String(currentNutritionEst.protein) : "35"}
-                    value={protein}
-                    onChange={(e) => setProtein(e.target.value)}
-                    className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-mint placeholder-neutral-500 rounded-xl font-mono font-bold"
-                  />
+
+                  {/* Proteína */}
+                  <div className="md:col-span-3 space-y-1">
+                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                      <label>Proteína (g)</label>
+                      {currentNutritionEst.matched && (
+                        <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.protein}g]</span>
+                      )}
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      placeholder={currentNutritionEst.matched ? String(currentNutritionEst.protein) : "35"}
+                      value={protein}
+                      onChange={(e) => setProtein(e.target.value)}
+                      className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-mint placeholder-neutral-500 rounded-xl font-mono font-bold"
+                    />
+                  </div>
+
                 </div>
 
-              </div>
+                {/* Botón de envío */}
+                <div className="flex justify-end pt-0.5">
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-blue hover:to-neon-purple text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR {mealType === 'suplementacion' ? 'SUPLEMENTO' : 'COMIDA'}
+                  </button>
+                </div>
 
-              {/* Botón de envío */}
-              <div className="flex justify-end pt-0.5">
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-blue hover:to-neon-purple text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR {mealType === 'suplementacion' ? 'SUPLEMENTO' : 'COMIDA'}
-                </button>
-              </div>
-
-            </form>
-          </ScrollReveal>
-        </div>
+              </form>
+            </ScrollReveal>
+          </div>
 
           {/* Listado de Comidas y Suplementos con Reveal */}
           <ScrollReveal delay={250} className="relative z-10">
@@ -1256,126 +1253,126 @@ export default function DailyView({
           <div className={`${isCardioFormOpen ? 'block' : 'hidden'} md:block space-y-3 sm:space-y-4 pt-1`}>
             {/* Selector de Actividad (Caminata, Running, Bicicleta) */}
             <ScrollReveal delay={100}>
-            <div className="space-y-2">
-              <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
-                TIPO DE CARDIO
+              <div className="space-y-2">
+                <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
+                  TIPO DE CARDIO
+                </div>
+
+                {/* Selector Unificado estilo Cápsula */}
+                <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
+                  {CARDIO_TYPES.map((c) => {
+                    const isSelected = cardioType === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCardioType(c.id)}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${isSelected
+                          ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-space-950 font-black shadow-md shadow-emerald-500/25'
+                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                          }`}
+                      >
+                        {c.id === 'caminata' && <Footprints className="w-3.5 h-3.5" />}
+                        {c.id === 'running' && <Flame className="w-3.5 h-3.5" />}
+                        {c.id === 'bicicleta' && <Bike className="w-3.5 h-3.5" />}
+                        <span>{c.label.toUpperCase()}</span>
+                        <span className={`text-[10px] ${isSelected ? 'text-black/75 font-semibold' : 'text-neutral-500'}`}>
+                          ({c.desc})
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+            </ScrollReveal>
 
-              {/* Selector Unificado estilo Cápsula */}
-              <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
-                {CARDIO_TYPES.map((c) => {
-                  const isSelected = cardioType === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setCardioType(c.id)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${isSelected
-                        ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-space-950 font-black shadow-md shadow-emerald-500/25'
-                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                        }`}
-                    >
-                      {c.id === 'caminata' && <Footprints className="w-3.5 h-3.5" />}
-                      {c.id === 'running' && <Flame className="w-3.5 h-3.5" />}
-                      {c.id === 'bicicleta' && <Bike className="w-3.5 h-3.5" />}
-                      <span>{c.label.toUpperCase()}</span>
-                      <span className={`text-[10px] ${isSelected ? 'text-black/75 font-semibold' : 'text-neutral-500'}`}>
-                        ({c.desc})
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </ScrollReveal>
+            {/* Formulario de Carga de Cardio */}
+            <ScrollReveal delay={150}>
+              <form onSubmit={handleSubmitCardio} className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
 
-          {/* Formulario de Carga de Cardio */}
-          <ScrollReveal delay={150}>
-            <form onSubmit={handleSubmitCardio} className="space-y-3 sm:space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
-
-                {/* Desde donde (Origen) */}
-                <div className="md:col-span-4 space-y-1">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Desde dónde (Origen)</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Casa, Gimnasio, Costanera..."
-                    value={cardioFrom}
-                    onChange={(e) => setCardioFrom(e.target.value)}
-                    className="w-full input-futuristic-emerald px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
-                    required
-                  />
-                </div>
-
-                {/* Hasta donde (Destino) */}
-                <div className="md:col-span-4 space-y-1">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
-                    <Route className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Hasta dónde (Destino)</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Parque, Trabajo, Vuelta al dique..."
-                    value={cardioTo}
-                    onChange={(e) => setCardioTo(e.target.value)}
-                    className="w-full input-futuristic-emerald px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
-                    required
-                  />
-                </div>
-
-                {/* Distancia en Kilómetros */}
-                <div className="md:col-span-2 space-y-1">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
-                    Distancia (KM)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    placeholder="5.0"
-                    value={cardioDistance}
-                    onChange={(e) => setCardioDistance(e.target.value)}
-                    className="w-full input-futuristic-emerald px-3 py-2 text-sm text-center text-emerald-400 placeholder-neutral-500 rounded-xl font-mono font-bold"
-                    required
-                  />
-                </div>
-
-                {/* Gasto calórico calculado dinámicamente en tiempo real */}
-                <div className="md:col-span-2 space-y-1">
-                  <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
-                    Gasto Est. (Kcal)
-                  </label>
-                  <div className="w-full h-[38px] bg-[#0E0926]/80 border border-amber-500/30 rounded-xl flex items-center justify-center gap-1.5 px-2">
-                    <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                    <span className="font-mono font-bold text-sm text-amber-400">
-                      {estimatedCardioBurn > 0 ? `~${estimatedCardioBurn}` : '0'}
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-400 uppercase">kcal</span>
+                  {/* Desde donde (Origen) */}
+                  <div className="md:col-span-4 space-y-1">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Desde dónde (Origen)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Casa, Gimnasio, Costanera..."
+                      value={cardioFrom}
+                      onChange={(e) => setCardioFrom(e.target.value)}
+                      className="w-full input-futuristic-emerald px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                      required
+                    />
                   </div>
+
+                  {/* Hasta donde (Destino) */}
+                  <div className="md:col-span-4 space-y-1">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
+                      <Route className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Hasta dónde (Destino)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Parque, Trabajo, Vuelta al dique..."
+                      value={cardioTo}
+                      onChange={(e) => setCardioTo(e.target.value)}
+                      className="w-full input-futuristic-emerald px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                      required
+                    />
+                  </div>
+
+                  {/* Distancia en Kilómetros */}
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
+                      Distancia (KM)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0.1"
+                      placeholder="5.0"
+                      value={cardioDistance}
+                      onChange={(e) => setCardioDistance(e.target.value)}
+                      className="w-full input-futuristic-emerald px-3 py-2 text-sm text-center text-emerald-400 placeholder-neutral-500 rounded-xl font-mono font-bold"
+                      required
+                    />
+                  </div>
+
+                  {/* Gasto calórico calculado dinámicamente en tiempo real */}
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
+                      Gasto Est. (Kcal)
+                    </label>
+                    <div className="w-full h-[38px] bg-[#0E0926]/80 border border-amber-500/30 rounded-xl flex items-center justify-center gap-1.5 px-2">
+                      <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                      <span className="font-mono font-bold text-sm text-amber-400">
+                        {estimatedCardioBurn > 0 ? `~${estimatedCardioBurn}` : '0'}
+                      </span>
+                      <span className="text-[10px] font-mono text-neutral-400 uppercase">kcal</span>
+                    </div>
+                  </div>
+
                 </div>
 
-              </div>
+                {/* Botón de Guardar Cardio */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-0.5">
+                  <div className="text-xs font-mono text-neutral-400 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span>Cálculo auto: {cardioType === 'caminata' ? '~55' : cardioType === 'running' ? '~75' : '~35'} kcal/km</span>
+                  </div>
 
-              {/* Botón de Guardar Cardio */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-0.5">
-                <div className="text-xs font-mono text-neutral-400 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  <span>Cálculo auto: {cardioType === 'caminata' ? '~55' : cardioType === 'running' ? '~75' : '~35'} kcal/km</span>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-teal-500 hover:to-emerald-500 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-emerald-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR SESIÓN DE CARDIO
+                  </button>
                 </div>
-
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-teal-500 hover:to-emerald-500 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-emerald-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR SESIÓN DE CARDIO
-                </button>
-              </div>
-            </form>
-          </ScrollReveal>
-        </div>
+              </form>
+            </ScrollReveal>
+          </div>
 
           {/* Listado de Sesiones de Cardio de Hoy */}
           <ScrollReveal delay={250}>
