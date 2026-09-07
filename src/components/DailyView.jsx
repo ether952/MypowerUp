@@ -284,6 +284,20 @@ export default function DailyView({
   const triggerAiEstimation = async (textToEstimate) => {
     if (!textToEstimate || textToEstimate.trim().length < 3) return;
     const clean = textToEstimate.trim();
+    const query = clean.toLowerCase();
+
+    // 1. Si ya existe en la memoria aprendida del usuario, reutilizar y no gastar tokens
+    const exactRemembered = rememberedFoods[query] || Object.values(rememberedFoods).find(
+      item => item.name.toLowerCase() === query
+    );
+    if (exactRemembered) {
+      if (exactRemembered.calories !== undefined) setCalories(String(exactRemembered.calories));
+      if (exactRemembered.protein !== undefined) setProtein(String(exactRemembered.protein));
+      if (exactRemembered.mealType) setMealType(exactRemembered.mealType);
+      setIsEstimatingAI(false);
+      return;
+    }
+
     if (clean.toLowerCase() === lastEstimatedFood.toLowerCase()) return;
 
     const currentReqId = ++aiRequestIdRef.current;
@@ -326,14 +340,28 @@ export default function DailyView({
       return;
     }
 
-    // Disparar IA tras una breve pausa de tipeo (800ms)
-    if (val.trim().length >= 3) {
-      aiDebounceTimerRef.current = setTimeout(() => {
-        triggerAiEstimation(val);
-      }, 800);
-    }
+    const clean = val.trim();
+    const query = clean.toLowerCase();
 
-    const query = val.toLowerCase().trim();
+    // 1. Verificar si coincide exactamente con la memoria aprendida
+    const exactRemembered = rememberedFoods[query] || Object.values(rememberedFoods).find(
+      item => item.name.toLowerCase() === query
+    );
+
+    if (exactRemembered) {
+      // Si ya está en la memoria, autorrellenar al instante sin gastar tokens
+      if (exactRemembered.calories !== undefined) setCalories(String(exactRemembered.calories));
+      if (exactRemembered.protein !== undefined) setProtein(String(exactRemembered.protein));
+      if (exactRemembered.mealType) setMealType(exactRemembered.mealType);
+      setIsEstimatingAI(false);
+    } else {
+      // Si es un plato nuevo, disparar IA tras una breve pausa de tipeo (800ms)
+      if (clean.length >= 3) {
+        aiDebounceTimerRef.current = setTimeout(() => {
+          triggerAiEstimation(clean);
+        }, 800);
+      }
+    }
 
     // Buscar en memoria aprendida
     const rememberedMatches = Object.values(rememberedFoods).filter(item =>

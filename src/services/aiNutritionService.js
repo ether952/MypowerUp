@@ -18,6 +18,7 @@ const GEMINI_MODELS = [
 export function getGeminiApiKey() {
   return (
     import.meta.env.VITE_GEMINI_API_KEY ||
+    import.meta.env.GEMINI_API_KEY ||
     localStorage.getItem('mypowerup_gemini_api_key') ||
     ''
   ).trim();
