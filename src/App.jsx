@@ -29,6 +29,7 @@ import {
   shiftDate,
   estimateNutrition
 } from './utils/helpers';
+import { estimateNutritionWithAI } from './services/aiNutritionService';
 import {
   getStoredChallengeCalibration,
   saveStoredChallengeCalibration
@@ -287,16 +288,25 @@ export default function App() {
 
   const currentDay = data[selectedDate] || { foods: [], workouts: [] };
 
-  const handleAddFood = (food) => {
+  const handleAddFood = async (food) => {
     let finalFood = { ...food };
-    // Si no se proveyeron calorías o proteínas, resolver en el back con la base de datos nutricional
+    // Si no se proveyeron calorías o proteínas, resolver con IA o base nutricional
     if ((!finalFood.calories || Number(finalFood.calories) === 0) && (!finalFood.protein || Number(finalFood.protein) === 0)) {
-      const estimated = estimateNutrition(finalFood.name);
-      if (estimated.matched) {
-        finalFood.calories = estimated.calories;
-        finalFood.protein = estimated.protein;
-        if (estimated.defaultMealType && (!finalFood.mealType || finalFood.mealType === 'almuerzo')) {
-          finalFood.mealType = estimated.defaultMealType;
+      try {
+        const aiEst = await estimateNutritionWithAI(finalFood.name);
+        if (aiEst.calories > 0) finalFood.calories = aiEst.calories;
+        if (aiEst.protein > 0) finalFood.protein = aiEst.protein;
+        if (aiEst.suggestedMealType && (!finalFood.mealType || finalFood.mealType === 'almuerzo')) {
+          finalFood.mealType = aiEst.suggestedMealType;
+        }
+      } catch (e) {
+        const estimated = estimateNutrition(finalFood.name);
+        if (estimated.matched) {
+          finalFood.calories = estimated.calories;
+          finalFood.protein = estimated.protein;
+          if (estimated.defaultMealType && (!finalFood.mealType || finalFood.mealType === 'almuerzo')) {
+            finalFood.mealType = estimated.defaultMealType;
+          }
         }
       }
     }

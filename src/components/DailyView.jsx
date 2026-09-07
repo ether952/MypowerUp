@@ -13,7 +13,8 @@ import {
   Bike,
   Flame,
   MapPin,
-  Route
+  Route,
+  Sparkles
 } from 'lucide-react';
 import {
   calculate1RM,
@@ -27,6 +28,7 @@ import {
   CARDIO_TYPES,
   calculateCardioCalories
 } from '../utils/helpers';
+import { estimateNutritionWithAI } from '../services/aiNutritionService';
 import bgMusculacion from '../assets/bg-musculacion-hd.png';
 import bgAlimentos from '../assets/bg-alimentos-hd.png';
 import bgCardio from '../assets/bg-cardio-hd.png';
@@ -95,11 +97,16 @@ export default function DailyView({
   const [foodName, setFoodName] = useState('');
   const [calories, setCalories] = useState('');
   const [protein, setProtein] = useState('');
+  const [isEstimatingAI, setIsEstimatingAI] = useState(false);
+  const [lastEstimatedFood, setLastEstimatedFood] = useState('');
+  const aiDebounceTimerRef = useRef(null);
+  const aiRequestIdRef = useRef(0);
   const currentNutritionEst = useMemo(() => estimateNutrition(foodName), [foodName]);
   const [showQuickFoods, setShowQuickFoods] = useState(false);
   const [showQuickSupps, setShowQuickSupps] = useState(false);
   const [foodSuggestions, setFoodSuggestions] = useState([]);
   const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
+  const [showAiInfoTooltip, setShowAiInfoTooltip] = useState(false);
   const [isFoodFormOpen, setIsFoodFormOpen] = useState(false);
 
   // === ESTADOS CARDIO & ACTIVIDAD AERÓBICA ===
@@ -201,6 +208,7 @@ export default function DailyView({
   const foodSectionRef = useRef(null);
   const exerciseContainerRef = useRef(null);
   const foodContainerRef = useRef(null);
+  const aiInfoRef = useRef(null);
 
   // Cerrar dropdowns si se hace clic fuera
   useEffect(() => {
@@ -213,6 +221,9 @@ export default function DailyView({
         setShowQuickFoods(false);
         setShowQuickSupps(false);
         setShowFoodSuggestions(false);
+      }
+      if (aiInfoRef.current && !aiInfoRef.current.contains(event.target)) {
+        setShowAiInfoTooltip(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -268,16 +279,58 @@ export default function DailyView({
   };
 
   // ==========================================
-  // AUTORRELLENADO & MEMORIA PARA COMIDAS
+  // AUTORRELLENADO & ESTIMACIÓN CON IA PARA COMIDAS
   // ==========================================
+  const triggerAiEstimation = async (textToEstimate) => {
+    if (!textToEstimate || textToEstimate.trim().length < 3) return;
+    const clean = textToEstimate.trim();
+    if (clean.toLowerCase() === lastEstimatedFood.toLowerCase()) return;
+
+    const currentReqId = ++aiRequestIdRef.current;
+    setIsEstimatingAI(true);
+
+    try {
+      const result = await estimateNutritionWithAI(clean);
+      if (currentReqId === aiRequestIdRef.current) {
+        if (result.calories > 0) {
+          setCalories(String(result.calories));
+        }
+        if (result.protein > 0) {
+          setProtein(String(result.protein));
+        }
+        if (result.suggestedMealType && mealType === 'almuerzo') {
+          setMealType(result.suggestedMealType);
+        }
+        setLastEstimatedFood(clean);
+      }
+    } catch (e) {
+      console.warn('Error al estimar con IA:', e);
+    } finally {
+      if (currentReqId === aiRequestIdRef.current) {
+        setIsEstimatingAI(false);
+      }
+    }
+  };
+
   const handleFoodNameChange = (e) => {
     const val = e.target.value;
     setFoodName(val);
+
+    if (aiDebounceTimerRef.current) {
+      clearTimeout(aiDebounceTimerRef.current);
+    }
 
     if (!val || val.trim().length === 0) {
       setFoodSuggestions([]);
       setShowFoodSuggestions(false);
       return;
+    }
+
+    // Disparar IA tras una breve pausa de tipeo (800ms)
+    if (val.trim().length >= 3) {
+      aiDebounceTimerRef.current = setTimeout(() => {
+        triggerAiEstimation(val);
+      }, 800);
     }
 
     const query = val.toLowerCase().trim();
@@ -303,11 +356,27 @@ export default function DailyView({
   };
 
   const handleSelectFoodSuggestion = (item) => {
+    if (aiDebounceTimerRef.current) {
+      clearTimeout(aiDebounceTimerRef.current);
+    }
+    aiRequestIdRef.current++;
+    setIsEstimatingAI(false);
     setFoodName(item.name);
-    if (item.calories !== undefined) setCalories(item.calories);
-    if (item.protein !== undefined) setProtein(item.protein);
+    if (item.calories !== undefined) setCalories(String(item.calories));
+    if (item.protein !== undefined) setProtein(String(item.protein));
     if (item.mealType) setMealType(item.mealType);
+    setLastEstimatedFood(item.name);
     setShowFoodSuggestions(false);
+  };
+
+  const handleSelectQuickFood = (item) => {
+    handleSelectFoodSuggestion(item);
+    setShowQuickFoods(false);
+  };
+
+  const handleSelectQuickSupp = (item) => {
+    handleSelectFoodSuggestion(item);
+    setShowQuickSupps(false);
   };
 
   // Guardar ejercicio + actualizar memoria
@@ -352,27 +421,27 @@ export default function DailyView({
   };
 
   // Guardar comida + actualizar memoria
-  const handleSubmitFood = (e) => {
+  const handleSubmitFood = async (e) => {
     e.preventDefault();
     if (!foodName || !foodName.trim()) return;
+
+    if (aiDebounceTimerRef.current) {
+      clearTimeout(aiDebounceTimerRef.current);
+    }
 
     let finalCalories = Number(calories) || 0;
     let finalProtein = Number(protein) || 0;
 
-    // Si el usuario no ingresó calorías o proteínas, resolver en el "back"
-    const estimated = estimateNutrition(foodName);
-    if (estimated.matched) {
-      if (!calories || finalCalories === 0) {
-        finalCalories = estimated.calories;
-      }
-      if (!protein || finalProtein === 0) {
-        finalProtein = estimated.protein;
-      }
+    // Si el usuario no ingresó calorías o proteínas, resolver con IA antes de guardar
+    if (finalCalories === 0 && finalProtein === 0) {
+      setIsEstimatingAI(true);
+      const estimated = await estimateNutritionWithAI(foodName.trim());
+      setIsEstimatingAI(false);
+      if (estimated.calories) finalCalories = estimated.calories;
+      if (estimated.protein) finalProtein = estimated.protein;
     }
 
-    const finalMealType = (estimated.matched && estimated.defaultMealType && mealType === 'almuerzo')
-      ? estimated.defaultMealType
-      : (mealType || 'almuerzo');
+    const finalMealType = mealType || 'almuerzo';
 
     const foodPayload = {
       name: foodName.trim(),
@@ -406,6 +475,8 @@ export default function DailyView({
     setFoodName('');
     setCalories('');
     setProtein('');
+    setLastEstimatedFood('');
+    setIsEstimatingAI(false);
     setShowFoodSuggestions(false);
     setShowQuickFoods(false);
     setShowQuickSupps(false);
@@ -427,13 +498,13 @@ export default function DailyView({
         <div className="ambient-glow-purple w-96 h-96 -top-10 -left-10 opacity-30" />
         <div className="ambient-glow-cyan w-80 h-80 top-1/2 -right-10 opacity-25" />
 
-        {/* Imagen de fondo decorativa con transparencia real, oscurecida y difuminada */}
+        {/* Imagen de fondo decorativa temática HD */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
           <img
             src={bgMusculacion}
             alt=""
             aria-hidden="true"
-            className="w-[340px] sm:w-[500px] md:w-[640px] lg:w-[740px] max-w-none opacity-10 brightness-75 filter blur-[5px] drop-shadow-[0_0_30px_rgba(168,85,247,0.3)] object-contain select-none transform-gpu"
+            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-25 sm:opacity-30 brightness-100 drop-shadow-[0_0_40px_rgba(168,85,247,0.4)] object-contain select-none transform-gpu"
           />
         </div>
 
@@ -792,13 +863,13 @@ export default function DailyView({
         <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-25" />
         <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-20" />
 
-        {/* Imagen de fondo decorativa con transparencia real, oscurecida y difuminada */}
+        {/* Imagen de fondo decorativa temática HD */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
           <img
             src={bgAlimentos}
             alt=""
             aria-hidden="true"
-            className="w-[340px] sm:w-[500px] md:w-[640px] lg:w-[740px] max-w-none opacity-10 brightness-75 filter blur-[5px] drop-shadow-[0_0_30px_rgba(6,182,212,0.3)] object-contain select-none transform-gpu"
+            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-25 sm:opacity-30 brightness-100 drop-shadow-[0_0_40px_rgba(6,182,212,0.4)] object-contain select-none transform-gpu"
           />
         </div>
 
@@ -904,9 +975,13 @@ export default function DailyView({
                     <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
                       <label className="flex items-center gap-1.5">
                         <span>{mealType === 'suplementacion' ? 'Suplemento' : 'Alimento o Plato'}</span>
-                        {Object.keys(rememberedFoods).length > 0 && (
+                        {isEstimatingAI ? (
+                          <span className="text-[10px] text-neon-cyan font-mono animate-pulse lowercase font-normal flex items-center gap-1">
+                            ✨ estimando macros con ia...
+                          </span>
+                        ) : Object.keys(rememberedFoods).length > 0 ? (
                           <span className="text-[10px] text-neon-mint lowercase font-normal"></span>
-                        )}
+                        ) : null}
                       </label>
 
                       <div className="relative z-50">
@@ -1015,6 +1090,11 @@ export default function DailyView({
                       placeholder={mealType === 'suplementacion' ? "Ej: Proteína Whey 30g, Creatina 5g..." : "Ej: Pechuga de pollo 200g, Arroz con huevo..."}
                       value={foodName}
                       onChange={handleFoodNameChange}
+                      onBlur={() => {
+                        if (foodName && foodName.trim().length >= 3) {
+                          triggerAiEstimation(foodName);
+                        }
+                      }}
                       onFocus={() => {
                         if (foodName.trim().length > 0 && foodSuggestions.length > 0) {
                           setShowFoodSuggestions(true);
@@ -1060,14 +1140,16 @@ export default function DailyView({
                   <div className="md:col-span-2 space-y-1">
                     <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
                       <label>Calorías</label>
-                      {currentNutritionEst.matched && (
+                      {isEstimatingAI ? (
+                        <span className="text-[10px] text-neon-cyan font-mono animate-pulse font-bold">[✨ IA...]</span>
+                      ) : currentNutritionEst.matched ? (
                         <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.calories}]</span>
-                      )}
+                      ) : null}
                     </div>
                     <input
                       type="number"
                       min="0"
-                      placeholder={currentNutritionEst.matched ? String(currentNutritionEst.calories) : "350"}
+                      placeholder={isEstimatingAI ? "..." : (currentNutritionEst.matched ? String(currentNutritionEst.calories) : "350")}
                       value={calories}
                       onChange={(e) => setCalories(e.target.value)}
                       className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
@@ -1076,22 +1158,61 @@ export default function DailyView({
                   </div>
 
                   {/* Proteína */}
-                  <div className="md:col-span-3 space-y-1">
+                  <div ref={aiInfoRef} className="md:col-span-3 space-y-1 relative">
                     <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
-                      <label>Proteína (g)</label>
-                      {currentNutritionEst.matched && (
+                      <label className="flex items-center gap-1.5 select-none">
+                        <span>Proteína (g)</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowAiInfoTooltip(!showAiInfoTooltip)}
+                          className="w-4 h-4 rounded-full bg-cyan-500/20 hover:bg-cyan-500/40 text-neon-cyan hover:text-white border border-cyan-500/50 inline-flex items-center justify-center text-[10px] font-black font-mono transition-all active:scale-90 cursor-pointer shadow-sm shadow-cyan-500/20"
+                          title="Información sobre la estimación de IA"
+                          aria-label="Información sobre cálculo automático"
+                        >
+                          ?
+                        </button>
+                      </label>
+                      {isEstimatingAI ? (
+                        <span className="text-[10px] text-neon-cyan font-mono animate-pulse font-bold">[✨ IA...]</span>
+                      ) : currentNutritionEst.matched ? (
                         <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.protein}g]</span>
-                      )}
+                      ) : null}
                     </div>
                     <input
                       type="number"
                       min="0"
                       step="0.5"
-                      placeholder={currentNutritionEst.matched ? String(currentNutritionEst.protein) : "35"}
+                      placeholder={isEstimatingAI ? "..." : (currentNutritionEst.matched ? String(currentNutritionEst.protein) : "35")}
                       value={protein}
                       onChange={(e) => setProtein(e.target.value)}
                       className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-mint placeholder-neutral-500 rounded-xl font-mono font-bold"
                     />
+
+                    {/* Popover explicativo al hacer clic en ? */}
+                    {showAiInfoTooltip && (
+                      <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-[#0D0826] border-2 border-cyan-500/70 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 text-xs text-neutral-200 backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-cyan-500/30">
+                          <span className="font-mono font-bold text-neon-cyan text-[11px] flex items-center gap-1.5 uppercase">
+                            <Sparkles className="w-3.5 h-3.5 text-neon-mint inline" />
+                            <span>Cálculo con Inteligencia Artificial</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowAiInfoTooltip(false)}
+                            className="text-neutral-400 hover:text-white text-xs font-mono px-1 py-0.5 rounded cursor-pointer transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-neutral-300">
+                          Al escribir el nombre de tu comida, la IA calcula las <strong className="text-neon-cyan">calorías</strong> y <strong className="text-neon-mint">proteínas</strong> de la forma más aproximada posible según ingredientes estándar.
+                        </p>
+                        <div className="mt-2 pt-2 border-t border-white/5 text-[10px] font-mono text-amber-300/95 flex items-start gap-1.5">
+                          <span className="shrink-0 text-xs">⚠️</span>
+                          <span>Ten en cuenta que el valor puede no ser 100% exacto. Puedes ajustarlo manualmente cuando quieras.</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                 </div>
@@ -1148,9 +1269,9 @@ export default function DailyView({
                           <h4 className="font-bold text-white text-sm tracking-tight">{f.name}</h4>
 
                           <div className="flex items-center gap-2.5 text-xs font-mono text-neutral-400">
-                            <span className="text-neon-yellow font-semibold">{f.calories} kcal</span>
+                            <span className="text-neon-purple font-semibold">{f.calories} kcal</span>
                             <span>•</span>
-                            <span className="text-neon-mint font-bold">{f.protein || 0}g proteína</span>
+                            <span className="text-neon-purple font-bold">{f.protein || 0}g proteína</span>
                           </div>
                         </div>
 
@@ -1195,13 +1316,13 @@ export default function DailyView({
         <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-20" />
         <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-15" />
 
-        {/* Imagen de fondo decorativa con transparencia real, oscurecida y difuminada */}
+        {/* Imagen de fondo decorativa temática HD */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
           <img
             src={bgCardio}
             alt=""
             aria-hidden="true"
-            className="w-[340px] sm:w-[500px] md:w-[640px] lg:w-[740px] max-w-none opacity-10 brightness-75 filter blur-[5px] drop-shadow-[0_0_30px_rgba(16,185,129,0.3)] object-contain select-none transform-gpu"
+            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-25 sm:opacity-30 brightness-100 drop-shadow-[0_0_40px_rgba(16,185,129,0.4)] object-contain select-none transform-gpu"
           />
         </div>
 
