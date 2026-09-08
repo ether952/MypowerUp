@@ -25,6 +25,9 @@ import { formatDisplayDate, getLocalDateString } from '../utils/helpers';
 import { calculateLevelProgress } from '../utils/levelSystem';
 import { calculateCardioLevelProgress } from '../utils/cardioLevelSystem';
 import ChallengeUnifiedModal from './ChallengeUnifiedModal';
+import ItemActionMenu from './ItemActionMenu';
+import EditWorkoutModal from './EditWorkoutModal';
+import EditFoodModal from './EditFoodModal';
 import {
   getStoredChallengeCalibration,
   saveStoredChallengeCalibration,
@@ -38,10 +41,16 @@ export default function HistoryView({
   goals,
   onSelectDate,
   challengeCalibration,
-  onUpdateChallengeCalibration
+  onUpdateChallengeCalibration,
+  onUpdateWorkout,
+  onDeleteWorkout,
+  onUpdateFood,
+  onDeleteFood
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedDate, setExpandedDate] = useState(null);
+  const [editingWorkoutItem, setEditingWorkoutItem] = useState(null);
+  const [editingFoodItem, setEditingFoodItem] = useState(null);
 
   // Calibrador / Medidor de Desafíos y Modal Unificado (sincronizado con Cloud/App o fallback local)
   const [localCalibrationProfile, setLocalCalibrationProfile] = useState(() => getStoredChallengeCalibration());
@@ -819,12 +828,17 @@ export default function HistoryView({
               return (
                 <div
                   key={dateStr}
-                  className={`bg-space-900/50 border-l-4 transition-all overflow-hidden rounded-xl ${isSelected ? 'border-neon-purple bg-space-900/80 shadow-lg shadow-purple-600/10' : 'border-neutral-800 hover:border-neutral-600'
-                    }`}
+                  className={`bg-space-900/50 border-l-4 transition-all rounded-xl relative ${
+                    isExpanded ? 'overflow-visible z-20 shadow-2xl' : 'overflow-hidden z-0'
+                  } ${
+                    isSelected
+                      ? 'border-neon-purple bg-space-900/80 shadow-lg shadow-purple-600/10'
+                      : 'border-neutral-800 hover:border-neutral-600'
+                  }`}
                 >
                   <div
                     onClick={() => toggleExpand(dateStr)}
-                    className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer select-none hover:bg-space-850/50 transition-colors"
+                    className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer select-none hover:bg-space-850/50 transition-colors rounded-t-xl"
                   >
                     <div>
                       <div className="flex items-center gap-3">
@@ -883,7 +897,7 @@ export default function HistoryView({
 
                   {/* Desglose Expandible */}
                   {isExpanded && (
-                    <div className={`p-6 border-t border-white/5 bg-space-950/80 grid grid-cols-1 ${cardios.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 animate-fade-in-up`}>
+                    <div className={`p-6 border-t border-white/5 bg-space-950/80 grid grid-cols-1 ${cardios.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 animate-fade-in-up overflow-visible rounded-b-xl`}>
 
                       {/* Ejercicios */}
                       <div className="space-y-3">
@@ -897,10 +911,29 @@ export default function HistoryView({
                             {workouts.map(w => {
                               return (
                                 <div key={w.id} className="p-3 bg-space-900/60 border border-white/5 rounded-lg flex justify-between items-center text-xs font-mono">
-                                  <span className="text-white font-bold">{w.name}</span>
-                                  <span className="text-neutral-400">
-                                    {w.sets}×{w.reps} con <strong className="text-neon-cyan">{w.weight}kg</strong>
-                                  </span>
+                                  <div className="space-y-1">
+                                    <div className="text-white font-bold">{w.name}</div>
+                                    {w.detailedSets && Array.isArray(w.detailedSets) && w.detailedSets.length > 0 ? (
+                                      <div className="flex flex-wrap items-center gap-1.5 text-neutral-400">
+                                        <span className="text-white font-semibold">{w.sets} series:</span>
+                                        {w.detailedSets.map((s, i) => (
+                                          <span key={i} className="px-1.5 py-0.5 rounded bg-white/5 border border-purple-500/20 text-white font-bold text-[10px]">
+                                            {s.reps}×<span className="text-neon-cyan">{s.weight}kg</span>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-neutral-400">
+                                        {w.sets}×{w.reps} con <strong className="text-neon-cyan">{w.weight}kg</strong>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <ItemActionMenu
+                                    onEdit={() => setEditingWorkoutItem({ workout: w, dateStr })}
+                                    onDelete={() => onDeleteWorkout && onDeleteWorkout(w.id, dateStr)}
+                                    variant="purple"
+                                    itemName={w.name}
+                                  />
                                 </div>
                               );
                             })}
@@ -921,17 +954,25 @@ export default function HistoryView({
                               const isSupp = f.mealType === 'suplementacion';
                               return (
                                 <div key={f.id} className="p-3 bg-space-900/60 border border-white/5 rounded-lg flex justify-between items-center text-xs font-mono">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase ${isSupp ? 'bg-neon-purple/10 text-neon-purple' : 'bg-neon-cyan/10 text-neon-cyan'
-                                      }`}>
-                                      {f.mealType || 'item'}
-                                    </span>
-                                    <span className="text-white font-bold">{f.name}</span>
-                                    {f.time && <span className="text-neutral-500 text-[10px]">({f.time})</span>}
+                                  <div className="space-y-0.5">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase ${isSupp ? 'bg-neon-purple/10 text-neon-purple' : 'bg-neon-cyan/10 text-neon-cyan'
+                                        }`}>
+                                        {f.mealType || 'item'}
+                                      </span>
+                                      <span className="text-white font-bold">{f.name}</span>
+                                      {f.time && <span className="text-neutral-500 text-[10px]">({f.time})</span>}
+                                    </div>
+                                    <div className="text-neutral-400">
+                                      <span className="text-neon-cyan">{f.calories} kcal</span> • <span className="text-neon-purple">{f.protein}g</span>
+                                    </div>
                                   </div>
-                                  <span className="text-neutral-400">
-                                    <span className="text-neon-cyan">{f.calories} kcal</span> • <span className="text-neon-purple">{f.protein}g</span>
-                                  </span>
+                                  <ItemActionMenu
+                                    onEdit={() => setEditingFoodItem({ food: f, dateStr })}
+                                    onDelete={() => onDeleteFood && onDeleteFood(f.id, dateStr)}
+                                    variant={isSupp ? "emerald" : "cyan"}
+                                    itemName={f.name}
+                                  />
                                 </div>
                               );
                             })}
@@ -990,6 +1031,29 @@ export default function HistoryView({
         )}
 
       </div>
+
+      {/* Modales de Edición */}
+      <EditWorkoutModal
+        isOpen={!!editingWorkoutItem}
+        workout={editingWorkoutItem?.workout}
+        onClose={() => setEditingWorkoutItem(null)}
+        onSave={(updated) => {
+          if (onUpdateWorkout && editingWorkoutItem?.dateStr) {
+            onUpdateWorkout(updated.id, updated, editingWorkoutItem.dateStr);
+          }
+        }}
+      />
+
+      <EditFoodModal
+        isOpen={!!editingFoodItem}
+        food={editingFoodItem?.food}
+        onClose={() => setEditingFoodItem(null)}
+        onSave={(updated) => {
+          if (onUpdateFood && editingFoodItem?.dateStr) {
+            onUpdateFood(updated.id, updated, editingFoodItem.dateStr);
+          }
+        }}
+      />
 
     </div>
   );

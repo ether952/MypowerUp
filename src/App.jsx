@@ -326,15 +326,32 @@ export default function App() {
     showToast(`Guardado: ${finalFood.name}${macroTag}`);
   };
 
-  const handleDeleteFood = (id) => {
-    setData((prev) => ({
-      ...prev,
-      [selectedDate]: {
-        ...currentDay,
-        foods: (currentDay.foods || []).filter((item) => item.id !== id),
-      },
-    }));
+  const handleDeleteFood = (id, targetDate = selectedDate) => {
+    setData((prev) => {
+      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+      return {
+        ...prev,
+        [targetDate]: {
+          ...day,
+          foods: (day.foods || []).filter((item) => item.id !== id),
+        },
+      };
+    });
     showToast('Registro eliminado');
+  };
+
+  const handleUpdateFood = (id, updatedFood, targetDate = selectedDate) => {
+    setData((prev) => {
+      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+      return {
+        ...prev,
+        [targetDate]: {
+          ...day,
+          foods: (day.foods || []).map((item) => (item.id === id ? { ...item, ...updatedFood } : item)),
+        },
+      };
+    });
+    showToast(`Actualizado: ${updatedFood.name}`);
   };
 
   const handleAddWorkout = (workout) => {
@@ -349,15 +366,32 @@ export default function App() {
     showToast(`Guardado: ${workout.name}`);
   };
 
-  const handleDeleteWorkout = (id) => {
-    setData((prev) => ({
-      ...prev,
-      [selectedDate]: {
-        ...currentDay,
-        workouts: (currentDay.workouts || []).filter((item) => item.id !== id),
-      },
-    }));
+  const handleDeleteWorkout = (id, targetDate = selectedDate) => {
+    setData((prev) => {
+      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+      return {
+        ...prev,
+        [targetDate]: {
+          ...day,
+          workouts: (day.workouts || []).filter((item) => item.id !== id),
+        },
+      };
+    });
     showToast('Ejercicio eliminado');
+  };
+
+  const handleUpdateWorkout = (id, updatedWorkout, targetDate = selectedDate) => {
+    setData((prev) => {
+      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+      return {
+        ...prev,
+        [targetDate]: {
+          ...day,
+          workouts: (day.workouts || []).map((item) => (item.id === id ? { ...item, ...updatedWorkout } : item)),
+        },
+      };
+    });
+    showToast(`Actualizado: ${updatedWorkout.name}`);
   };
 
   const handleAddCardio = (cardio) => {
@@ -372,14 +406,17 @@ export default function App() {
     showToast(`Cardio registrado: ${cardio.distance} km (~${cardio.caloriesBurned} kcal)`);
   };
 
-  const handleDeleteCardio = (id) => {
-    setData((prev) => ({
-      ...prev,
-      [selectedDate]: {
-        ...currentDay,
-        cardios: (currentDay.cardios || []).filter((item) => item.id !== id),
-      },
-    }));
+  const handleDeleteCardio = (id, targetDate = selectedDate) => {
+    setData((prev) => {
+      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+      return {
+        ...prev,
+        [targetDate]: {
+          ...day,
+          cardios: (day.cardios || []).filter((item) => item.id !== id),
+        },
+      };
+    });
     showToast('Cardio eliminado');
   };
 
@@ -657,8 +694,10 @@ export default function App() {
             currentDay={currentDay}
             selectedDate={selectedDate}
             onAddFood={handleAddFood}
+            onUpdateFood={handleUpdateFood}
             onDeleteFood={handleDeleteFood}
             onAddWorkout={handleAddWorkout}
+            onUpdateWorkout={handleUpdateWorkout}
             onDeleteWorkout={handleDeleteWorkout}
             onAddCardio={handleAddCardio}
             onDeleteCardio={handleDeleteCardio}
@@ -687,6 +726,10 @@ export default function App() {
               onSelectDate={handleSelectDateFromHistory}
               challengeCalibration={challengeCalibration}
               onUpdateChallengeCalibration={setChallengeCalibration}
+              onUpdateWorkout={handleUpdateWorkout}
+              onDeleteWorkout={handleDeleteWorkout}
+              onUpdateFood={handleUpdateFood}
+              onDeleteFood={handleDeleteFood}
             />
           </div>
         )}

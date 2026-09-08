@@ -117,6 +117,9 @@ export const TONNAGE_LEVELS = [
  * Calcula el volumen real de un ejercicio (peso * series * repeticiones)
  */
 export function getExerciseVolume(workout) {
+  if (workout?.detailedSets && Array.isArray(workout.detailedSets) && workout.detailedSets.length > 0) {
+    return workout.detailedSets.reduce((acc, s) => acc + (Number(s.weight) || 0) * (Number(s.reps) || 0), 0);
+  }
   const weight = Number(workout?.weight) || 0;
   const sets = Number(workout?.sets) || 1;
   const reps = Number(workout?.reps) || 1;
