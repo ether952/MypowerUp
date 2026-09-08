@@ -21,6 +21,7 @@ import {
 import DailyView from './components/DailyView';
 import ChartsView from './components/ChartsView';
 import HistoryView from './components/HistoryView';
+import MyPowerUpView from './components/MyPowerUpView';
 import GoalsModal from './components/GoalsModal';
 import AuthModal from './components/AuthModal';
 import {
@@ -541,6 +542,17 @@ export default function App() {
               >
                 03 // HISTORIAL
               </button>
+
+              <button
+                onClick={() => setActiveTab('mypowerup')}
+                className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 ${activeTab === 'mypowerup'
+                    ? 'bg-gradient-to-r from-neon-purple via-violet-500 to-neon-cyan text-white shadow-md shadow-purple-600/30'
+                    : 'text-violet-300 hover:text-white border border-purple-500/30 bg-purple-950/30 hover:bg-purple-900/40 shadow-[0_0_8px_rgba(168,85,247,0.15)]'
+                  }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse"></span>
+                <span>04 // MYPOWERUP</span>
+              </button>
             </nav>
           </div>
 
@@ -724,14 +736,21 @@ export default function App() {
               data={data}
               goals={goals}
               onSelectDate={handleSelectDateFromHistory}
-              challengeCalibration={challengeCalibration}
-              onUpdateChallengeCalibration={setChallengeCalibration}
               onUpdateWorkout={handleUpdateWorkout}
               onDeleteWorkout={handleDeleteWorkout}
               onUpdateFood={handleUpdateFood}
               onDeleteFood={handleDeleteFood}
             />
           </div>
+        )}
+
+        {activeTab === 'mypowerup' && (
+          <MyPowerUpView
+            data={data}
+            selectedDate={selectedDate}
+            challengeCalibration={challengeCalibration}
+            onUpdateChallengeCalibration={setChallengeCalibration}
+          />
         )}
       </main>
 

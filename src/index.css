@@ -125,3 +125,32 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Floating Isometric City Animations */
+@keyframes float-island {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes shadow-island {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(0.92);
+    opacity: 0.22;
+  }
+}
+
+.animate-float-island {
+  animation: float-island 4s ease-in-out infinite;
+}
+
+.animate-shadow-island {
+  animation: shadow-island 4s ease-in-out infinite;
+}
