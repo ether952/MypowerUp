@@ -75,6 +75,11 @@ function ScrollReveal({ children, className = '', delay = 0 }) {
 export default function DailyView({
   currentDay,
   selectedDate,
+  data = {},
+  goals = {},
+  isWeightVisible = false,
+  onToggleWeightVisibility,
+  onUpdateWeight,
   onAddFood,
   onUpdateFood,
   onDeleteFood,

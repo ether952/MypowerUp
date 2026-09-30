@@ -24,6 +24,7 @@ import HistoryView from './components/HistoryView';
 import MyPowerUpView from './components/MyPowerUpView';
 import GoalsModal from './components/GoalsModal';
 import AuthModal from './components/AuthModal';
+import HeaderLoginDropdown from './components/HeaderLoginDropdown';
 import {
   getLocalDateString,
   formatDisplayDate,
@@ -51,6 +52,8 @@ export default function App() {
   // === ESTADO DE AUTENTICACIÓN Y NUBE ===
   const [user, setUser] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState('register'); // 'register' | 'login'
+  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState(isFirebaseConfigured ? 'syncing' : 'local'); // 'local' | 'syncing' | 'synced' | 'error'
   const isInitialLoadRef = useRef(true);
   const saveTimeoutRef = useRef(null);
@@ -101,6 +104,24 @@ export default function App() {
     return getStoredChallengeCalibration();
   });
 
+  // === PRIVACIDAD Y VISIBILIDAD DEL PESO (Oculto de base por defecto) ===
+  const [isWeightVisible, setIsWeightVisible] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mypowerup_show_weight');
+      return saved !== null ? JSON.parse(saved) : false; // Oculto de base
+    } catch (e) {
+      return false;
+    }
+  });
+
+  const toggleWeightVisibility = () => {
+    setIsWeightVisible((prev) => {
+      const next = !prev;
+      localStorage.setItem('mypowerup_show_weight', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const [isGoalsOpen, setIsGoalsOpen] = useState(false);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [toast, setToast] = useState(null);
@@ -111,6 +132,19 @@ export default function App() {
     setToast(message);
     setTimeout(() => setToast(null), 3000);
   };
+
+  // 0. Auto-abrir login para usuarios nuevos al iniciar la app
+  useEffect(() => {
+    const prompted = localStorage.getItem('mypowerup_auth_prompted');
+    const guestSession = localStorage.getItem('mypowerup_guest_session');
+    if (!prompted && !guestSession) {
+      const timer = setTimeout(() => {
+        setIsAuthModalOpen(true);
+        localStorage.setItem('mypowerup_auth_prompted', 'true');
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Cerrar menú de 3 puntitos al hacer clic fuera
   useEffect(() => {
@@ -421,6 +455,25 @@ export default function App() {
     showToast('Cardio eliminado');
   };
 
+  const handleUpdateWeight = (newWeight, targetDate = selectedDate) => {
+    setData((prev) => {
+      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+      const val = newWeight === '' || newWeight === null ? null : parseFloat(newWeight);
+      return {
+        ...prev,
+        [targetDate]: {
+          ...day,
+          weight: isNaN(val) ? null : val,
+        },
+      };
+    });
+    if (newWeight !== '' && newWeight !== null && !isNaN(parseFloat(newWeight))) {
+      showToast(`Peso corporal guardado: ${parseFloat(newWeight).toFixed(1)} kg`);
+    } else {
+      showToast('Registro de peso eliminado');
+    }
+  };
+
   const handleClearAllData = () => {
     if (window.confirm('¿Vaciar todos los datos de la aplicación?')) {
       setData({});
@@ -681,16 +734,31 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="group relative p-2 rounded-xl hover:bg-white/5 transition-all duration-300 flex items-center justify-center active:scale-95"
-                  title="Iniciar Sesión / Cloud Sync"
-                >
-                  <div className="relative flex items-center justify-center">
-                    <UserIcon className="w-4 h-4 text-neutral-200 group-hover:text-white transition-colors" />
-                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-gradient-to-r from-neon-purple to-neon-cyan shadow-[0_0_8px_#06B6D4] animate-pulse"></span>
-                  </div>
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)}
+                    className="group relative p-2 rounded-xl hover:bg-white/5 transition-all duration-300 flex items-center justify-center active:scale-95 cursor-pointer"
+                    title="Iniciar Sesión / Acceso Rápido"
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <UserIcon className="w-4 h-4 text-neutral-200 group-hover:text-white transition-colors" />
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-gradient-to-r from-neon-purple to-neon-cyan shadow-[0_0_8px_#06B6D4] animate-pulse"></span>
+                    </div>
+                  </button>
+
+                  {/* Desplegable de Login Rápido debajo del botón de la personita */}
+                  <HeaderLoginDropdown
+                    isOpen={isLoginDropdownOpen}
+                    onClose={() => setIsLoginDropdownOpen(false)}
+                    onOpenRegisterScreen={() => {
+                      setAuthModalMode('register');
+                      setIsAuthModalOpen(true);
+                    }}
+                    onAuthSuccess={() => {
+                      showToast('Sesión iniciada con éxito');
+                    }}
+                  />
+                </div>
               )}
             </div>
 
@@ -705,6 +773,11 @@ export default function App() {
           <DailyView
             currentDay={currentDay}
             selectedDate={selectedDate}
+            data={data}
+            goals={goals}
+            isWeightVisible={isWeightVisible}
+            onToggleWeightVisibility={toggleWeightVisibility}
+            onUpdateWeight={handleUpdateWeight}
             onAddFood={handleAddFood}
             onUpdateFood={handleUpdateFood}
             onDeleteFood={handleDeleteFood}
@@ -725,6 +798,9 @@ export default function App() {
             <ChartsView
               data={data}
               goals={goals}
+              isWeightVisible={isWeightVisible}
+              onToggleVisibility={toggleWeightVisibility}
+              onUpdateWeight={handleUpdateWeight}
               onSelectDate={handleSelectDateFromHistory}
             />
           </div>
@@ -735,6 +811,9 @@ export default function App() {
             <HistoryView
               data={data}
               goals={goals}
+              isWeightVisible={isWeightVisible}
+              onToggleVisibility={toggleWeightVisibility}
+              onUpdateWeight={handleUpdateWeight}
               onSelectDate={handleSelectDateFromHistory}
               onUpdateWorkout={handleUpdateWorkout}
               onDeleteWorkout={handleDeleteWorkout}
@@ -765,9 +844,10 @@ export default function App() {
         }}
       />
 
-      {/* Modal de Login / Registro Cloud */}
+      {/* Pantalla Completa de Bienvenida / Registro Cloud */}
       <AuthModal
         isOpen={isAuthModalOpen}
+        initialMode={authModalMode}
         onClose={() => setIsAuthModalOpen(false)}
         onAuthSuccess={() => {
           showToast('Sesión iniciada con éxito');

@@ -15,16 +15,25 @@ import {
   CheckCircle2,
   HelpCircle,
   X,
-  Gauge
+  Gauge,
+  Scale,
+  Eye,
+  EyeOff,
+  Edit3,
+  Plus
 } from 'lucide-react';
 import { formatDisplayDate, getLocalDateString } from '../utils/helpers';
 import ItemActionMenu from './ItemActionMenu';
 import EditWorkoutModal from './EditWorkoutModal';
 import EditFoodModal from './EditFoodModal';
+import WeightModal from './WeightModal';
 
 export default function HistoryView({
-  data,
-  goals,
+  data = {},
+  goals = {},
+  isWeightVisible = false,
+  onToggleVisibility,
+  onUpdateWeight,
   onSelectDate,
   onUpdateWorkout,
   onDeleteWorkout,
@@ -35,6 +44,7 @@ export default function HistoryView({
   const [expandedDate, setExpandedDate] = useState(null);
   const [editingWorkoutItem, setEditingWorkoutItem] = useState(null);
   const [editingFoodItem, setEditingFoodItem] = useState(null);
+  const [editingWeightDate, setEditingWeightDate] = useState(null);
   const [selectedHistoryDate, setSelectedHistoryDate] = useState(() => getLocalDateString());
 
   // Ordenar fechas descendente
@@ -93,8 +103,34 @@ export default function HistoryView({
           </h2>
         </div>
 
-        <div className="text-xs font-mono text-neutral-400 bg-space-900 px-4 py-2 rounded-xl border border-white/10">
-          Total días registrados: <strong className="text-white">{allDates.length}</strong>
+        <div className="flex items-center gap-3">
+          {/* Botón Ocultar / Mostrar Peso */}
+          <button
+            type="button"
+            onClick={onToggleVisibility}
+            className={`px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              isWeightVisible
+                ? 'bg-white/10 hover:bg-white/15 text-neutral-200 border border-white/15'
+                : 'bg-purple-950/60 hover:bg-purple-900/80 text-neon-purple border border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.15)]'
+            }`}
+            title={isWeightVisible ? 'Ocultar peso en el historial' : 'Mostrar peso'}
+          >
+            {isWeightVisible ? (
+              <>
+                <EyeOff className="w-3.5 h-3.5 text-neutral-400" />
+                <span>Ocultar Peso</span>
+              </>
+            ) : (
+              <>
+                <Eye className="w-3.5 h-3.5 text-neon-cyan" />
+                <span>Revelar Peso</span>
+              </>
+            )}
+          </button>
+
+          <div className="text-xs font-mono text-neutral-400 bg-space-900 px-4 py-2 rounded-xl border border-white/10">
+            Total días: <strong className="text-white">{allDates.length}</strong>
+          </div>
         </div>
       </div>
 
@@ -114,26 +150,26 @@ export default function HistoryView({
               type="date"
               value={selectedHistoryDate}
               onChange={(e) => setSelectedHistoryDate(e.target.value)}
-              className="bg-space-900 border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-mono focus:border-neon-purple outline-none"
+              className="bg-space-900 border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-mono focus:border-neon-purple outline-none cursor-pointer"
             />
           </div>
         </div>
 
         {/* MÉTRICAS SUELTAS Y MODERNAS CON COLOR UNIFICADO */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4 border-y border-white/5">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-4 border-y border-white/5 font-mono">
 
           {/* 1. Calorías Totales */}
-          <div className="space-y-3 relative group">
-            <div className="flex items-center justify-between text-xs font-mono tracking-wider text-neutral-400 uppercase">
+          <div className="space-y-2 relative group">
+            <div className="flex items-center justify-between text-xs tracking-wider text-neutral-400 uppercase">
               <span className="text-neutral-300 font-bold flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-purple"></span>
-                CALORÍAS TOTALES
+                CALORÍAS
               </span>
-              <span className="text-neon-cyan font-bold">{calPercent}% DE {calGoal}</span>
+              <span className="text-neon-cyan font-bold">{calPercent}%</span>
             </div>
 
-            <div className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
-              {dayCalories.toLocaleString()} <span className="text-xs font-mono text-neon-cyan font-normal uppercase">KCAL</span>
+            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {dayCalories.toLocaleString()} <span className="text-xs font-normal text-neon-cyan uppercase">KCAL</span>
             </div>
 
             {/* Barra de progreso minimalista */}
@@ -146,17 +182,17 @@ export default function HistoryView({
           </div>
 
           {/* 2. Proteínas Totales */}
-          <div className="space-y-3 relative group md:border-l md:border-white/5 md:pl-8">
-            <div className="flex items-center justify-between text-xs font-mono tracking-wider text-neutral-400 uppercase">
+          <div className="space-y-2 relative group sm:border-l sm:border-white/5 sm:pl-6">
+            <div className="flex items-center justify-between text-xs tracking-wider text-neutral-400 uppercase">
               <span className="text-neutral-300 font-bold flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-purple"></span>
-                PROTEÍNAS TOTALES
+                PROTEÍNAS
               </span>
-              <span className="text-neon-cyan font-bold">{protPercent}% DE {protGoal}G</span>
+              <span className="text-neon-cyan font-bold">{protPercent}%</span>
             </div>
 
-            <div className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
-              {dayProtein} <span className="text-xs font-mono text-neon-cyan font-normal uppercase">G PROT</span>
+            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {dayProtein} <span className="text-xs font-normal text-neon-cyan uppercase">G PROT</span>
             </div>
 
             {/* Barra de progreso minimalista */}
@@ -168,18 +204,18 @@ export default function HistoryView({
             </div>
           </div>
 
-          {/* 3. Peso Total */}
-          <div className="space-y-3 relative group md:border-l md:border-white/5 md:pl-8">
-            <div className="flex items-center justify-between text-xs font-mono tracking-wider text-neutral-400 uppercase">
+          {/* 3. Peso Total Cargas Gym */}
+          <div className="space-y-2 relative group lg:border-l lg:border-white/5 lg:pl-6">
+            <div className="flex items-center justify-between text-xs tracking-wider text-neutral-400 uppercase">
               <span className="text-neutral-300 font-bold flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-purple"></span>
-                PESO TOTAL
+                CARGA GYM
               </span>
-              <span className="text-neon-cyan font-bold">{tonPercent}% DE {tonGoal}KG</span>
+              <span className="text-neon-cyan font-bold">{tonPercent}%</span>
             </div>
 
-            <div className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
-              {dayTonnage.toLocaleString()} <span className="text-xs font-mono text-neon-cyan font-normal uppercase">KG TOT.</span>
+            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {dayTonnage.toLocaleString()} <span className="text-xs font-normal text-neon-cyan uppercase">KG</span>
             </div>
 
             {/* Barra de progreso minimalista */}
@@ -188,6 +224,52 @@ export default function HistoryView({
                 className="bg-gradient-to-r from-neon-purple to-neon-cyan h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${tonPercent}%` }}
               />
+            </div>
+          </div>
+
+          {/* 4. Peso Corporal del Día */}
+          <div className="space-y-2 relative group lg:border-l lg:border-white/5 lg:pl-6">
+            <div className="flex items-center justify-between text-xs tracking-wider text-neutral-400 uppercase">
+              <span className="text-neutral-300 font-bold flex items-center gap-1.5">
+                <Scale className="w-3.5 h-3.5 text-neon-cyan" />
+                PESO CORPORAL
+              </span>
+              <button
+                type="button"
+                onClick={() => setEditingWeightDate(selectedHistoryDate)}
+                className="text-[10px] text-neon-purple hover:text-white uppercase font-bold transition-colors"
+              >
+                {currentDayStats.weight !== undefined && currentDayStats.weight !== null ? 'Editar' : '+ Cargar'}
+              </button>
+            </div>
+
+            <div className="flex items-baseline gap-1.5">
+              {currentDayStats.weight !== undefined && currentDayStats.weight !== null && currentDayStats.weight !== '' ? (
+                isWeightVisible ? (
+                  <>
+                    <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                      {parseFloat(currentDayStats.weight).toFixed(1)}
+                    </span>
+                    <span className="text-xs font-bold text-neon-cyan uppercase">KG</span>
+                  </>
+                ) : (
+                  <span className="text-xl sm:text-2xl font-bold text-neutral-400 tracking-widest">
+                    •••• <span className="text-xs font-normal">KG</span>
+                  </span>
+                )
+              ) : (
+                <span className="text-sm text-neutral-500 italic">
+                  Sin registrar
+                </span>
+              )}
+            </div>
+
+            <div className="text-[10px] text-neutral-500 truncate">
+              {currentDayStats.weight !== undefined && currentDayStats.weight !== null
+                ? isWeightVisible
+                  ? 'Peso corporal guardado'
+                  : 'Valor protegido'
+                : 'Toca en + Cargar para registrar'}
             </div>
           </div>
 
@@ -302,16 +384,52 @@ export default function HistoryView({
                     </div>
 
                     <div className="flex items-center gap-4 flex-wrap">
-                      <div className="flex items-center gap-3 text-xs font-mono">
-                        <span className="text-white font-bold">{totalTonnage.toLocaleString()} kg</span>
+                      <div className="flex items-center gap-2.5 text-xs font-mono flex-wrap">
+                        <span className="text-white font-bold">{totalTonnage.toLocaleString()} kg gym</span>
                         <span className="text-neutral-600">•</span>
                         <span className="text-neon-cyan">{totalCalories} kcal</span>
                         <span className="text-neutral-600">•</span>
                         <span className="text-neon-purple">{totalProtein}g prot</span>
+
+                        {/* Tag de Peso del Día */}
+                        {dayData.weight !== undefined && dayData.weight !== null && dayData.weight !== '' ? (
+                          <>
+                            <span className="text-neutral-600">•</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingWeightDate(dateStr);
+                              }}
+                              className="text-white font-bold bg-purple-950/70 hover:bg-purple-900 px-2 py-0.5 rounded border border-purple-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Editar peso corporal de este día"
+                            >
+                              <Scale className="w-3 h-3 text-neon-cyan" />
+                              <span>{isWeightVisible ? `${parseFloat(dayData.weight).toFixed(1)} kg` : '•••• kg'}</span>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-neutral-600">•</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingWeightDate(dateStr);
+                              }}
+                              className="text-neutral-500 hover:text-neon-cyan text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Cargar peso para este día"
+                            >
+                              <Plus className="w-3 h-3" />
+                              <span>Peso</span>
+                            </button>
+                          </>
+                        )}
+
                         {cardios.length > 0 && (
                           <>
                             <span className="text-neutral-600">•</span>
-                            <span className="text-amber-400 font-semibold">~{totalCardioBurned} kcal quemadas</span>
+                            <span className="text-amber-400 font-semibold">~{totalCardioBurned} kcal cardio</span>
                           </>
                         )}
                       </div>
@@ -489,6 +607,19 @@ export default function HistoryView({
         onSave={(updated) => {
           if (onUpdateFood && editingFoodItem?.dateStr) {
             onUpdateFood(updated.id, updated, editingFoodItem.dateStr);
+          }
+        }}
+      />
+
+      {/* Modal para Cargar o Modificar Peso de Días Anteriores */}
+      <WeightModal
+        isOpen={!!editingWeightDate}
+        currentWeight={editingWeightDate && data[editingWeightDate]?.weight ? parseFloat(data[editingWeightDate].weight) : null}
+        selectedDate={editingWeightDate || selectedHistoryDate}
+        onClose={() => setEditingWeightDate(null)}
+        onSaveWeight={(newWeight, targetDate) => {
+          if (onUpdateWeight) {
+            onUpdateWeight(newWeight, targetDate);
           }
         }}
       />

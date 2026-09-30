@@ -21,9 +21,12 @@ import {
   Sparkles,
   Award,
   Zap,
-  ChevronDown
+  ChevronDown,
+  Scale,
+  Activity
 } from 'lucide-react';
 import { getDaysRangeData, getLocalDateString } from '../utils/helpers';
+import WeightEvolutionChart from './WeightEvolutionChart';
 
 // Paleta futurista para gráfico circular de distribución
 const PIE_COLORS = [
@@ -37,7 +40,13 @@ const PIE_COLORS = [
   '#14B8A6'  // Teal
 ];
 
-export default function ChartsView({ data = {}, goals = {} }) {
+export default function ChartsView({
+  data = {},
+  goals = {},
+  isWeightVisible = false,
+  onToggleVisibility,
+  onUpdateWeight,
+}) {
   const [rangeDays, setRangeDays] = useState(7);
   const chartData = getDaysRangeData(data, rangeDays, getLocalDateString());
 
@@ -196,7 +205,7 @@ export default function ChartsView({ data = {}, goals = {} }) {
   };
 
   return (
-    <div className="space-y-12 animate-slide-up">
+    <div className="space-y-10 animate-slide-up">
       
       {/* Cabecera & Selector de Rango */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-purple-500/20 pb-6">
@@ -207,13 +216,14 @@ export default function ChartsView({ data = {}, goals = {} }) {
           </h2>
         </div>
 
+        {/* Selector de Rango de Días */}
         <div className="flex items-center gap-2 bg-space-900 p-1.5 rounded-xl border border-white/10 font-mono text-xs">
           {[7, 14, 30].map(days => (
             <button
               key={days}
               type="button"
               onClick={() => setRangeDays(days)}
-              className={`px-4 py-2 rounded-lg font-bold transition-all uppercase cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg font-bold transition-all uppercase cursor-pointer ${
                 rangeDays === days 
                   ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30' 
                   : 'text-neutral-400 hover:text-white'
@@ -226,28 +236,33 @@ export default function ChartsView({ data = {}, goals = {} }) {
       </div>
 
       {/* ========================================================================= */}
-      {/* KPI HUD - DISEÑO ABIERTO, ELEGANTE Y SIN CAJAS                            */}
+      {/* 01. SECCIÓN DE RENDIMIENTO, GIMNASIO & NUTRICIÓN                          */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-6 border-y border-white/10">
-        <div className="space-y-1 group">
-          <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-neon-purple animate-pulse"></span>
-            <span>Días Entrenados</span>
-          </div>
-          <div className="text-3xl sm:text-5xl font-black font-display text-white tracking-tight">
-            {activeGymDays} <span className="text-xs font-mono text-neutral-500 font-normal uppercase">/ {rangeDays} DÍAS</span>
-          </div>
-        </div>
+      <div className="space-y-12">
 
-        <div className="space-y-1 group sm:border-l sm:border-white/10 sm:pl-6">
-          <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            <span>Promedio Kcal</span>
-          </div>
-          <div className="text-3xl sm:text-5xl font-black font-display text-white tracking-tight">
-            {avgCalories.toLocaleString()} <span className="text-xs font-mono text-amber-400 font-normal uppercase">KCAL</span>
-          </div>
-        </div>
+          {/* ========================================================================= */}
+          {/* KPI HUD - DISEÑO ABIERTO, ELEGANTE Y SIN CAJAS                            */}
+          {/* ========================================================================= */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-6 border-y border-white/10">
+            <div className="space-y-1 group">
+              <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-neon-purple animate-pulse"></span>
+                <span>Días Entrenados</span>
+              </div>
+              <div className="text-3xl sm:text-5xl font-black font-display text-white tracking-tight">
+                {activeGymDays} <span className="text-xs font-mono text-neutral-500 font-normal uppercase">/ {rangeDays} DÍAS</span>
+              </div>
+            </div>
+
+            <div className="space-y-1 group sm:border-l sm:border-white/10 sm:pl-6">
+              <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span>Promedio Kcal</span>
+              </div>
+              <div className="text-3xl sm:text-5xl font-black font-display text-white tracking-tight">
+                {avgCalories.toLocaleString()} <span className="text-xs font-mono text-amber-400 font-normal uppercase">KCAL</span>
+              </div>
+            </div>
 
         <div className="space-y-1 group sm:border-l sm:border-white/10 sm:pl-6">
           <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 uppercase tracking-wider">
@@ -545,6 +560,20 @@ export default function ChartsView({ data = {}, goals = {} }) {
           </div>
         </div>
 
+      </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 02. EVOLUCIÓN CORPORAL & CONSEJOS (ÚLTIMO GRÁFICO / DESPLEGABLE SUTIL)     */}
+      {/* ========================================================================= */}
+      <div className="pt-6 border-t border-purple-500/20">
+        <WeightEvolutionChart
+          data={data}
+          goals={goals}
+          isWeightVisible={isWeightVisible}
+          onToggleVisibility={onToggleVisibility}
+          onUpdateWeight={onUpdateWeight}
+        />
       </div>
 
     </div>
