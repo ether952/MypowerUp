@@ -160,40 +160,6 @@ export default function DailyView({
   const sec1ContentRef = useRef(null);
   const sec2ContentRef = useRef(null);
 
-  useEffect(() => {
-    let rafId = null;
-    const handleScroll = () => {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => {
-        const y = window.scrollY;
-        const vh = window.innerHeight || 800;
-
-        // Sensación simultánea de descenso: el contenido activo asciende suavemente al hacer scroll
-        if (sec1ContentRef.current) {
-          const p1 = Math.min(1, Math.max(0, y / (vh * 0.75)));
-          sec1ContentRef.current.style.transform = `translate3d(0, ${-p1 * 90}px, 0)`;
-          sec1ContentRef.current.style.opacity = `${1 - p1 * 0.45}`;
-        }
-
-        if (sec2ContentRef.current) {
-          const sec2Top = vh * 0.75;
-          const p2 = Math.min(1, Math.max(0, (y - sec2Top) / (vh * 0.75)));
-          sec2ContentRef.current.style.transform = `translate3d(0, ${-p2 * 90}px, 0)`;
-          sec2ContentRef.current.style.opacity = `${1 - p2 * 0.45}`;
-        }
-
-        rafId = null;
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  }, []);
-
   const estimatedCardioBurn = useMemo(() => {
     return calculateCardioCalories(cardioType, cardioDistance);
   }, [cardioType, cardioDistance]);
@@ -604,7 +570,7 @@ export default function DailyView({
       {/* ========================================================================= */}
       {/* 01. SECCIÓN SUPERIOR: ENTRENAMIENTO & GIMNASIO                            */}
       {/* ========================================================================= */}
-      <section className="sticky top-[68px] z-10 min-h-[calc(100vh-68px)] flex flex-col justify-between py-4 sm:py-6 px-3 sm:px-8 border-b border-zinc-200 bg-[#FAFAFA] relative overflow-hidden">
+      <section className="relative w-full py-6 sm:py-10 px-3 sm:px-8 border-b border-zinc-200 bg-[#FAFAFA] overflow-hidden">
 
         {/* Glows ambientales sutiles */}
         <div className="ambient-glow-purple w-96 h-96 -top-10 -left-10 opacity-40 pointer-events-none" />
@@ -1133,7 +1099,7 @@ export default function DailyView({
       {/* ========================================================================= */}
       <section
         ref={foodSectionRef}
-        className="sticky top-[68px] z-20 min-h-[calc(100vh-68px)] py-4 sm:py-6 px-3 sm:px-8 border-t border-zinc-200 bg-white shadow-sm relative overflow-hidden flex flex-col justify-between"
+        className="relative w-full py-8 sm:py-12 px-3 sm:px-8 border-t border-zinc-200 bg-white shadow-sm overflow-hidden"
       >
         <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-30 pointer-events-none" />
         <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-25 pointer-events-none" />
@@ -1585,7 +1551,7 @@ export default function DailyView({
       {/* ========================================================================= */}
       <section
         ref={cardioSectionRef}
-        className="sticky top-[68px] z-30 min-h-[calc(100vh-68px)] py-4 sm:py-6 px-3 sm:px-8 border-t border-zinc-200 bg-[#FAFAFA] shadow-sm relative overflow-hidden flex flex-col justify-between"
+        className="relative w-full py-8 sm:py-12 px-3 sm:px-8 border-t border-zinc-200 bg-[#FAFAFA] shadow-sm overflow-hidden"
       >
         <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-25 pointer-events-none" />
         <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-20 pointer-events-none" />
