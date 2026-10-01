@@ -4,7 +4,7 @@ import { MoreVertical, Pencil, XCircle } from 'lucide-react';
 export default function ItemActionMenu({
   onEdit,
   onDelete,
-  variant = 'purple', // 'purple' | 'cyan' | 'emerald'
+  variant = 'purple',
   itemName = 'ítem',
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,7 +42,6 @@ export default function ItemActionMenu({
     if (!isOpen && menuRef.current) {
       const rect = menuRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
-      // Si hay menos de 120px abajo y más espacio arriba, abrir hacia arriba
       if (spaceBelow < 120 && rect.top > 100) {
         setOpenUpward(true);
       } else {
@@ -64,34 +63,12 @@ export default function ItemActionMenu({
     if (onDelete) onDelete();
   };
 
-  // Color accents based on variant
-  const borderAccent =
-    variant === 'cyan'
-      ? 'border-cyan-500/40 shadow-cyan-500/20'
-      : variant === 'emerald'
-      ? 'border-emerald-500/40 shadow-emerald-500/20'
-      : 'border-purple-500/40 shadow-purple-500/20';
-
-  const editHover =
-    variant === 'cyan'
-      ? 'hover:text-neon-cyan hover:bg-neon-cyan/10'
-      : variant === 'emerald'
-      ? 'hover:text-emerald-400 hover:bg-emerald-500/10'
-      : 'hover:text-neon-purple hover:bg-neon-purple/10';
-
-  const buttonHover =
-    variant === 'cyan'
-      ? 'hover:text-neon-cyan hover:bg-cyan-500/15'
-      : variant === 'emerald'
-      ? 'hover:text-emerald-400 hover:bg-emerald-500/15'
-      : 'hover:text-neon-purple hover:bg-purple-500/15';
-
   return (
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
         type="button"
         onClick={toggleOpen}
-        className={`p-1.5 rounded-lg text-neutral-400 ${buttonHover} transition-colors cursor-pointer select-none focus:outline-none`}
+        className="p-1.5 rounded-lg text-zinc-400 hover:text-black hover:bg-zinc-100 transition-colors cursor-pointer select-none focus:outline-none"
         title={`Opciones de ${itemName}`}
         aria-label={`Opciones de ${itemName}`}
       >
@@ -103,15 +80,15 @@ export default function ItemActionMenu({
           onClick={(e) => e.stopPropagation()}
           className={`absolute right-0 ${
             openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-          } w-36 bg-[#0E0926]/95 backdrop-blur-2xl border ${borderAccent} rounded-xl shadow-2xl py-1.5 z-50 font-mono text-xs divide-y divide-white/5 animate-fade-in-up`}
+          } w-36 bg-white/95 backdrop-blur-xl border border-zinc-200 rounded-xl shadow-xl py-1.5 z-50 font-mono text-xs divide-y divide-zinc-100 animate-fade-in-up`}
         >
           {onEdit && (
             <button
               type="button"
               onClick={handleEditClick}
-              className={`w-full px-3 py-2 text-left text-neutral-200 ${editHover} flex items-center gap-2.5 transition-colors cursor-pointer`}
+              className="w-full px-3 py-2 text-left text-zinc-700 hover:text-black hover:bg-zinc-50 flex items-center gap-2.5 transition-colors cursor-pointer"
             >
-              <Pencil className="w-3.5 h-3.5 shrink-0" />
+              <Pencil className="w-3.5 h-3.5 shrink-0 text-zinc-800" />
               <span>Editar</span>
             </button>
           )}
@@ -120,9 +97,9 @@ export default function ItemActionMenu({
             <button
               type="button"
               onClick={handleDeleteClick}
-              className="w-full px-3 py-2 text-left text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 flex items-center gap-2.5 transition-colors cursor-pointer group"
+              className="w-full px-3 py-2 text-left text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex items-center gap-2.5 transition-colors cursor-pointer group"
             >
-              <XCircle className="w-3.5 h-3.5 shrink-0 text-rose-400 group-hover:scale-110 transition-transform" />
+              <XCircle className="w-3.5 h-3.5 shrink-0 text-rose-500 group-hover:scale-110 transition-transform" />
               <span>Eliminar</span>
             </button>
           )}

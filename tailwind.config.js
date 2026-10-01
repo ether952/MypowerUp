@@ -8,26 +8,26 @@ export default {
     extend: {
       colors: {
         space: {
-          950: '#04020D',
-          900: '#080518',
-          850: '#0E0926',
-          800: '#150F38',
-          700: '#231B54',
-          600: '#3B2F7E',
+          950: '#FAFAFA', // Canvas base claro
+          900: '#FFFFFF', // Tarjetas y superficies blancas
+          850: '#F4F4F5', // Contenedores secundarios y pills (zinc-100)
+          800: '#E4E4E7', // Bordes sutiles y hovers (zinc-200)
+          700: '#D4D4D8', // Bordes más marcados (zinc-300)
+          600: '#71717A', // Textos secundarios (zinc-500)
         },
         neon: {
-          purple: '#8B5CF6',
-          violet: '#A855F7',
-          fuchsia: '#D946EF',
-          cyan: '#06B6D4',
-          mint: '#00F5A0',
-          blue: '#3B82F6',
-          yellow: '#FACC15',
+          purple: '#18181B', // Zinc 900 elegante
+          violet: '#27272A', // Zinc 800
+          fuchsia: '#09090B', // Negro profundo
+          cyan: '#3F3F46',   // Zinc 700
+          mint: '#10B981',   // Acento sutil verde esmeralda / minimalista
+          blue: '#18181B',
+          yellow: '#000000',
         }
       },
       fontFamily: {
-        sans: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Outfit', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'Outfit', 'sans-serif'],
       },
       animation: {
         'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
@@ -37,14 +37,14 @@ export default {
       keyframes: {
         pulseGlow: {
           '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
-          '50%': { opacity: '0.8', transform: 'scale(1.08)' },
+          '50%': { opacity: '0.8', transform: 'scale(1.04)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-12px)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
         fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         }
       }

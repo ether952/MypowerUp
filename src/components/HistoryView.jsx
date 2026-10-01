@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import {
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
+  ChevronRight,
   Search,
   Sparkles,
   Calendar,
@@ -11,15 +10,9 @@ import {
   Zap,
   Activity,
   Footprints,
-  Bike,
-  CheckCircle2,
-  HelpCircle,
-  X,
-  Gauge,
   Scale,
   Eye,
   EyeOff,
-  Edit3,
   Plus
 } from 'lucide-react';
 import { formatDisplayDate, getLocalDateString } from '../utils/helpers';
@@ -92,152 +85,148 @@ export default function HistoryView({
   const tonPercent = Math.min(Math.round((dayTonnage / tonGoal) * 100), 100);
 
   return (
-    <div className="space-y-12 animate-slide-up">
+    <div className="space-y-10 animate-fade-in-up">
 
       {/* Cabecera Principal */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-purple-500/20 pb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-6">
         <div>
-          <span className="text-xs font-mono tracking-widest text-neon-purple uppercase">// BASE DE DATOS DIARIA</span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight font-display">
-            HISTORIAL & <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple to-neon-cyan">REGISTROS</span>
+          <span className="text-xs font-mono tracking-widest text-zinc-500 uppercase">// BASE DE DATOS DIARIA</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase tracking-tight font-display mt-0.5">
+            HISTORIAL & REGISTROS
           </h2>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {/* Botón Ocultar / Mostrar Peso */}
           <button
             type="button"
             onClick={onToggleVisibility}
-            className={`px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-              isWeightVisible
-                ? 'bg-white/10 hover:bg-white/15 text-neutral-200 border border-white/15'
-                : 'bg-purple-950/60 hover:bg-purple-900/80 text-neon-purple border border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.15)]'
-            }`}
+            className="px-3.5 py-2 rounded-xl font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-sm"
             title={isWeightVisible ? 'Ocultar peso en el historial' : 'Mostrar peso'}
           >
             {isWeightVisible ? (
               <>
-                <EyeOff className="w-3.5 h-3.5 text-neutral-400" />
+                <EyeOff className="w-3.5 h-3.5 text-zinc-500" />
                 <span>Ocultar Peso</span>
               </>
             ) : (
               <>
-                <Eye className="w-3.5 h-3.5 text-neon-cyan" />
+                <Eye className="w-3.5 h-3.5 text-zinc-900" />
                 <span>Revelar Peso</span>
               </>
             )}
           </button>
 
-          <div className="text-xs font-mono text-neutral-400 bg-space-900 px-4 py-2 rounded-xl border border-white/10">
-            Total días: <strong className="text-white">{allDates.length}</strong>
+          <div className="text-xs font-mono text-zinc-600 bg-white px-3.5 py-2 rounded-xl border border-zinc-200 shadow-sm">
+            Total días: <strong className="text-zinc-900">{allDates.length}</strong>
           </div>
         </div>
       </div>
 
-      {/* RESUMEN DEL DÍA SELECCIONADO - DISEÑO MODERNO Y SUELTO (SIN CUADROS QUE LIMITEN) */}
+      {/* RESUMEN DEL DÍA SELECCIONADO */}
       <div className="space-y-6 pt-2">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <span className="text-[10px] font-mono text-neon-purple tracking-widest uppercase">// RESUMEN DEL DÍA</span>
-            <h3 className="text-lg font-black text-white uppercase tracking-tight font-display">
+            <span className="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">// RESUMEN DEL DÍA</span>
+            <h3 className="text-lg font-extrabold text-zinc-900 uppercase tracking-tight font-display">
               {formatDisplayDate(selectedHistoryDate)}
             </h3>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-neutral-400">
+          <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
             <span>FECHA:</span>
             <input
               type="date"
               value={selectedHistoryDate}
               onChange={(e) => setSelectedHistoryDate(e.target.value)}
-              className="bg-space-900 border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-mono focus:border-neon-purple outline-none cursor-pointer"
+              className="bg-white border border-zinc-300 text-zinc-900 px-3 py-1.5 rounded-lg text-xs font-mono focus:border-black outline-none cursor-pointer shadow-sm"
             />
           </div>
         </div>
 
-        {/* MÉTRICAS SUELTAS Y MODERNAS CON COLOR UNIFICADO */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-4 border-y border-white/5 font-mono">
+        {/* MÉTRICAS SUELTAS Y MODERNAS */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-4 border-y border-zinc-200 font-mono">
 
           {/* 1. Calorías Totales */}
-          <div className="space-y-2 relative group">
-            <div className="flex items-center justify-between text-xs tracking-wider text-neutral-400 uppercase">
-              <span className="text-neutral-300 font-bold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-purple"></span>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs tracking-wider uppercase">
+              <span className="text-zinc-600 font-bold flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
                 CALORÍAS
               </span>
-              <span className="text-neon-cyan font-bold">{calPercent}%</span>
+              <span className="text-zinc-900 font-extrabold">{calPercent}%</span>
             </div>
 
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              {dayCalories.toLocaleString()} <span className="text-xs font-normal text-neon-cyan uppercase">KCAL</span>
+            <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
+              {dayCalories.toLocaleString()} <span className="text-xs font-normal text-zinc-500 uppercase">KCAL</span>
             </div>
 
             {/* Barra de progreso minimalista */}
-            <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
+            <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-neon-purple to-neon-cyan h-full rounded-full transition-all duration-700 ease-out"
+                className="bg-black h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${calPercent}%` }}
               />
             </div>
           </div>
 
           {/* 2. Proteínas Totales */}
-          <div className="space-y-2 relative group sm:border-l sm:border-white/5 sm:pl-6">
-            <div className="flex items-center justify-between text-xs tracking-wider text-neutral-400 uppercase">
-              <span className="text-neutral-300 font-bold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-purple"></span>
+          <div className="space-y-2 sm:border-l sm:border-zinc-200 sm:pl-6">
+            <div className="flex items-center justify-between text-xs tracking-wider uppercase">
+              <span className="text-zinc-600 font-bold flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-700"></span>
                 PROTEÍNAS
               </span>
-              <span className="text-neon-cyan font-bold">{protPercent}%</span>
+              <span className="text-zinc-900 font-extrabold">{protPercent}%</span>
             </div>
 
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              {dayProtein} <span className="text-xs font-normal text-neon-cyan uppercase">G PROT</span>
+            <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
+              {dayProtein} <span className="text-xs font-normal text-zinc-500 uppercase">G PROT</span>
             </div>
 
             {/* Barra de progreso minimalista */}
-            <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
+            <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-neon-purple to-neon-cyan h-full rounded-full transition-all duration-700 ease-out"
+                className="bg-zinc-800 h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${protPercent}%` }}
               />
             </div>
           </div>
 
           {/* 3. Peso Total Cargas Gym */}
-          <div className="space-y-2 relative group lg:border-l lg:border-white/5 lg:pl-6">
-            <div className="flex items-center justify-between text-xs tracking-wider text-neutral-400 uppercase">
-              <span className="text-neutral-300 font-bold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-purple"></span>
+          <div className="space-y-2 lg:border-l lg:border-zinc-200 lg:pl-6">
+            <div className="flex items-center justify-between text-xs tracking-wider uppercase">
+              <span className="text-zinc-600 font-bold flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-900"></span>
                 CARGA GYM
               </span>
-              <span className="text-neon-cyan font-bold">{tonPercent}%</span>
+              <span className="text-zinc-900 font-extrabold">{tonPercent}%</span>
             </div>
 
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              {dayTonnage.toLocaleString()} <span className="text-xs font-normal text-neon-cyan uppercase">KG</span>
+            <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
+              {dayTonnage.toLocaleString()} <span className="text-xs font-normal text-zinc-500 uppercase">KG</span>
             </div>
 
             {/* Barra de progreso minimalista */}
-            <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
+            <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-neon-purple to-neon-cyan h-full rounded-full transition-all duration-700 ease-out"
+                className="bg-zinc-900 h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${tonPercent}%` }}
               />
             </div>
           </div>
 
           {/* 4. Peso Corporal del Día */}
-          <div className="space-y-2 relative group lg:border-l lg:border-white/5 lg:pl-6">
-            <div className="flex items-center justify-between text-xs tracking-wider text-neutral-400 uppercase">
-              <span className="text-neutral-300 font-bold flex items-center gap-1.5">
-                <Scale className="w-3.5 h-3.5 text-neon-cyan" />
+          <div className="space-y-2 lg:border-l lg:border-zinc-200 lg:pl-6">
+            <div className="flex items-center justify-between text-xs tracking-wider uppercase">
+              <span className="text-zinc-600 font-bold flex items-center gap-1.5">
+                <Scale className="w-3.5 h-3.5 text-zinc-900" />
                 PESO CORPORAL
               </span>
               <button
                 type="button"
                 onClick={() => setEditingWeightDate(selectedHistoryDate)}
-                className="text-[10px] text-neon-purple hover:text-white uppercase font-bold transition-colors"
+                className="text-[10px] text-zinc-900 hover:text-black uppercase font-bold transition-colors underline cursor-pointer"
               >
                 {currentDayStats.weight !== undefined && currentDayStats.weight !== null ? 'Editar' : '+ Cargar'}
               </button>
@@ -247,24 +236,24 @@ export default function HistoryView({
               {currentDayStats.weight !== undefined && currentDayStats.weight !== null && currentDayStats.weight !== '' ? (
                 isWeightVisible ? (
                   <>
-                    <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    <span className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
                       {parseFloat(currentDayStats.weight).toFixed(1)}
                     </span>
-                    <span className="text-xs font-bold text-neon-cyan uppercase">KG</span>
+                    <span className="text-xs font-bold text-zinc-500 uppercase">KG</span>
                   </>
                 ) : (
-                  <span className="text-xl sm:text-2xl font-bold text-neutral-400 tracking-widest">
+                  <span className="text-xl sm:text-2xl font-bold text-zinc-400 tracking-widest">
                     •••• <span className="text-xs font-normal">KG</span>
                   </span>
                 )
               ) : (
-                <span className="text-sm text-neutral-500 italic">
+                <span className="text-sm text-zinc-400 italic">
                   Sin registrar
                 </span>
               )}
             </div>
 
-            <div className="text-[10px] text-neutral-500 truncate">
+            <div className="text-[10px] text-zinc-500 truncate">
               {currentDayStats.weight !== undefined && currentDayStats.weight !== null
                 ? isWeightVisible
                   ? 'Peso corporal guardado'
@@ -275,29 +264,29 @@ export default function HistoryView({
 
         </section>
 
-        {/* Banner de Cardio del día - SOLO SI SE CARGÓ ALGO */}
+        {/* Banner de Cardio del día */}
         {dayCardios.length > 0 && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in-up">
+          <div className="p-4 rounded-2xl bg-white border border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+              <div className="p-2.5 rounded-xl bg-zinc-100 text-zinc-900">
                 <Footprints className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">
+                <span className="text-[10px] font-mono text-zinc-500 font-bold uppercase tracking-wider block">
                   // CARDIO & DESPLAZAMIENTOS ({dayCardios.length} {dayCardios.length === 1 ? 'SESIÓN' : 'SESIONES'})
                 </span>
-                <p className="text-white font-black text-base font-mono">
-                  {Math.round(dayCardioKm * 10) / 10} <span className="text-xs text-neutral-400 font-sans">KM</span> • <span className="text-amber-400">~{dayCardioBurned}</span> <span className="text-xs text-neutral-400 font-sans">KCAL QUEMADAS</span>
+                <p className="text-zinc-900 font-extrabold text-base font-mono">
+                  {Math.round(dayCardioKm * 10) / 10} <span className="text-xs text-zinc-500 font-sans">KM</span> • <span>~{dayCardioBurned}</span> <span className="text-xs text-zinc-500 font-sans">KCAL QUEMADAS</span>
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {dayCardios.map((c) => (
-                <span key={c.id} className="text-xs font-mono px-2.5 py-1 rounded-lg bg-[#0E0926] text-neutral-200 border border-emerald-500/30 flex items-center gap-1.5">
-                  <span className="text-emerald-400 font-bold uppercase">{c.type}:</span>
+                <span key={c.id} className="text-xs font-mono px-2.5 py-1.5 rounded-lg bg-zinc-50 text-zinc-800 border border-zinc-200 flex items-center gap-1.5">
+                  <span className="text-black font-bold uppercase">{c.type}:</span>
                   <span>{c.from} ➔ {c.to}</span>
-                  <span className="text-white font-bold">({c.distance}km)</span>
+                  <span className="text-zinc-900 font-bold">({c.distance}km)</span>
                 </span>
               ))}
             </div>
@@ -309,7 +298,7 @@ export default function HistoryView({
       <div className="space-y-6">
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase">
+          <div className="text-xs font-mono tracking-widest text-zinc-500 uppercase">
             // REGISTRO CRONOLÓGICO DE DÍAS
           </div>
 
@@ -319,17 +308,17 @@ export default function HistoryView({
               placeholder="Buscar ejercicio, comida, fecha..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full input-futuristic px-4 py-3 text-xs text-white rounded-xl font-mono placeholder-neutral-500"
+              className="w-full bg-white border border-zinc-300 focus:border-black px-4 py-2.5 text-xs text-zinc-900 rounded-xl font-mono placeholder-zinc-400 outline-none shadow-sm transition-all"
             />
           </div>
         </div>
 
         {filteredDates.length === 0 ? (
-          <div className="py-16 text-center text-neutral-600 font-mono text-sm border-t border-b border-purple-500/10">
+          <div className="py-16 text-center text-zinc-500 font-mono text-sm border-t border-b border-zinc-200">
             No hay registros disponibles en el historial todavía.
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {filteredDates.map((dateStr) => {
               const dayData = data[dateStr] || { foods: [], workouts: [], cardios: [] };
               const foods = dayData.foods || [];
@@ -348,33 +337,31 @@ export default function HistoryView({
               return (
                 <div
                   key={dateStr}
-                  className={`bg-space-900/50 border-l-4 transition-all rounded-xl relative ${
-                    isExpanded ? 'overflow-visible z-20 shadow-2xl' : 'overflow-hidden z-0'
+                  className={`bg-white border rounded-2xl transition-all shadow-sm relative ${
+                    isExpanded ? 'overflow-visible z-20 border-zinc-300 shadow-md' : 'overflow-hidden z-0 border-zinc-200 hover:border-zinc-300'
                   } ${
-                    isSelected
-                      ? 'border-neon-purple bg-space-900/80 shadow-lg shadow-purple-600/10'
-                      : 'border-neutral-800 hover:border-neutral-600'
+                    isSelected ? 'ring-1 ring-black' : ''
                   }`}
                 >
                   <div
                     onClick={() => toggleExpand(dateStr)}
-                    className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer select-none hover:bg-space-850/50 transition-colors rounded-t-xl"
+                    className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer select-none hover:bg-zinc-50/70 transition-colors rounded-t-2xl"
                   >
                     <div>
                       <div className="flex items-center gap-3">
-                        <h4 className="font-bold text-lg text-white capitalize">{formatDisplayDate(dateStr)}</h4>
-                        <span className="text-[11px] font-mono text-neon-purple px-2 py-0.5 rounded bg-neon-purple/10">
+                        <h4 className="font-extrabold text-base sm:text-lg text-zinc-900 capitalize">{formatDisplayDate(dateStr)}</h4>
+                        <span className="text-[11px] font-mono text-zinc-700 px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200">
                           {dateStr}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-xs font-mono text-neutral-400 mt-1 flex-wrap">
+                      <div className="flex items-center gap-3 text-xs font-mono text-zinc-500 mt-1 flex-wrap">
                         <span>{workouts.length} ejercicios</span>
                         <span>•</span>
-                        <span>{foods.length} alimentos/suplementos</span>
+                        <span>{foods.length} alimentos</span>
                         {cardios.length > 0 && (
                           <>
                             <span>•</span>
-                            <span className="text-emerald-400 font-bold flex items-center gap-1">
+                            <span className="text-zinc-900 font-bold flex items-center gap-1">
                               <Footprints className="w-3.5 h-3.5" />
                               {Math.round(totalCardioKm * 10) / 10} km cardio
                             </span>
@@ -385,39 +372,39 @@ export default function HistoryView({
 
                     <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-2.5 text-xs font-mono flex-wrap">
-                        <span className="text-white font-bold">{totalTonnage.toLocaleString()} kg gym</span>
-                        <span className="text-neutral-600">•</span>
-                        <span className="text-neon-cyan">{totalCalories} kcal</span>
-                        <span className="text-neutral-600">•</span>
-                        <span className="text-neon-purple">{totalProtein}g prot</span>
+                        <span className="text-zinc-900 font-extrabold">{totalTonnage.toLocaleString()} kg gym</span>
+                        <span className="text-zinc-300">•</span>
+                        <span className="text-zinc-700 font-semibold">{totalCalories} kcal</span>
+                        <span className="text-zinc-300">•</span>
+                        <span className="text-zinc-700 font-semibold">{totalProtein}g prot</span>
 
                         {/* Tag de Peso del Día */}
                         {dayData.weight !== undefined && dayData.weight !== null && dayData.weight !== '' ? (
                           <>
-                            <span className="text-neutral-600">•</span>
+                            <span className="text-zinc-300">•</span>
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setEditingWeightDate(dateStr);
                               }}
-                              className="text-white font-bold bg-purple-950/70 hover:bg-purple-900 px-2 py-0.5 rounded border border-purple-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+                              className="text-zinc-900 font-bold bg-zinc-100 hover:bg-zinc-200 px-2.5 py-1 rounded-lg border border-zinc-200 flex items-center gap-1 transition-colors cursor-pointer"
                               title="Editar peso corporal de este día"
                             >
-                              <Scale className="w-3 h-3 text-neon-cyan" />
+                              <Scale className="w-3 h-3 text-zinc-700" />
                               <span>{isWeightVisible ? `${parseFloat(dayData.weight).toFixed(1)} kg` : '•••• kg'}</span>
                             </button>
                           </>
                         ) : (
                           <>
-                            <span className="text-neutral-600">•</span>
+                            <span className="text-zinc-300">•</span>
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setEditingWeightDate(dateStr);
                               }}
-                              className="text-neutral-500 hover:text-neon-cyan text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                              className="text-zinc-500 hover:text-black text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
                               title="Cargar peso para este día"
                             >
                               <Plus className="w-3 h-3" />
@@ -428,8 +415,8 @@ export default function HistoryView({
 
                         {cardios.length > 0 && (
                           <>
-                            <span className="text-neutral-600">•</span>
-                            <span className="text-amber-400 font-semibold">~{totalCardioBurned} kcal cardio</span>
+                            <span className="text-zinc-300">•</span>
+                            <span className="text-zinc-600 font-medium">~{totalCardioBurned} kcal cardio</span>
                           </>
                         )}
                       </div>
@@ -440,54 +427,53 @@ export default function HistoryView({
                           e.stopPropagation();
                           onSelectDate(dateStr);
                         }}
-                        className="px-4 py-2 bg-gradient-to-r from-neon-purple to-neon-violet text-white text-xs font-mono font-bold uppercase rounded-lg hover:opacity-90 transition-opacity shadow-sm"
+                        className="px-3.5 py-1.5 bg-black text-white text-xs font-mono font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors shadow-sm cursor-pointer"
                       >
                         Cargar Día
                       </button>
 
-                      <div className="text-neutral-400">
-                        {isExpanded ? <ChevronDown className="w-5 h-5 text-neon-purple" /> : <ChevronRight className="w-5 h-5" />}
+                      <div className="text-zinc-400">
+                        {isExpanded ? <ChevronDown className="w-5 h-5 text-black" /> : <ChevronRight className="w-5 h-5" />}
                       </div>
                     </div>
                   </div>
 
                   {/* Desglose Expandible */}
                   {isExpanded && (
-                    <div className={`p-6 border-t border-white/5 bg-space-950/80 grid grid-cols-1 ${cardios.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 animate-fade-in-up overflow-visible rounded-b-xl`}>
+                    <div className={`p-6 border-t border-zinc-200 bg-zinc-50/60 grid grid-cols-1 ${cardios.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 animate-fade-in-up overflow-visible rounded-b-2xl`}>
 
                       {/* Ejercicios */}
                       <div className="space-y-3">
-                        <div className="text-xs font-mono text-neon-purple uppercase tracking-wider">
+                        <div className="text-xs font-mono text-zinc-900 uppercase font-bold tracking-wider">
                           // ENTRENAMIENTOS ({workouts.length})
                         </div>
                         {workouts.length === 0 ? (
-                          <p className="text-xs font-mono text-neutral-600">Sin ejercicios registrados.</p>
+                          <p className="text-xs font-mono text-zinc-500">Sin ejercicios registrados.</p>
                         ) : (
                           <div className="space-y-2">
                             {workouts.map(w => {
                               return (
-                                <div key={w.id} className="p-3 bg-space-900/60 border border-white/5 rounded-lg flex justify-between items-center text-xs font-mono">
+                                <div key={w.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex justify-between items-center text-xs font-mono shadow-sm">
                                   <div className="space-y-1">
-                                    <div className="text-white font-bold">{w.name}</div>
+                                    <div className="text-zinc-900 font-bold">{w.name}</div>
                                     {w.detailedSets && Array.isArray(w.detailedSets) && w.detailedSets.length > 0 ? (
-                                      <div className="flex flex-wrap items-center gap-1.5 text-neutral-400">
-                                        <span className="text-white font-semibold">{w.sets} series:</span>
+                                      <div className="flex flex-wrap items-center gap-1.5 text-zinc-500">
+                                        <span className="text-zinc-700 font-semibold">{w.sets} series:</span>
                                         {w.detailedSets.map((s, i) => (
-                                          <span key={i} className="px-1.5 py-0.5 rounded bg-white/5 border border-purple-500/20 text-white font-bold text-[10px]">
-                                            {s.reps}×<span className="text-neon-cyan">{s.weight}kg</span>
+                                          <span key={i} className="px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-zinc-900 font-bold text-[10px]">
+                                            {s.reps}×<span>{s.weight}kg</span>
                                           </span>
                                         ))}
                                       </div>
                                     ) : (
-                                      <div className="text-neutral-400">
-                                        {w.sets}×{w.reps} con <strong className="text-neon-cyan">{w.weight}kg</strong>
+                                      <div className="text-zinc-500">
+                                        {w.sets}×{w.reps} con <strong className="text-zinc-900">{w.weight}kg</strong>
                                       </div>
                                     )}
                                   </div>
                                   <ItemActionMenu
                                     onEdit={() => setEditingWorkoutItem({ workout: w, dateStr })}
                                     onDelete={() => onDeleteWorkout && onDeleteWorkout(w.id, dateStr)}
-                                    variant="purple"
                                     itemName={w.name}
                                   />
                                 </div>
@@ -499,34 +485,32 @@ export default function HistoryView({
 
                       {/* Comidas y Suplementos */}
                       <div className="space-y-3">
-                        <div className="text-xs font-mono text-neon-cyan uppercase tracking-wider">
+                        <div className="text-xs font-mono text-zinc-900 uppercase font-bold tracking-wider">
                           // NUTRICIÓN & SUPLEMENTOS ({foods.length})
                         </div>
                         {foods.length === 0 ? (
-                          <p className="text-xs font-mono text-neutral-600">Sin alimentos registrados.</p>
+                          <p className="text-xs font-mono text-zinc-500">Sin alimentos registrados.</p>
                         ) : (
                           <div className="space-y-2">
                             {foods.map(f => {
                               const isSupp = f.mealType === 'suplementacion';
                               return (
-                                <div key={f.id} className="p-3 bg-space-900/60 border border-white/5 rounded-lg flex justify-between items-center text-xs font-mono">
+                                <div key={f.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex justify-between items-center text-xs font-mono shadow-sm">
                                   <div className="space-y-0.5">
                                     <div className="flex items-center gap-2">
-                                      <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase ${isSupp ? 'bg-neon-purple/10 text-neon-purple' : 'bg-neon-cyan/10 text-neon-cyan'
-                                        }`}>
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold bg-zinc-100 text-zinc-800 border border-zinc-200">
                                         {f.mealType || 'item'}
                                       </span>
-                                      <span className="text-white font-bold">{f.name}</span>
-                                      {f.time && <span className="text-neutral-500 text-[10px]">({f.time})</span>}
+                                      <span className="text-zinc-900 font-bold">{f.name}</span>
+                                      {f.time && <span className="text-zinc-400 text-[10px]">({f.time})</span>}
                                     </div>
-                                    <div className="text-neutral-400">
-                                      <span className="text-neon-cyan">{f.calories} kcal</span> • <span className="text-neon-purple">{f.protein}g</span>
+                                    <div className="text-zinc-500">
+                                      <span className="text-zinc-900 font-semibold">{f.calories} kcal</span> • <span>{f.protein}g</span>
                                     </div>
                                   </div>
                                   <ItemActionMenu
                                     onEdit={() => setEditingFoodItem({ food: f, dateStr })}
                                     onDelete={() => onDeleteFood && onDeleteFood(f.id, dateStr)}
-                                    variant={isSupp ? "emerald" : "cyan"}
                                     itemName={f.name}
                                   />
                                 </div>
@@ -536,40 +520,33 @@ export default function HistoryView({
                         )}
                       </div>
 
-                      {/* Sesiones de Cardio - SOLO SI SE CARGÓ ALGO */}
+                      {/* Sesiones de Cardio */}
                       {cardios.length > 0 && (
                         <div className="space-y-3">
-                          <div className="text-xs font-mono text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                          <div className="text-xs font-mono text-zinc-900 uppercase font-bold tracking-wider flex items-center gap-1.5">
                             <Footprints className="w-3.5 h-3.5" />
                             <span>// CARDIO & DISTANCIA ({cardios.length})</span>
                           </div>
                           <div className="space-y-2">
                             {cardios.map((c) => {
-                              const isRun = c.type === 'running';
-                              const isBike = c.type === 'bicicleta';
                               return (
-                                <div key={c.id} className="p-3 bg-space-900/60 border border-emerald-500/20 rounded-lg flex flex-col justify-between gap-1 text-xs font-mono">
+                                <div key={c.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex flex-col justify-between gap-1 text-xs font-mono shadow-sm">
                                   <div className="flex justify-between items-center">
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${isRun
-                                      ? 'bg-amber-400/10 text-amber-400 border border-amber-400/30'
-                                      : isBike
-                                        ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/30'
-                                        : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/30'
-                                      }`}>
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold bg-zinc-100 text-zinc-900 border border-zinc-200">
                                       {c.type}
                                     </span>
-                                    {c.time && <span className="text-neutral-500 text-[10px]">({c.time})</span>}
+                                    {c.time && <span className="text-zinc-400 text-[10px]">({c.time})</span>}
                                   </div>
 
-                                  <div className="text-white font-semibold flex items-center gap-1">
+                                  <div className="text-zinc-900 font-semibold flex items-center gap-1">
                                     <span>{c.from}</span>
-                                    <span className="text-neutral-500 text-[10px]">➔</span>
-                                    <span className="text-emerald-300">{c.to}</span>
+                                    <span className="text-zinc-400 text-[10px]">➔</span>
+                                    <span>{c.to}</span>
                                   </div>
 
-                                  <div className="flex justify-between items-center text-neutral-400 text-[11px] pt-0.5">
-                                    <span className="text-white font-bold">{c.distance} km</span>
-                                    <span className="text-amber-400">~{c.caloriesBurned} kcal quemadas</span>
+                                  <div className="flex justify-between items-center text-zinc-500 text-[11px] pt-0.5">
+                                    <span className="text-zinc-900 font-bold">{c.distance} km</span>
+                                    <span>~{c.caloriesBurned} kcal</span>
                                   </div>
                                 </div>
                               );
@@ -611,7 +588,7 @@ export default function HistoryView({
         }}
       />
 
-      {/* Modal para Cargar o Modificar Peso de Días Anteriores */}
+      {/* Modal para Cargar o Modificar Peso */}
       <WeightModal
         isOpen={!!editingWeightDate}
         currentWeight={editingWeightDate && data[editingWeightDate]?.weight ? parseFloat(data[editingWeightDate].weight) : null}

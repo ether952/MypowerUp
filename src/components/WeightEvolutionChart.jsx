@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -15,6 +15,7 @@ import {
 } from '../utils/weightAnalytics';
 import WeightModal from './WeightModal';
 import { getLocalDateString } from '../utils/helpers';
+import { Scale, ChevronDown, Sparkles } from 'lucide-react';
 
 export default function WeightEvolutionChart({
   data = {},
@@ -71,14 +72,14 @@ export default function WeightEvolutionChart({
     return [Math.floor(min - padding), Math.ceil(max + padding)];
   }, [filteredData]);
 
-  // Tooltip minimalista
+  // Tooltip minimalista monocromático
   const CustomWeightTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const d = payload[0].payload;
       return (
-        <div className="bg-[#070314]/95 border border-purple-500/40 p-2.5 rounded-xl shadow-xl backdrop-blur-xl text-xs font-mono space-y-0.5">
-          <p className="text-neutral-400 text-[10px]">{d.dateStr}</p>
-          <p className="text-neon-cyan font-bold text-sm">
+        <div className="bg-white border border-zinc-200 p-2.5 rounded-xl shadow-xl text-xs font-mono space-y-0.5">
+          <p className="text-zinc-500 text-[10px]">{d.dateStr}</p>
+          <p className="text-zinc-900 font-extrabold text-sm">
             {isWeightVisible ? `${d.weight} kg` : '•••• kg'}
           </p>
         </div>
@@ -88,35 +89,33 @@ export default function WeightEvolutionChart({
   };
 
   return (
-    <div className="w-full pt-4 font-mono select-none">
+    <div className="w-full pt-2 font-mono select-none">
       
-      {/* ========================================================================= */}
-      {/* BOTÓN SUTIL PRINCIPAL (SIN LA PALABRA PESO)                               */}
-      {/* ========================================================================= */}
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-[#070318]/80 hover:bg-[#0b0522] border border-purple-500/25 transition-all duration-300">
+      {/* BOTÓN PRINCIPAL */}
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-white hover:bg-zinc-50 border border-zinc-200 transition-all duration-300 shadow-sm">
         <button
           type="button"
           onClick={() => setIsChartOpen(!isChartOpen)}
           className="flex-1 flex items-center justify-between text-left cursor-pointer group"
         >
           <div className="space-y-0.5">
-            <span className="text-[10px] text-neon-purple tracking-widest uppercase font-bold block">
+            <span className="text-[10px] text-zinc-500 tracking-widest uppercase font-bold block">
               // MÉTRICA CORPORAL
             </span>
-            <span className="text-sm sm:text-base font-bold text-white tracking-wide uppercase font-display group-hover:text-neon-cyan transition-colors">
+            <span className="text-sm sm:text-base font-extrabold text-zinc-900 tracking-tight uppercase font-display group-hover:text-black transition-colors">
               Evolución Corporal & Consejos
             </span>
           </div>
 
           <div className="flex items-center gap-3">
             {stats.hasData && (
-              <span className="text-xs text-neutral-400 font-bold hidden sm:inline">
+              <span className="text-xs text-zinc-500 font-bold hidden sm:inline">
                 {isWeightVisible ? `${stats.currentWeight} kg` : '•••• kg'}
               </span>
             )}
             <span
-              className={`text-xs px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-neutral-300 transition-transform duration-300 ${
-                isChartOpen ? 'rotate-180 text-neon-cyan border-neon-cyan/40' : ''
+              className={`text-xs px-2.5 py-1 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-700 transition-transform duration-300 ${
+                isChartOpen ? 'rotate-180 text-black border-zinc-400' : ''
               }`}
             >
               ▼
@@ -125,34 +124,32 @@ export default function WeightEvolutionChart({
         </button>
       </div>
 
-      {/* ========================================================================= */}
-      {/* CONTENIDO DESPLEGABLE CON ANIMACIÓN SUAVE                                 */}
-      {/* ========================================================================= */}
+      {/* CONTENIDO DESPLEGABLE */}
       <div
         className={`overflow-hidden transition-all duration-500 ease-out ${
           isChartOpen ? 'max-h-[1400px] opacity-100 mt-4' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="p-4 sm:p-6 rounded-2xl bg-[#050114]/95 border border-purple-500/20 space-y-6">
+        <div className="p-4 sm:p-6 rounded-2xl bg-white border border-zinc-200 space-y-6 shadow-sm">
           
           {/* Barra de Controles Minimalistas */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-white/10 pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-zinc-100 pb-4">
             
             {/* Stats Rápidas */}
             <div className="flex items-center gap-4">
               <div>
-                <span className="text-[10px] text-neutral-500 uppercase block">Actual</span>
-                <span className="font-bold text-white text-base">
+                <span className="text-[10px] text-zinc-500 uppercase block">Actual</span>
+                <span className="font-extrabold text-zinc-900 text-base">
                   {stats.hasData ? (isWeightVisible ? `${stats.currentWeight} kg` : '••••') : '--'}
                 </span>
               </div>
 
               {stats.hasData && stats.deltaTotal !== 0 && (
-                <div className="border-l border-white/10 pl-4">
-                  <span className="text-[10px] text-neutral-500 uppercase block">Variación</span>
+                <div className="border-l border-zinc-200 pl-4">
+                  <span className="text-[10px] text-zinc-500 uppercase block">Variación</span>
                   <span
                     className={`font-bold text-sm ${
-                      stats.deltaTotal < 0 ? 'text-emerald-400' : 'text-amber-400'
+                      stats.deltaTotal < 0 ? 'text-zinc-900' : 'text-zinc-600'
                     }`}
                   >
                     {isWeightVisible
@@ -169,13 +166,13 @@ export default function WeightEvolutionChart({
               <button
                 type="button"
                 onClick={onToggleVisibility}
-                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-bold transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 text-xs font-bold transition-all cursor-pointer"
               >
                 {isWeightVisible ? 'Ocultar' : 'Revelar'}
               </button>
 
               {/* Rango */}
-              <div className="flex items-center bg-space-950 p-0.5 rounded-lg border border-white/10">
+              <div className="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200">
                 {['7', '30', 'all'].map((r) => (
                   <button
                     key={r}
@@ -183,8 +180,8 @@ export default function WeightEvolutionChart({
                     onClick={() => setRangeFilter(r)}
                     className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                       rangeFilter === r
-                        ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white'
-                        : 'text-neutral-400 hover:text-white'
+                        ? 'bg-black text-white shadow-sm'
+                        : 'text-zinc-600 hover:text-black'
                     }`}
                   >
                     {r === 'all' ? 'TODO' : `${r}D`}
@@ -199,7 +196,7 @@ export default function WeightEvolutionChart({
                   setModalDate(getLocalDateString());
                   setIsModalOpen(true);
                 }}
-                className="px-3 py-1.5 bg-gradient-to-r from-neon-purple to-neon-violet hover:opacity-95 text-white font-bold rounded-lg shadow-sm text-xs transition-all cursor-pointer"
+                className="px-3 py-1.5 bg-black hover:bg-zinc-800 text-white font-bold rounded-lg shadow-sm text-xs transition-all cursor-pointer"
               >
                 + Registrar
               </button>
@@ -221,15 +218,15 @@ export default function WeightEvolutionChart({
                     margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
                   >
                     <defs>
-                      <linearGradient id="minimalGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#A855F7" stopOpacity={0.35} />
-                        <stop offset="95%" stopColor="#06B6D4" stopOpacity={0.0} />
+                      <linearGradient id="minimalGradMono" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#09090B" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#09090B" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E4E4E7" vertical={false} />
                     <XAxis
                       dataKey="label"
-                      stroke="#ffffff30"
+                      stroke="#71717A"
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
@@ -237,7 +234,7 @@ export default function WeightEvolutionChart({
                     />
                     <YAxis
                       domain={yDomain}
-                      stroke="#ffffff30"
+                      stroke="#71717A"
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
@@ -247,35 +244,33 @@ export default function WeightEvolutionChart({
                     <Area
                       type="monotone"
                       dataKey="weight"
-                      stroke="#A855F7"
+                      stroke="#09090B"
                       strokeWidth={2.5}
                       fillOpacity={1}
-                      fill="url(#minimalGrad)"
+                      fill="url(#minimalGradMono)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="py-12 text-center text-xs text-neutral-500 font-mono border border-dashed border-white/10 rounded-xl">
+              <div className="py-12 text-center text-xs text-zinc-500 font-mono border border-dashed border-zinc-200 rounded-xl">
                 Sin registros en este período. Toca en + Registrar.
               </div>
             )}
           </div>
 
-          {/* ===================================================================== */}
-          {/* BOTÓN CONSEJOS & DESPLEGABLE CON PREGUNTA Y RECOMENDACIÓN             */}
-          {/* ===================================================================== */}
-          <div className="pt-2 border-t border-white/10">
+          {/* PANEL DE CONSEJOS & RECOMENDACIONES */}
+          <div className="pt-2 border-t border-zinc-100">
             <button
               type="button"
               onClick={() => setIsTipsOpen(!isTipsOpen)}
-              className="w-full py-2.5 px-4 rounded-xl bg-[#090320] hover:bg-[#0e052c] border border-purple-500/30 flex items-center justify-between text-xs font-bold text-neutral-200 hover:text-white transition-all cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 flex items-center justify-between text-xs font-bold text-zinc-800 transition-all cursor-pointer"
             >
               <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
                 <span>Consejos & Frecuencia Recomendada</span>
               </span>
-              <span className="text-neutral-400 text-[11px] font-mono">
+              <span className="text-zinc-500 text-[11px] font-mono">
                 {isTipsOpen ? 'Ocultar ▲' : 'Ver Consejos ▼'}
               </span>
             </button>
@@ -286,11 +281,11 @@ export default function WeightEvolutionChart({
                 isTipsOpen ? 'max-h-[600px] opacity-100 mt-3' : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="p-4 rounded-xl bg-space-950/90 border border-purple-500/20 space-y-4 text-xs">
+              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 space-y-4 text-xs">
                 
-                {/* 1. Pregunta Sutil de Objetivo */}
+                {/* 1. Pregunta de Objetivo */}
                 <div className="space-y-2">
-                  <span className="text-[11px] text-neutral-300 font-bold block">
+                  <span className="text-[11px] text-zinc-700 font-bold block">
                     ¿Cuál es tu objetivo actual?
                   </span>
                   <div className="grid grid-cols-3 gap-2 text-[11px]">
@@ -305,8 +300,8 @@ export default function WeightEvolutionChart({
                         onClick={() => handleSelectGoal(g.id)}
                         className={`py-2 px-2 rounded-lg font-bold transition-all text-center cursor-pointer ${
                           goalType === g.id
-                            ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md'
-                            : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                            ? 'bg-black text-white shadow-sm'
+                            : 'bg-white text-zinc-600 hover:text-black border border-zinc-200'
                         }`}
                       >
                         {g.label}
@@ -315,26 +310,26 @@ export default function WeightEvolutionChart({
                   </div>
                 </div>
 
-                {/* 2. Recomendación Personalizada según el Objetivo y Datos */}
-                <div className="p-3.5 rounded-lg bg-[#08021a] border border-purple-500/25 space-y-1.5">
-                  <div className="flex items-center justify-between text-neutral-300">
-                    <span className="text-[10px] text-neon-cyan uppercase font-bold">
+                {/* 2. Recomendación Personalizada */}
+                <div className="p-3.5 rounded-lg bg-white border border-zinc-200 space-y-1.5">
+                  <div className="flex items-center justify-between text-zinc-600">
+                    <span className="text-[10px] text-zinc-900 uppercase font-bold">
                       Frecuencia Sugerida
                     </span>
-                    <span className="text-[10px] text-neutral-400 font-mono">
+                    <span className="text-[10px] text-zinc-500 font-mono">
                       {recommendation.frequencyBadge}
                     </span>
                   </div>
-                  <p className="text-white font-bold text-xs">
+                  <p className="text-zinc-900 font-extrabold text-xs">
                     {recommendation.frequencyTitle}
                   </p>
-                  <p className="text-neutral-300 text-[11px] font-sans leading-relaxed">
+                  <p className="text-zinc-600 text-[11px] font-sans leading-relaxed">
                     {recommendation.reasoning}
                   </p>
                 </div>
 
                 {/* Tips Rápidos */}
-                <ul className="space-y-1 text-[11px] text-neutral-400 font-sans list-disc list-inside">
+                <ul className="space-y-1 text-[11px] text-zinc-600 font-sans list-disc list-inside">
                   {recommendation.tips.map((t, idx) => (
                     <li key={idx}>{t}</li>
                   ))}

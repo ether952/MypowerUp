@@ -597,26 +597,35 @@ export default function DailyView({
   };
 
   return (
-    <div className="w-full relative pb-32">
+    <div className="w-full relative pb-4">
 
       {/* ========================================================================= */}
       {/* 01. SECCIÓN SUPERIOR: ENTRENAMIENTO & GIMNASIO                            */}
       {/* ========================================================================= */}
-      <section className="sticky top-[68px] z-10 min-h-[calc(100vh-68px)] flex flex-col justify-between py-4 sm:py-6 px-3 sm:px-8 border-b border-purple-500/20 bg-[#050210] relative overflow-hidden">
+      <section className="sticky top-[68px] z-10 min-h-[calc(100vh-68px)] flex flex-col justify-between py-4 sm:py-6 px-3 sm:px-8 border-b border-zinc-200 bg-[#FAFAFA] relative overflow-hidden">
 
-        {/* Glows ambientales */}
-        <div className="ambient-glow-purple w-96 h-96 -top-10 -left-10 opacity-30" />
-        <div className="ambient-glow-cyan w-80 h-80 top-1/2 -right-10 opacity-25" />
+        {/* Glows ambientales sutiles */}
+        <div className="ambient-glow-purple w-96 h-96 -top-10 -left-10 opacity-40 pointer-events-none" />
+        <div className="ambient-glow-cyan w-80 h-80 top-1/2 -right-10 opacity-30 pointer-events-none" />
 
-        {/* Imagen de fondo decorativa temática HD */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
+        {/* Imagen de fondo decorativa temática HD sutil */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none"
+          style={{
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)'
+          }}
+        >
           <img
             src={bgMusculacion}
             alt=""
             aria-hidden="true"
-            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-25 sm:opacity-30 brightness-100 drop-shadow-[0_0_40px_rgba(168,85,247,0.4)] object-contain select-none transform-gpu"
+            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-5 grayscale object-contain select-none transform-gpu"
           />
         </div>
+
+        {/* Difuminado suave inferior */}
+        <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-[#FAFAFA] via-[#FAFAFA]/80 to-transparent pointer-events-none z-1" />
 
         <div ref={sec1ContentRef} className="space-y-4 sm:space-y-6 md:space-y-8 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
 
@@ -624,59 +633,56 @@ export default function DailyView({
           <ScrollReveal delay={0}>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2">
               <div className="space-y-1">
-                <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-neon-purple font-mono uppercase">
+                <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-zinc-500 font-mono uppercase font-semibold">
                   <span>GIMNASIO & CARGAS</span>
                 </div>
-                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase font-display">
-                  REGISTRA TU <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-mint">SESIÓN</span>
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-zinc-900 uppercase font-display">
+                  REGISTRA TU <span className="text-black underline decoration-zinc-300 underline-offset-8">SESIÓN</span>
                 </h2>
               </div>
 
               {/* Tonelaje Total en Vivo & Botón Móvil */}
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-neon-purple/40 md:pl-6">
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-zinc-300 md:pl-6">
                 <div className="flex items-center gap-4 sm:gap-6">
                   <div>
-                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Peso Total</span>
-                    <span className="text-xl sm:text-3xl font-black font-mono text-neon-cyan">
-                      {totalTonnage.toLocaleString()} <span className="text-xs font-sans text-neutral-400">KG</span>
+                    <span className="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-semibold">Peso Total</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-zinc-900">
+                      {totalTonnage.toLocaleString()} <span className="text-xs font-sans text-zinc-500">KG</span>
                     </span>
                   </div>
                   <div>
-                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Ejercicios</span>
-                    <span className="text-xl sm:text-3xl font-black font-mono text-white">
+                    <span className="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-semibold">Ejercicios</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-zinc-900">
                       {currentDay.workouts?.length || 0}
                     </span>
                   </div>
                 </div>
 
-                {/* Botón para desplegar / plegar (SOLO en mobile cuando no entra la pantalla) */}
+                {/* Botón para desplegar / plegar (SOLO en mobile) */}
                 <button
                   type="button"
                   onClick={() => setIsWorkoutFormOpen(!isWorkoutFormOpen)}
-                  className="md:hidden px-2.5 py-1 bg-neon-purple/15 hover:bg-neon-purple/25 border border-neon-purple/40 rounded-lg text-xs font-mono font-bold text-neon-purple tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
+                  className="md:hidden px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-lg text-xs font-mono font-bold text-zinc-900 tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
                 >
-                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isWorkoutFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-neon-cyan'}`} />
+                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isWorkoutFormOpen ? 'rotate-45 text-rose-600' : 'rotate-0 text-zinc-900'}`} />
                   <span>{isWorkoutFormOpen ? 'Cerrar' : 'Cargar'}</span>
                 </button>
               </div>
             </div>
           </ScrollReveal>
 
-          {/* Formulario de Carga de Ejercicios (Visible siempre en Desktop, desplegable en Mobile) */}
+          {/* Formulario de Carga de Ejercicios */}
           <div className={`${isWorkoutFormOpen ? 'block' : 'hidden'} md:block`}>
             <ScrollReveal delay={100} className="relative z-30">
               <form onSubmit={handleSubmitWorkout} className="space-y-4 sm:space-y-5 pt-1 relative">
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
 
-                  {/* Ejercicio con Dropdown 100% Opaco y sin solapamiento */}
+                  {/* Ejercicio con Dropdown */}
                   <div ref={exerciseContainerRef} className="md:col-span-12 space-y-1.5 relative z-40">
-                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">
                       <label className="flex items-center gap-1.5">
                         <span>Nombre del Ejercicio</span>
-                        {Object.keys(rememberedWorkouts).length > 0 && (
-                          <span className="text-[10px] text-neon-cyan lowercase font-normal"></span>
-                        )}
                       </label>
 
                       {/* Botón sugerencias */}
@@ -687,59 +693,58 @@ export default function DailyView({
                             setShowQuickExercises(!showQuickExercises);
                             setShowExerciseSuggestions(false);
                           }}
-                          className="text-neon-purple hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
+                          className="text-zinc-800 hover:text-black hover:underline transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
                         >
                           [ Sugerencias ]
                         </button>
 
-                        {/* Dropdown de Sugerencias con Acordeón y Encabezado Fijo Superior */}
+                        {/* Dropdown de Sugerencias con Acordeón */}
                         {showQuickExercises && (
-                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-purple/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
-                            {/* Encabezado Fijo Superior - Nada se solapa ni se ve por detrás */}
-                            <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-purple uppercase font-bold tracking-wider select-none shrink-0">
+                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col">
+                            {/* Encabezado Fijo Superior */}
+                            <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between text-[11px] font-mono text-zinc-900 uppercase font-bold tracking-wider select-none shrink-0">
                               <span className="flex items-center gap-2">
-                                <Dumbbell className="w-3.5 h-3.5 text-neon-purple" />
+                                <Dumbbell className="w-3.5 h-3.5 text-zinc-900" />
                                 <span>Ejercicios por Músculo</span>
                               </span>
-                              <span className="text-[10px] text-gray-400 font-mono font-normal">
+                              <span className="text-[10px] text-zinc-500 font-mono font-normal">
                                 {Object.keys(EXERCISES_BY_MUSCLE).length} categorías
                               </span>
                             </div>
 
                             {/* Lista scrolleable con categorías en acordeón */}
-                            <div className="max-h-80 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                            <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100 custom-scrollbar">
                               {Object.entries(EXERCISES_BY_MUSCLE).map(([muscle, exercises]) => {
                                 const isExpanded = expandedMuscle === muscle;
                                 return (
                                   <div key={muscle} className="transition-colors">
-                                    {/* Botón de cada músculo para abrir/cerrar */}
                                     <button
                                       type="button"
                                       onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
                                       className={`w-full px-4 py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${isExpanded
-                                        ? 'bg-[#1D1445] text-neon-cyan font-bold'
-                                        : 'text-neutral-300 hover:bg-[#18113A] hover:text-white font-medium'
+                                        ? 'bg-zinc-100 text-black font-bold'
+                                        : 'text-zinc-700 hover:bg-zinc-50 hover:text-black font-medium'
                                         }`}
                                     >
                                       <div className="flex items-center gap-2">
                                         <span
                                           className={`w-2 h-2 rounded-full transition-all ${isExpanded
-                                            ? 'bg-neon-cyan shadow-[0_0_8px_rgba(0,243,255,0.8)]'
-                                            : 'bg-neon-purple/60'
+                                            ? 'bg-black shadow-sm'
+                                            : 'bg-zinc-400'
                                             }`}
                                         />
                                         <span className="text-xs font-semibold">{muscle}</span>
-                                        <span className="text-[10px] font-mono text-neutral-400">({exercises.length})</span>
+                                        <span className="text-[10px] font-mono text-zinc-400">({exercises.length})</span>
                                       </div>
                                       <ChevronDown
-                                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-neon-cyan' : 'text-neutral-400'
+                                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-black' : 'text-zinc-400'
                                           }`}
                                       />
                                     </button>
 
                                     {/* Lista de ejercicios desplegada al hacer clic */}
                                     {isExpanded && (
-                                      <div className="bg-[#080419] py-1 border-t border-white/5 divide-y divide-white/5">
+                                      <div className="bg-zinc-50/50 py-1 border-t border-zinc-100 divide-y divide-zinc-100">
                                         {exercises.map((name, idx) => (
                                           <button
                                             key={idx}
@@ -748,10 +753,10 @@ export default function DailyView({
                                               setExerciseName(name);
                                               setShowQuickExercises(false);
                                             }}
-                                            className="w-full text-left px-5 py-2.5 text-xs text-white/90 hover:bg-[#231B54] hover:text-neon-cyan transition-colors font-medium flex items-center justify-between group cursor-pointer"
+                                            className="w-full text-left px-5 py-2.5 text-xs text-zinc-700 hover:bg-zinc-100 hover:text-black transition-colors font-medium flex items-center justify-between group cursor-pointer"
                                           >
                                             <span className="group-hover:translate-x-0.5 transition-transform">{name}</span>
-                                            <span className="text-[10px] text-white/30 group-hover:text-neon-cyan/80 transition-colors font-mono">
+                                            <span className="text-[10px] text-zinc-400 group-hover:text-black transition-colors font-mono">
                                               elegir +
                                             </span>
                                           </button>
@@ -769,7 +774,7 @@ export default function DailyView({
 
                     <input
                       type="text"
-                      placeholder="Ej: Press banca, Sentadilla, Dominadas..."
+                      placeholder="Ej: Press banca plano con barra, Sentadilla..."
                       value={exerciseName}
                       onChange={handleExerciseNameChange}
                       onFocus={() => {
@@ -777,41 +782,41 @@ export default function DailyView({
                           setShowExerciseSuggestions(true);
                         }
                       }}
-                      className="w-full input-futuristic px-4 py-2.5 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                      className="w-full input-futuristic px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 rounded-xl font-medium"
                       required
                     />
 
-                    {/* Dropdown de Autocompletado / Memoria inteligente con FONDO SÓLIDO */}
+                    {/* Dropdown de Autocompletado */}
                     {showExerciseSuggestions && exerciseSuggestions.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-2 bg-[#0E0926] border-2 border-neon-purple/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 overflow-hidden divide-y divide-white/10 animate-fade-in-up">
-                        <div className="px-4 py-2 bg-[#080419] text-[10px] font-mono text-neon-purple uppercase tracking-wider flex items-center justify-between font-bold">
+                      <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-zinc-100 animate-fade-in-up">
+                        <div className="px-4 py-2 bg-zinc-50 text-[10px] font-mono text-zinc-600 uppercase tracking-wider flex items-center justify-between font-bold">
                           <span>Memoria Inteligente</span>
-                          <span className="text-neutral-400 font-normal">Click para autorrellenar</span>
+                          <span className="text-zinc-400 font-normal">Click para autorrellenar</span>
                         </div>
                         {exerciseSuggestions.map((item, idx) => (
                           <button
                             key={idx}
                             type="button"
                             onClick={() => handleSelectExerciseSuggestion(item)}
-                            className="w-full text-left px-5 py-3 hover:bg-[#231B54] flex items-center justify-between text-xs transition-colors group cursor-pointer"
+                            className="w-full text-left px-5 py-3 hover:bg-zinc-50 flex items-center justify-between text-xs transition-colors group cursor-pointer"
                           >
                             <div className="flex items-center gap-2.5">
                               {item.sets ? (
-                                <Zap className="w-3.5 h-3.5 text-neon-cyan" />
+                                <Zap className="w-3.5 h-3.5 text-black" />
                               ) : (
-                                <Dumbbell className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neon-purple" />
+                                <Dumbbell className="w-3.5 h-3.5 text-zinc-400 group-hover:text-black" />
                               )}
-                              <span className="font-bold text-white group-hover:text-neon-cyan transition-colors">
+                              <span className="font-bold text-zinc-900 group-hover:text-black transition-colors">
                                 {item.name}
                               </span>
                             </div>
 
                             {item.sets ? (
-                              <span className="font-mono text-neon-mint text-[11px] font-bold">
-                                {item.sets}s × {item.reps}r @ <strong className="text-neon-cyan">{item.weight}kg</strong>
+                              <span className="font-mono text-zinc-900 text-[11px] font-bold">
+                                {item.sets}s × {item.reps}r @ <strong className="text-black">{item.weight}kg</strong>
                               </span>
                             ) : (
-                              <span className="text-neutral-400 text-[10px] font-mono">Ejercicio sugerido</span>
+                              <span className="text-zinc-400 text-[10px] font-mono">Ejercicio sugerido</span>
                             )}
                           </button>
                         ))}
@@ -819,7 +824,7 @@ export default function DailyView({
                     )}
                   </div>
 
-                  {/* Botón Diferente peso (Sutil y angosto) */}
+                  {/* Botón Diferente peso */}
                   <div className="md:col-span-12 flex items-center pt-0.5">
                     <button
                       type="button"
@@ -836,11 +841,10 @@ export default function DailyView({
                         setUseCustomSets(!useCustomSets);
                       }}
                       className={`px-3.5 py-1 rounded-full text-xs font-mono font-bold tracking-wider transition-all duration-200 cursor-pointer select-none flex items-center gap-2 active:scale-95 ${useCustomSets
-                        ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/40 border border-purple-400/40 font-black'
-                        : 'bg-[#0E0926] text-neutral-400 hover:text-white border border-white/10 hover:border-purple-500/40 hover:bg-[#150F38]'
+                        ? 'bg-black text-white shadow-sm font-black'
+                        : 'bg-zinc-100 text-zinc-600 hover:text-black border border-zinc-200 hover:bg-zinc-200'
                         }`}
                     >
-
                       <span>Diferentes pesos</span>
                     </button>
                   </div>
@@ -849,35 +853,35 @@ export default function DailyView({
                     <>
                       {/* Series */}
                       <div className="md:col-span-4 space-y-1.5">
-                        <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Series</label>
+                        <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Series</label>
                         <input
                           type="number"
                           min="1"
                           placeholder="4"
                           value={sets}
                           onChange={(e) => setSets(e.target.value)}
-                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
+                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
                           required={!useCustomSets}
                         />
                       </div>
 
                       {/* Repeticiones */}
                       <div className="md:col-span-4 space-y-1.5">
-                        <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Reps</label>
+                        <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Reps</label>
                         <input
                           type="number"
                           min="1"
                           placeholder="8"
                           value={reps}
                           onChange={(e) => setReps(e.target.value)}
-                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-white placeholder-neutral-500 rounded-xl font-mono font-bold"
+                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
                           required={!useCustomSets}
                         />
                       </div>
 
                       {/* Peso */}
                       <div className="md:col-span-4 space-y-1.5">
-                        <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Peso (Kg)</label>
+                        <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Peso (Kg)</label>
                         <input
                           type="number"
                           min="0"
@@ -885,14 +889,14 @@ export default function DailyView({
                           placeholder="80"
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
-                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
+                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
                           required={!useCustomSets}
                         />
                       </div>
                     </>
                   ) : (
                     <div className="md:col-span-12 space-y-3">
-                      <div className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider">
+                      <div className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">
                         // Series ({customSets.length})
                       </div>
 
@@ -900,35 +904,35 @@ export default function DailyView({
                         {customSets.map((item, idx) => (
                           <div
                             key={idx}
-                            className="p-3 bg-[#0E0926] border border-purple-500/25 rounded-xl flex items-center justify-between gap-2.5 hover:border-purple-500/50 transition-colors shadow-sm"
+                            className="p-3 bg-white border border-zinc-200 rounded-xl flex items-center justify-between gap-2.5 hover:border-zinc-300 transition-colors shadow-sm"
                           >
-                            <span className="text-xs font-mono font-black text-neon-purple shrink-0">
+                            <span className="text-xs font-mono font-black text-zinc-900 shrink-0">
                               #{idx + 1}
                             </span>
 
                             <div className="flex items-center gap-2 flex-1">
                               <div className="flex-1">
-                                <div className="text-[9px] font-mono text-neutral-400 uppercase">Reps</div>
+                                <div className="text-[9px] font-mono text-zinc-500 uppercase">Reps</div>
                                 <input
                                   type="number"
                                   min="1"
                                   value={item.reps}
                                   onChange={(e) => handleCustomSetChange(idx, 'reps', e.target.value)}
-                                  className="w-full input-futuristic px-2 py-1 text-xs text-center text-white rounded-lg font-mono font-bold"
+                                  className="w-full input-futuristic px-2 py-1 text-xs text-center text-zinc-900 rounded-lg font-mono font-bold"
                                   placeholder="10"
                                   required
                                 />
                               </div>
 
                               <div className="flex-1">
-                                <div className="text-[9px] font-mono text-neon-cyan uppercase font-bold">Kg</div>
+                                <div className="text-[9px] font-mono text-zinc-700 uppercase font-bold">Kg</div>
                                 <input
                                   type="number"
                                   min="0"
                                   step="0.5"
                                   value={item.weight}
                                   onChange={(e) => handleCustomSetChange(idx, 'weight', e.target.value)}
-                                  className="w-full input-futuristic px-2 py-1 text-xs text-center text-neon-cyan rounded-lg font-mono font-bold border-cyan-500/40"
+                                  className="w-full input-futuristic px-2 py-1 text-xs text-center text-zinc-900 rounded-lg font-mono font-bold"
                                   placeholder="80"
                                   required
                                 />
@@ -939,7 +943,7 @@ export default function DailyView({
                               <button
                                 type="button"
                                 onClick={() => handleRemoveCustomSet(idx)}
-                                className="p-1 text-neutral-500 hover:text-rose-400 transition-colors cursor-pointer"
+                                className="p-1 text-zinc-400 hover:text-rose-600 transition-colors cursor-pointer"
                                 title="Eliminar esta serie"
                               >
                                 <XCircle className="w-3.5 h-3.5" />
@@ -949,12 +953,12 @@ export default function DailyView({
                         ))}
                       </div>
 
-                      {/* Botón + Violeta para agregar serie abajo */}
+                      {/* Botón + para agregar serie */}
                       <div className="flex justify-center pt-1">
                         <button
                           type="button"
                           onClick={handleAddCustomSet}
-                          className="w-9 h-9 rounded-full bg-gradient-to-tr from-neon-purple to-neon-violet hover:from-neon-violet hover:to-neon-fuchsia text-white flex items-center justify-center transition-all duration-200 shadow-lg shadow-purple-600/40 hover:scale-110 active:scale-95 cursor-pointer border border-purple-300/40 group"
+                          className="w-9 h-9 rounded-full bg-black hover:bg-zinc-800 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:scale-105 active:scale-95 cursor-pointer group"
                           title="Agregar serie"
                           aria-label="Agregar serie"
                         >
@@ -968,25 +972,25 @@ export default function DailyView({
 
                 {/* Fila de acción & cálculo en tiempo real */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
-                  <div className="text-xs font-mono text-neutral-400">
+                  <div className="text-xs font-mono text-zinc-600">
                     {Number(weight) > 0 ? (
                       <div className="flex items-center gap-3 text-xs">
-                        <span>Peso: <strong className="text-neon-cyan font-bold">{Number(weight)} KG</strong></span>
+                        <span>Peso: <strong className="text-zinc-900 font-bold">{Number(weight)} KG</strong></span>
                         {Number(reps) > 0 && live1RM > 0 && (
                           <>
-                            <span className="text-neutral-600">//</span>
-                            <span>1RM: <strong className="text-neon-mint font-bold">{live1RM} KG</strong></span>
+                            <span className="text-zinc-400">//</span>
+                            <span>1RM: <strong className="text-zinc-900 font-bold">{live1RM} KG</strong></span>
                           </>
                         )}
                       </div>
                     ) : (
-                      <span className="text-neutral-500 text-xs">Completa los datos para registrar tu ejercicio.</span>
+                      <span className="text-zinc-500 text-xs">Completa los datos para registrar tu ejercicio.</span>
                     )}
                   </div>
 
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-gradient-to-r from-neon-purple to-neon-violet hover:from-neon-violet hover:to-neon-fuchsia text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-purple-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                    className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0 font-mono"
                   >
                     <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR EJERCICIO
                   </button>
@@ -999,13 +1003,13 @@ export default function DailyView({
           {/* Listado de Ejercicios del Día */}
           <ScrollReveal delay={150} className="relative z-10">
             <div className="space-y-2 pt-2 sm:pt-4">
-              <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
+              <div className="text-xs font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-2 font-semibold">
                 <span>REGISTROS DE ENTRENAMIENTO DE HOY</span>
-                <span className="text-neon-purple">({currentDay.workouts?.length || 0})</span>
+                <span className="text-zinc-900 font-bold">({currentDay.workouts?.length || 0})</span>
               </div>
 
               {(!currentDay.workouts || currentDay.workouts.length === 0) ? (
-                <div className="py-6 text-center text-neutral-600 font-mono text-xs border-t border-b border-purple-500/10">
+                <div className="py-6 text-center text-zinc-400 font-mono text-xs border-t border-b border-zinc-200">
                   No hay series registradas aún. Agrega tu primer ejercicio arriba.
                 </div>
               ) : (
@@ -1016,31 +1020,31 @@ export default function DailyView({
                     return (
                       <div
                         key={w.id}
-                        className="flex justify-between items-center p-3.5 bg-[#0E0926] hover:bg-[#150F38] border-l-4 border-neon-purple border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1"
+                        className="flex justify-between items-center p-3.5 bg-white hover:bg-zinc-50 border-l-4 border-l-black border-t border-r border-b border-zinc-200 rounded-xl transition-all hover:translate-x-0.5 shadow-sm"
                       >
                         <div className="space-y-0.5">
-                          <h4 className="font-bold text-white text-sm tracking-tight">{w.name}</h4>
+                          <h4 className="font-bold text-zinc-900 text-sm tracking-tight">{w.name}</h4>
                           {w.detailedSets && Array.isArray(w.detailedSets) && w.detailedSets.length > 0 ? (
-                            <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono text-neutral-400 pt-0.5">
-                              <span className="text-white font-semibold">{w.sets} series:</span>
+                            <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono text-zinc-500 pt-0.5">
+                              <span className="text-zinc-900 font-semibold">{w.sets} series:</span>
                               {w.detailedSets.map((s, i) => (
-                                <span key={i} className="px-1.5 py-0.5 rounded bg-white/5 border border-purple-500/20 text-white font-bold text-[11px]">
-                                  {s.reps}×<span className="text-neon-cyan">{s.weight}kg</span>
+                                <span key={i} className="px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-zinc-900 font-bold text-[11px]">
+                                  {s.reps}×<span className="text-black font-extrabold">{s.weight}kg</span>
                                 </span>
                               ))}
                               {rm > 0 && (
-                                <span className="text-neutral-400 font-mono font-medium text-[11px]">({rm}k 1RM)</span>
+                                <span className="text-zinc-500 font-mono font-medium text-[11px]">({rm}k 1RM)</span>
                               )}
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2.5 text-xs font-mono text-neutral-400">
-                              <span className="text-white font-semibold">{w.sets}s × {w.reps}r</span>
+                            <div className="flex items-center gap-2.5 text-xs font-mono text-zinc-500">
+                              <span className="text-zinc-900 font-semibold">{w.sets}s × {w.reps}r</span>
                               <span>•</span>
-                              <span className="text-neon-cyan font-bold">{w.weight} KG</span>
+                              <span className="text-zinc-900 font-bold">{w.weight} KG</span>
                               {rm > 0 && (
                                 <>
                                   <span>•</span>
-                                  <span className="text-neutral-400 font-mono font-medium">({rm}k 1RM)</span>
+                                  <span className="text-zinc-500 font-mono font-medium">({rm}k 1RM)</span>
                                 </>
                               )}
                             </div>
@@ -1068,10 +1072,10 @@ export default function DailyView({
           <button
             type="button"
             onClick={scrollToFood}
-            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-neutral-400 hover:text-neon-cyan transition-colors cursor-pointer"
+            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-zinc-500 hover:text-black transition-colors cursor-pointer font-semibold"
           >
             <span>SCROLL PARA NUTRICIÓN & SUPLEMENTOS</span>
-            <ArrowDown className="w-3.5 h-3.5 text-neon-purple group-hover:translate-y-1 transition-transform animate-bounce" />
+            <ArrowDown className="w-3.5 h-3.5 text-zinc-900 group-hover:translate-y-1 transition-transform animate-bounce" />
           </button>
         </div>
 
@@ -1083,90 +1087,95 @@ export default function DailyView({
       {/* ========================================================================= */}
       <section
         ref={foodSectionRef}
-        className="sticky top-[68px] z-20 min-h-[calc(100vh-68px)] py-4 sm:py-6 px-3 sm:px-8 border-t border-cyan-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden flex flex-col justify-between"
+        className="sticky top-[68px] z-20 min-h-[calc(100vh-68px)] py-4 sm:py-6 px-3 sm:px-8 border-t border-zinc-200 bg-white shadow-sm relative overflow-hidden flex flex-col justify-between"
       >
-        <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-25" />
-        <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-20" />
+        <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-30 pointer-events-none" />
+        <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-25 pointer-events-none" />
 
-        {/* Imagen de fondo decorativa temática HD */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
+        {/* Imagen de fondo decorativa temática HD sutil */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none"
+          style={{
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)'
+          }}
+        >
           <img
             src={bgAlimentos}
             alt=""
             aria-hidden="true"
-            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-25 sm:opacity-30 brightness-100 drop-shadow-[0_0_40px_rgba(6,182,212,0.4)] object-contain select-none transform-gpu"
+            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-5 grayscale object-contain select-none transform-gpu"
           />
         </div>
+
+        {/* Difuminado suave inferior */}
+        <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-1" />
 
         <div ref={sec2ContentRef} className="space-y-4 sm:space-y-6 md:space-y-8 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
 
           {/* Cabecera Nutrición con Reveal */}
           <ScrollReveal delay={0}>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-cyan-500/20 pb-3">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-200 pb-3">
               <div className="space-y-1">
-                <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-neon-cyan font-mono uppercase">
+                <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-zinc-500 font-mono uppercase font-semibold">
                   <span>DIETA & SUPLEMENTACIÓN</span>
                 </div>
-                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase font-display">
-                  COMIDAS & <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-neon-mint to-neon-purple">SUPLEMENTOS</span>
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-zinc-900 uppercase font-display">
+                  COMIDAS & <span className="text-black underline decoration-zinc-300 underline-offset-8">MACROS</span>
                 </h2>
               </div>
 
               {/* Totales Nutricionales & Botón Móvil */}
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-neon-cyan/40 md:pl-6">
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-zinc-300 md:pl-6">
                 <div className="flex items-center gap-4 sm:gap-6">
                   <div>
-                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Calorías Totales</span>
-                    <span className="text-xl sm:text-3xl font-black font-mono text-neon-blue">
-                      {totalCalories.toLocaleString()} <span className="text-xs font-sans text-neutral-400">KCAL</span>
+                    <span className="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-semibold">Calorías Totales</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-zinc-900">
+                      {totalCalories.toLocaleString()} <span className="text-xs font-sans text-zinc-500">KCAL</span>
                     </span>
                   </div>
                   <div>
-                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Proteínas</span>
-                    <span className="text-xl sm:text-3xl font-black font-mono text-white">
-                      {totalProtein} <span className="text-xs font-sans text-neutral-400">G</span>
+                    <span className="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-semibold">Proteínas</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-zinc-900">
+                      {totalProtein} <span className="text-xs font-sans text-zinc-500">G</span>
                     </span>
                   </div>
                 </div>
 
-                {/* Botón para desplegar / plegar (SOLO en mobile cuando no entra la pantalla) */}
+                {/* Botón para desplegar / plegar en mobile */}
                 <button
                   type="button"
                   onClick={() => setIsFoodFormOpen(!isFoodFormOpen)}
-                  className="md:hidden px-2.5 py-1 bg-neon-cyan/15 hover:bg-neon-cyan/25 border border-neon-cyan/40 rounded-lg text-xs font-mono font-bold text-neon-cyan tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
+                  className="md:hidden px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-lg text-xs font-mono font-bold text-zinc-900 tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
                 >
-                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isFoodFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-neon-cyan'}`} />
+                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isFoodFormOpen ? 'rotate-45 text-rose-600' : 'rotate-0 text-zinc-900'}`} />
                   <span>{isFoodFormOpen ? 'Cerrar' : 'Cargar'}</span>
                 </button>
               </div>
             </div>
           </ScrollReveal>
 
-          {/* Selector de Momentos & Formulario (Visible siempre en Desktop, desplegable en Mobile) */}
+          {/* Selector de Momentos & Formulario */}
           <div className={`${isFoodFormOpen ? 'block' : 'hidden'} md:block space-y-3 sm:space-y-4 pt-1`}>
-            {/* Selector de Momentos & Suplementos con Contraste y Brillo Perfecto */}
             <ScrollReveal delay={100}>
               <div className="space-y-2">
-                <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
+                <div className="text-[11px] font-mono tracking-wider text-zinc-500 uppercase font-semibold">
                   TIPO DE REGISTRO
                 </div>
 
                 {/* Selector Unificado estilo Cápsula */}
-                <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
+                <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-zinc-100 border border-zinc-200 flex-wrap max-w-full">
                   {MEAL_TYPES.map((type) => {
                     const isSelected = mealType === type.id;
-                    const isSupp = type.id === 'suplementacion';
 
                     return (
                       <button
                         key={type.id}
                         type="button"
                         onClick={() => setMealType(type.id)}
-                        className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${isSelected
-                          ? isSupp
-                            ? 'bg-neon-mint text-space-950 font-black shadow-md shadow-emerald-500/30'
-                            : 'bg-gradient-to-r from-neon-cyan to-neon-blue text-space-950 font-black shadow-md shadow-cyan-500/30'
-                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none ${isSelected
+                          ? 'bg-black text-white font-bold shadow-sm'
+                          : 'text-zinc-600 hover:text-black hover:bg-zinc-200'
                           }`}
                       >
                         {type.tag} // {type.label.toUpperCase()}
@@ -1177,7 +1186,7 @@ export default function DailyView({
               </div>
             </ScrollReveal>
 
-            {/* Formulario de Carga de Comida o Suplemento con Reveal y Memoria */}
+            {/* Formulario de Carga de Comida o Suplemento */}
             <ScrollReveal delay={200} className="relative z-30">
               <form onSubmit={handleSubmitFood} className="space-y-3 sm:space-y-4 relative">
 
@@ -1185,27 +1194,25 @@ export default function DailyView({
 
                   {/* Horario */}
                   <div className="md:col-span-2 space-y-1">
-                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono">Horario</label>
+                    <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Horario</label>
                     <input
                       type="time"
                       value={mealTime}
                       onChange={(e) => setMealTime(e.target.value)}
-                      className="w-full input-futuristic-cyan px-3 py-2 text-xs text-center text-white rounded-xl font-mono cursor-pointer"
+                      className="w-full input-futuristic px-3 py-2 text-xs text-center text-zinc-900 rounded-xl font-mono cursor-pointer"
                       required
                     />
                   </div>
 
-                  {/* Nombre Alimento / Suplemento con Dropdown 100% Opaco */}
+                  {/* Nombre Alimento / Suplemento */}
                   <div ref={foodContainerRef} className="md:col-span-5 space-y-1 relative z-40">
-                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">
                       <label className="flex items-center gap-1.5">
                         <span>{mealType === 'suplementacion' ? 'Suplemento' : 'Alimento o Plato'}</span>
                         {isEstimatingAI ? (
-                          <span className="text-[10px] text-neon-cyan font-mono animate-pulse lowercase font-normal flex items-center gap-1">
+                          <span className="text-[10px] text-zinc-800 font-mono animate-pulse lowercase font-normal flex items-center gap-1">
                             ✨ estimando macros con ia...
                           </span>
-                        ) : Object.keys(rememberedFoods).length > 0 ? (
-                          <span className="text-[10px] text-neon-mint lowercase font-normal"></span>
                         ) : null}
                       </label>
 
@@ -1217,7 +1224,7 @@ export default function DailyView({
                               setShowQuickSupps(!showQuickSupps);
                               setShowFoodSuggestions(false);
                             }}
-                            className="text-neon-mint hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
+                            className="text-zinc-800 hover:text-black hover:underline transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
                           >
                             [ suplementos ]
                           </button>
@@ -1228,38 +1235,38 @@ export default function DailyView({
                               setShowQuickFoods(!showQuickFoods);
                               setShowFoodSuggestions(false);
                             }}
-                            className="text-neon-cyan hover:text-white transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
+                            className="text-zinc-800 hover:text-black hover:underline transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
                           >
                             [ alimentos ]
                           </button>
                         )}
 
-                        {/* Dropdown de Alimentos Rápidos con Acordeón por Categorías */}
+                        {/* Dropdown de Alimentos Rápidos */}
                         {showQuickFoods && (
-                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-cyan/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
-                            <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-cyan uppercase font-bold tracking-wider select-none shrink-0">
+                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col">
+                            <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between text-[11px] font-mono text-zinc-900 uppercase font-bold tracking-wider select-none shrink-0">
                               <span>Base de Alimentos</span>
-                              <span className="text-[10px] text-gray-400 font-mono font-normal">
+                              <span className="text-[10px] text-zinc-500 font-mono font-normal">
                                 {Object.keys(QUICK_FOODS).length} categorías
                               </span>
                             </div>
 
-                            <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                            <div className="max-h-72 overflow-y-auto divide-y divide-zinc-100 custom-scrollbar">
                               {Object.entries(QUICK_FOODS).map(([category, items]) => (
                                 <div key={category} className="py-2">
-                                  <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-neon-cyan/70 font-bold bg-[#140D36]">
+                                  <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-600 font-bold bg-zinc-50">
                                     {category}
                                   </div>
-                                  <div className="divide-y divide-white/5">
+                                  <div className="divide-y divide-zinc-100">
                                     {items.map((item, idx) => (
                                       <button
                                         key={idx}
                                         type="button"
                                         onClick={() => handleSelectQuickFood(item)}
-                                        className="w-full text-left px-5 py-2 hover:bg-[#1D1445] flex items-center justify-between text-xs text-neutral-300 hover:text-white transition-colors font-medium cursor-pointer"
+                                        className="w-full text-left px-5 py-2 hover:bg-zinc-50 flex items-center justify-between text-xs text-zinc-700 hover:text-black transition-colors font-medium cursor-pointer"
                                       >
                                         <span>{item.name}</span>
-                                        <span className="text-[10px] font-mono text-neon-mint font-bold">
+                                        <span className="text-[10px] font-mono text-zinc-600 font-bold">
                                           {item.calories} kcal ({item.protein}g P)
                                         </span>
                                       </button>
@@ -1271,32 +1278,32 @@ export default function DailyView({
                           </div>
                         )}
 
-                        {/* Dropdown de Suplementos con Acordeón por Categorías */}
+                        {/* Dropdown de Suplementos */}
                         {showQuickSupps && (
-                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0E0926] border-2 border-neon-mint/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50 overflow-hidden flex flex-col">
-                            <div className="px-4 py-3 bg-[#080419] border-b border-white/10 flex items-center justify-between text-[11px] font-mono text-neon-mint uppercase font-bold tracking-wider select-none shrink-0">
+                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col">
+                            <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between text-[11px] font-mono text-zinc-900 uppercase font-bold tracking-wider select-none shrink-0">
                               <span>Base de Suplementación</span>
-                              <span className="text-[10px] text-gray-400 font-mono font-normal">
+                              <span className="text-[10px] text-zinc-500 font-mono font-normal">
                                 {Object.keys(QUICK_SUPPLEMENTS).length} categorías
                               </span>
                             </div>
 
-                            <div className="max-h-72 overflow-y-auto divide-y divide-white/10 custom-scrollbar">
+                            <div className="max-h-72 overflow-y-auto divide-y divide-zinc-100 custom-scrollbar">
                               {Object.entries(QUICK_SUPPLEMENTS).map(([category, items]) => (
                                 <div key={category} className="py-2">
-                                  <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-neon-mint/70 font-bold bg-[#0D261E]">
+                                  <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-600 font-bold bg-zinc-50">
                                     {category}
                                   </div>
-                                  <div className="divide-y divide-white/5">
+                                  <div className="divide-y divide-zinc-100">
                                     {items.map((item, idx) => (
                                       <button
                                         key={idx}
                                         type="button"
                                         onClick={() => handleSelectQuickSupp(item)}
-                                        className="w-full text-left px-5 py-2 hover:bg-[#143D30] flex items-center justify-between text-xs text-neutral-300 hover:text-white transition-colors font-medium cursor-pointer"
+                                        className="w-full text-left px-5 py-2 hover:bg-zinc-50 flex items-center justify-between text-xs text-zinc-700 hover:text-black transition-colors font-medium cursor-pointer"
                                       >
                                         <span>{item.name}</span>
-                                        <span className="text-[10px] font-mono text-neon-mint font-bold">
+                                        <span className="text-[10px] font-mono text-zinc-600 font-bold">
                                           {item.calories} kcal ({item.protein}g P)
                                         </span>
                                       </button>
@@ -1325,34 +1332,34 @@ export default function DailyView({
                           setShowFoodSuggestions(true);
                         }
                       }}
-                      className="w-full input-futuristic-cyan px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                      className="w-full input-futuristic px-4 py-2 text-sm text-zinc-900 placeholder-zinc-400 rounded-xl font-medium"
                       required
                     />
 
-                    {/* Dropdown de Autocompletado / Memoria inteligente */}
+                    {/* Dropdown de Autocompletado */}
                     {showFoodSuggestions && foodSuggestions.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-2 bg-[#0E0926] border-2 border-neon-cyan/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 overflow-hidden divide-y divide-white/10 animate-fade-in-up">
-                        <div className="px-4 py-2 bg-[#080419] text-[10px] font-mono text-neon-cyan uppercase tracking-wider flex items-center justify-between font-bold">
+                      <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-zinc-100 animate-fade-in-up">
+                        <div className="px-4 py-2 bg-zinc-50 text-[10px] font-mono text-zinc-600 uppercase tracking-wider flex items-center justify-between font-bold">
                           <span>Memoria Nutricional Inteligente</span>
-                          <span className="text-neutral-400 font-normal">Click para autorrellenar</span>
+                          <span className="text-zinc-400 font-normal">Click para autorrellenar</span>
                         </div>
                         {foodSuggestions.map((item, idx) => (
                           <button
                             key={idx}
                             type="button"
                             onClick={() => handleSelectFoodSuggestion(item)}
-                            className="w-full text-left px-5 py-3 hover:bg-[#1D1445] flex items-center justify-between text-xs transition-colors group cursor-pointer"
+                            className="w-full text-left px-5 py-3 hover:bg-zinc-50 flex items-center justify-between text-xs transition-colors group cursor-pointer"
                           >
                             <div className="flex items-center gap-2.5">
-                              <span className="font-bold text-white group-hover:text-neon-cyan transition-colors">
+                              <span className="font-bold text-zinc-900 group-hover:text-black transition-colors">
                                 {item.name}
                               </span>
-                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-neutral-300 uppercase">
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 uppercase">
                                 {item.mealType || 'comida'}
                               </span>
                             </div>
 
-                            <span className="font-mono text-neon-mint text-[11px] font-bold">
+                            <span className="font-mono text-zinc-900 text-[11px] font-bold">
                               {item.calories} kcal • {item.protein}g P
                             </span>
                           </button>
@@ -1363,12 +1370,12 @@ export default function DailyView({
 
                   {/* Calorías */}
                   <div className="md:col-span-2 space-y-1">
-                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">
                       <label>Calorías</label>
                       {isEstimatingAI ? (
-                        <span className="text-[10px] text-neon-cyan font-mono animate-pulse font-bold">[✨ IA...]</span>
+                        <span className="text-[10px] text-zinc-800 font-mono animate-pulse font-bold">[✨ IA...]</span>
                       ) : currentNutritionEst.matched ? (
-                        <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.calories}]</span>
+                        <span className="text-[10px] text-zinc-600 font-mono font-bold">[Auto: ~{currentNutritionEst.calories}]</span>
                       ) : null}
                     </div>
                     <input
@@ -1377,20 +1384,20 @@ export default function DailyView({
                       placeholder={isEstimatingAI ? "..." : (currentNutritionEst.matched ? String(currentNutritionEst.calories) : "350")}
                       value={calories}
                       onChange={(e) => setCalories(e.target.value)}
-                      className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-cyan placeholder-neutral-500 rounded-xl font-mono font-bold"
+                      className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
                       required
                     />
                   </div>
 
                   {/* Proteína */}
                   <div ref={aiInfoRef} className="md:col-span-3 space-y-1 relative">
-                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-neutral-400 font-mono">
+                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">
                       <label className="flex items-center gap-1.5 select-none">
                         <span>Proteína (g)</span>
                         <button
                           type="button"
                           onClick={() => setShowAiInfoTooltip(!showAiInfoTooltip)}
-                          className="w-4 h-4 rounded-full bg-cyan-500/20 hover:bg-cyan-500/40 text-neon-cyan hover:text-white border border-cyan-500/50 inline-flex items-center justify-center text-[10px] font-black font-mono transition-all active:scale-90 cursor-pointer shadow-sm shadow-cyan-500/20"
+                          className="w-4 h-4 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-black border border-zinc-300 inline-flex items-center justify-center text-[10px] font-black font-mono transition-all active:scale-90 cursor-pointer"
                           title="Información sobre la estimación de IA"
                           aria-label="Información sobre cálculo automático"
                         >
@@ -1398,9 +1405,9 @@ export default function DailyView({
                         </button>
                       </label>
                       {isEstimatingAI ? (
-                        <span className="text-[10px] text-neon-cyan font-mono animate-pulse font-bold">[✨ IA...]</span>
+                        <span className="text-[10px] text-zinc-800 font-mono animate-pulse font-bold">[✨ IA...]</span>
                       ) : currentNutritionEst.matched ? (
-                        <span className="text-[10px] text-neon-mint font-mono font-bold">[Auto: ~{currentNutritionEst.protein}g]</span>
+                        <span className="text-[10px] text-zinc-600 font-mono font-bold">[Auto: ~{currentNutritionEst.protein}g]</span>
                       ) : null}
                     </div>
                     <input
@@ -1410,29 +1417,29 @@ export default function DailyView({
                       placeholder={isEstimatingAI ? "..." : (currentNutritionEst.matched ? String(currentNutritionEst.protein) : "35")}
                       value={protein}
                       onChange={(e) => setProtein(e.target.value)}
-                      className="w-full input-futuristic-cyan px-3 py-2 text-sm text-center text-neon-mint placeholder-neutral-500 rounded-xl font-mono font-bold"
+                      className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
                     />
 
-                    {/* Popover explicativo al hacer clic en ? */}
+                    {/* Popover explicativo */}
                     {showAiInfoTooltip && (
-                      <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-[#0D0826] border-2 border-cyan-500/70 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 text-xs text-neutral-200 backdrop-blur-xl">
-                        <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-cyan-500/30">
-                          <span className="font-mono font-bold text-neon-cyan text-[11px] flex items-center gap-1.5 uppercase">
-                            <Sparkles className="w-3.5 h-3.5 text-neon-mint inline" />
+                      <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 text-xs text-zinc-700">
+                        <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-zinc-100">
+                          <span className="font-mono font-bold text-zinc-900 text-[11px] flex items-center gap-1.5 uppercase">
+                            <Sparkles className="w-3.5 h-3.5 text-black inline" />
                             <span>Cálculo con Inteligencia Artificial</span>
                           </span>
                           <button
                             type="button"
                             onClick={() => setShowAiInfoTooltip(false)}
-                            className="text-neutral-400 hover:text-white text-xs font-mono px-1 py-0.5 rounded cursor-pointer transition-colors"
+                            className="text-zinc-400 hover:text-black text-xs font-mono px-1 py-0.5 rounded cursor-pointer transition-colors"
                           >
                             ✕
                           </button>
                         </div>
-                        <p className="text-[11px] leading-relaxed text-neutral-300">
-                          Al escribir el nombre de tu comida, la IA calcula las <strong className="text-neon-cyan">calorías</strong> y <strong className="text-neon-mint">proteínas</strong> de la forma más aproximada posible según ingredientes estándar.
+                        <p className="text-[11px] leading-relaxed text-zinc-600">
+                          Al escribir el nombre de tu comida, la IA calcula las calorías y proteínas de forma aproximada según ingredientes estándar.
                         </p>
-                        <div className="mt-2 pt-2 border-t border-white/5 text-[10px] font-mono text-amber-300/95 flex items-start gap-1.5">
+                        <div className="mt-2 pt-2 border-t border-zinc-100 text-[10px] font-mono text-zinc-500 flex items-start gap-1.5">
                           <span className="shrink-0 text-xs">⚠️</span>
                           <span>Ten en cuenta que el valor puede no ser 100% exacto. Puedes ajustarlo manualmente cuando quieras.</span>
                         </div>
@@ -1446,7 +1453,7 @@ export default function DailyView({
                 <div className="flex justify-end pt-0.5">
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-blue hover:to-neon-purple text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono"
                   >
                     <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR {mealType === 'suplementacion' ? 'SUPLEMENTO' : 'COMIDA'}
                   </button>
@@ -1456,54 +1463,51 @@ export default function DailyView({
             </ScrollReveal>
           </div>
 
-          {/* Listado de Comidas y Suplementos con Reveal */}
+          {/* Listado de Comidas y Suplementos */}
           <ScrollReveal delay={250} className="relative z-10">
             <div className="space-y-2 pt-2 sm:pt-4">
-              <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
+              <div className="text-xs font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-2 font-semibold">
                 <span>REGISTROS NUTRICIONALES DE HOY</span>
-                <span className="text-neon-cyan">({currentDay.foods?.length || 0})</span>
+                <span className="text-zinc-900 font-bold">({currentDay.foods?.length || 0})</span>
               </div>
 
               {(!currentDay.foods || currentDay.foods.length === 0) ? (
-                <div className="py-6 text-center text-neutral-600 font-mono text-xs border-t border-b border-cyan-500/10">
+                <div className="py-6 text-center text-zinc-400 font-mono text-xs border-t border-b border-zinc-200">
                   No hay comidas o suplementos registrados hoy. Agrega uno arriba.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[180px] sm:max-h-[240px] md:max-h-[280px] overflow-y-auto custom-scrollbar pr-1 pb-4">
                   {currentDay.foods.map((f) => {
                     const mealMeta = MEAL_TYPES.find(m => m.id === f.mealType) || { label: f.mealType || 'Comida', tag: '00' };
-                    const isSupp = f.mealType === 'suplementacion';
 
                     return (
                       <div
                         key={f.id}
-                        className={`flex justify-between items-center p-3.5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${isSupp ? 'border-l-4 border-neon-mint' : 'border-l-4 border-neon-cyan'
-                          }`}
+                        className="flex justify-between items-center p-3.5 bg-white hover:bg-zinc-50 border-l-4 border-l-black border-t border-r border-b border-zinc-200 rounded-xl transition-all hover:translate-x-0.5 shadow-sm"
                       >
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold ${isSupp ? 'bg-neon-mint/10 text-neon-mint border border-neon-mint/30' : 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30'
-                              }`}>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold bg-zinc-100 text-zinc-700 border border-zinc-200">
                               {mealMeta.label}
                             </span>
                             {f.time && (
-                              <span className="text-xs font-mono text-neutral-400">{f.time}</span>
+                              <span className="text-xs font-mono text-zinc-400">{f.time}</span>
                             )}
                           </div>
 
-                          <h4 className="font-bold text-white text-sm tracking-tight">{f.name}</h4>
+                          <h4 className="font-bold text-zinc-900 text-sm tracking-tight">{f.name}</h4>
 
-                          <div className="flex items-center gap-2.5 text-xs font-mono text-neutral-400">
-                            <span className="text-neon-purple font-semibold">{f.calories} kcal</span>
+                          <div className="flex items-center gap-2.5 text-xs font-mono text-zinc-500">
+                            <span className="text-zinc-900 font-semibold">{f.calories} kcal</span>
                             <span>•</span>
-                            <span className="text-neon-purple font-bold">{f.protein || 0}g proteína</span>
+                            <span className="text-zinc-900 font-bold">{f.protein || 0}g proteína</span>
                           </div>
                         </div>
 
                         <ItemActionMenu
                           onEdit={() => setEditingFood(f)}
                           onDelete={() => onDeleteFood(f.id)}
-                          variant={isSupp ? "emerald" : "cyan"}
+                          variant="cyan"
                           itemName={f.name}
                         />
                       </div>
@@ -1521,10 +1525,10 @@ export default function DailyView({
           <button
             type="button"
             onClick={() => cardioSectionRef.current?.scrollIntoView({ behavior: 'smooth' })}
-            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
+            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-zinc-500 hover:text-black transition-colors cursor-pointer font-semibold"
           >
             <span>SCROLL PARA CARDIO & DESPLAZAMIENTOS</span>
-            <ArrowDown className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-y-1 transition-transform animate-bounce" />
+            <ArrowDown className="w-3.5 h-3.5 text-zinc-900 group-hover:translate-y-1 transition-transform animate-bounce" />
           </button>
         </div>
 
@@ -1535,76 +1539,85 @@ export default function DailyView({
       {/* ========================================================================= */}
       <section
         ref={cardioSectionRef}
-        className="sticky top-[68px] z-30 min-h-[calc(100vh-68px)] py-4 sm:py-6 px-3 sm:px-8 border-t border-emerald-500/20 bg-[#050210] shadow-[0_-25px_50px_rgba(5,2,16,0.95)] relative overflow-hidden flex flex-col justify-between"
+        className="sticky top-[68px] z-30 min-h-[calc(100vh-68px)] py-4 sm:py-6 px-3 sm:px-8 border-t border-zinc-200 bg-[#FAFAFA] shadow-sm relative overflow-hidden flex flex-col justify-between"
       >
-        <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-20" />
-        <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-15" />
+        <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-25 pointer-events-none" />
+        <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-20 pointer-events-none" />
 
-        {/* Imagen de fondo decorativa temática HD */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
+        {/* Imagen de fondo decorativa temática HD sutil */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none"
+          style={{
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)'
+          }}
+        >
           <img
             src={bgCardio}
             alt=""
             aria-hidden="true"
-            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-25 sm:opacity-30 brightness-100 drop-shadow-[0_0_40px_rgba(16,185,129,0.4)] object-contain select-none transform-gpu"
+            className="w-[340px] sm:w-[520px] md:w-[680px] lg:w-[820px] max-w-none opacity-5 grayscale object-contain select-none transform-gpu"
           />
         </div>
+
+        {/* Difuminado suave inferior */}
+        <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-[#FAFAFA] via-[#FAFAFA]/80 to-transparent pointer-events-none z-1" />
 
         <div className="space-y-4 sm:space-y-6 md:space-y-8 relative z-10 max-w-6xl mx-auto w-full">
 
           {/* Cabecera Cardio con Reveal */}
           <ScrollReveal delay={0}>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-emerald-500/20 pb-3">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-200 pb-3">
               <div className="space-y-1">
-                <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-emerald-400 font-mono uppercase">
+                <div className="flex items-center gap-3 text-xs tracking-[0.25em] text-zinc-500 font-mono uppercase font-semibold">
                   <span>ACTIVIDAD & DESPLAZAMIENTOS</span>
                 </div>
-                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white uppercase font-display">
-                  CARDIO & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">DISTANCIA</span>
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-zinc-900 uppercase font-display">
+                  CARDIO & <span className="text-black underline decoration-zinc-300 underline-offset-8">DISTANCIA</span>
                 </h2>
               </div>
 
               {/* Totales de Cardio & Botón Móvil */}
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-emerald-500/40 md:pl-6">
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 border-l-0 md:border-l-2 border-zinc-300 md:pl-6">
                 <div className="flex items-center gap-4 sm:gap-6">
                   <div>
-                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Distancia Total</span>
-                    <span className="text-xl sm:text-3xl font-black font-mono text-emerald-400">
-                      {Math.round(totalCardioKm * 10) / 10} <span className="text-xs font-sans text-neutral-400">KM</span>
+                    <span className="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-semibold">Distancia Total</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-zinc-900">
+                      {Math.round(totalCardioKm * 10) / 10} <span className="text-xs font-sans text-zinc-500">KM</span>
                     </span>
                   </div>
                   <div>
-                    <span className="block text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Gasto Estimado</span>
-                    <span className="text-xl sm:text-3xl font-black font-mono text-amber-400">
-                      {totalCardioBurned.toLocaleString()} <span className="text-xs font-sans text-neutral-400">KCAL</span>
+                    <span className="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-semibold">Gasto Estimado</span>
+                    <span className="text-xl sm:text-3xl font-black font-mono text-zinc-900">
+                      {totalCardioBurned.toLocaleString()} <span className="text-xs font-sans text-zinc-500">KCAL</span>
                     </span>
                   </div>
                 </div>
 
-                {/* Botón para desplegar / plegar (SOLO en mobile cuando no entra la pantalla) */}
+                {/* Botón para desplegar / plegar en mobile */}
                 <button
                   type="button"
                   onClick={() => setIsCardioFormOpen(!isCardioFormOpen)}
-                  className="md:hidden px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 rounded-lg text-xs font-mono font-bold text-emerald-400 tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
+                  className="md:hidden px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-lg text-xs font-mono font-bold text-zinc-900 tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
                 >
-                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isCardioFormOpen ? 'rotate-45 text-rose-400' : 'rotate-0 text-emerald-400'}`} />
+                  <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isCardioFormOpen ? 'rotate-45 text-rose-600' : 'rotate-0 text-zinc-900'}`} />
                   <span>{isCardioFormOpen ? 'Cerrar' : 'Cargar'}</span>
                 </button>
               </div>
             </div>
           </ScrollReveal>
 
-          {/* Selector de Actividad & Formulario (Visible siempre en Desktop, desplegable en Mobile) */}
+          {/* Selector de Actividad & Formulario */}
           <div className={`${isCardioFormOpen ? 'block' : 'hidden'} md:block space-y-3 sm:space-y-4 pt-1`}>
-            {/* Selector de Actividad (Caminata, Running, Bicicleta) */}
+            {/* Selector de Actividad */}
             <ScrollReveal delay={100}>
               <div className="space-y-2">
-                <div className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
+                <div className="text-[11px] font-mono tracking-wider text-zinc-500 uppercase font-semibold">
                   TIPO DE CARDIO
                 </div>
 
                 {/* Selector Unificado estilo Cápsula */}
-                <div className="inline-flex items-center gap-1 p-1 rounded-full bg-[#0E0926]/90 border border-white/10 flex-wrap max-w-full shadow-inner">
+                <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-zinc-100 border border-zinc-200 flex-wrap max-w-full">
                   {CARDIO_TYPES.map((c) => {
                     const isSelected = cardioType === c.id;
                     return (
@@ -1612,16 +1625,16 @@ export default function DailyView({
                         key={c.id}
                         type="button"
                         onClick={() => setCardioType(c.id)}
-                        className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${isSelected
-                          ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-space-950 font-black shadow-md shadow-emerald-500/25'
-                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wider transition-all cursor-pointer select-none flex items-center gap-2 ${isSelected
+                          ? 'bg-black text-white font-bold shadow-sm'
+                          : 'text-zinc-600 hover:text-black hover:bg-zinc-200'
                           }`}
                       >
                         {c.id === 'caminata' && <Footprints className="w-3.5 h-3.5" />}
                         {c.id === 'running' && <Flame className="w-3.5 h-3.5" />}
                         {c.id === 'bicicleta' && <Bike className="w-3.5 h-3.5" />}
                         <span>{c.label.toUpperCase()}</span>
-                        <span className={`text-[10px] ${isSelected ? 'text-black/75 font-semibold' : 'text-neutral-500'}`}>
+                        <span className={`text-[10px] ${isSelected ? 'text-zinc-300 font-semibold' : 'text-zinc-500'}`}>
                           ({c.desc})
                         </span>
                       </button>
@@ -1638,8 +1651,8 @@ export default function DailyView({
 
                   {/* Desde donde (Origen) */}
                   <div className="md:col-span-4 space-y-1">
-                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                    <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-zinc-900" />
                       <span>Desde dónde (Origen)</span>
                     </label>
                     <input
@@ -1647,15 +1660,15 @@ export default function DailyView({
                       placeholder="Ej: Casa, Gimnasio, Costanera..."
                       value={cardioFrom}
                       onChange={(e) => setCardioFrom(e.target.value)}
-                      className="w-full input-futuristic-emerald px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                      className="w-full input-futuristic px-4 py-2 text-sm text-zinc-900 placeholder-zinc-400 rounded-xl font-medium"
                       required
                     />
                   </div>
 
                   {/* Hasta donde (Destino) */}
                   <div className="md:col-span-4 space-y-1">
-                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono flex items-center gap-1.5">
-                      <Route className="w-3.5 h-3.5 text-cyan-400" />
+                    <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold flex items-center gap-1.5">
+                      <Route className="w-3.5 h-3.5 text-zinc-900" />
                       <span>Hasta dónde (Destino)</span>
                     </label>
                     <input
@@ -1663,14 +1676,14 @@ export default function DailyView({
                       placeholder="Ej: Parque, Trabajo, Vuelta al dique..."
                       value={cardioTo}
                       onChange={(e) => setCardioTo(e.target.value)}
-                      className="w-full input-futuristic-emerald px-4 py-2 text-sm text-white placeholder-neutral-500 rounded-xl font-medium"
+                      className="w-full input-futuristic px-4 py-2 text-sm text-zinc-900 placeholder-zinc-400 rounded-xl font-medium"
                       required
                     />
                   </div>
 
                   {/* Distancia en Kilómetros */}
                   <div className="md:col-span-2 space-y-1">
-                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
+                    <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold text-center">
                       Distancia (KM)
                     </label>
                     <input
@@ -1680,22 +1693,22 @@ export default function DailyView({
                       placeholder="5.0"
                       value={cardioDistance}
                       onChange={(e) => setCardioDistance(e.target.value)}
-                      className="w-full input-futuristic-emerald px-3 py-2 text-sm text-center text-emerald-400 placeholder-neutral-500 rounded-xl font-mono font-bold"
+                      className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
                       required
                     />
                   </div>
 
-                  {/* Gasto calórico calculado dinámicamente en tiempo real */}
+                  {/* Gasto calórico */}
                   <div className="md:col-span-2 space-y-1">
-                    <label className="block text-xs tracking-wider uppercase text-neutral-400 font-mono text-center">
+                    <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold text-center">
                       Gasto Est. (Kcal)
                     </label>
-                    <div className="w-full h-[38px] bg-[#0E0926]/80 border border-amber-500/30 rounded-xl flex items-center justify-center gap-1.5 px-2">
-                      <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                      <span className="font-mono font-bold text-sm text-amber-400">
+                    <div className="w-full h-[38px] bg-zinc-100 border border-zinc-200 rounded-xl flex items-center justify-center gap-1.5 px-2">
+                      <Flame className="w-3.5 h-3.5 text-zinc-900" />
+                      <span className="font-mono font-bold text-sm text-zinc-900">
                         {estimatedCardioBurn > 0 ? `~${estimatedCardioBurn}` : '0'}
                       </span>
-                      <span className="text-[10px] font-mono text-neutral-400 uppercase">kcal</span>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase">kcal</span>
                     </div>
                   </div>
 
@@ -1703,14 +1716,14 @@ export default function DailyView({
 
                 {/* Botón de Guardar Cardio */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-0.5">
-                  <div className="text-xs font-mono text-neutral-400 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <div className="text-xs font-mono text-zinc-500 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
                     <span>Cálculo auto: {cardioType === 'caminata' ? '~55' : cardioType === 'running' ? '~75' : '~35'} kcal/km</span>
                   </div>
 
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-teal-500 hover:to-emerald-500 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-emerald-600/25 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono"
                   >
                     <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR SESIÓN DE CARDIO
                   </button>
@@ -1722,40 +1735,27 @@ export default function DailyView({
           {/* Listado de Sesiones de Cardio de Hoy */}
           <ScrollReveal delay={250}>
             <div className="space-y-2 pt-2 sm:pt-4">
-              <div className="text-xs font-mono tracking-widest text-neutral-400 uppercase flex items-center gap-2">
+              <div className="text-xs font-mono tracking-widest text-zinc-500 uppercase flex items-center gap-2 font-semibold">
                 <span>// SESIONES DE CARDIO DE HOY</span>
-                <span className="text-emerald-400">({currentDay.cardios?.length || 0})</span>
+                <span className="text-zinc-900 font-bold">({currentDay.cardios?.length || 0})</span>
               </div>
 
               {(!currentDay.cardios || currentDay.cardios.length === 0) ? (
-                <div className="py-6 text-center text-neutral-600 font-mono text-xs border-t border-b border-emerald-500/10">
+                <div className="py-6 text-center text-zinc-400 font-mono text-xs border-t border-b border-zinc-200">
                   No hay sesiones de cardio registradas hoy. Agrega una arriba.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[140px] sm:max-h-[180px] md:max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
                   {currentDay.cardios.map((c) => {
-                    const isRun = c.type === 'running';
-                    const isBike = c.type === 'bicicleta';
-
                     return (
                       <div
                         key={c.id}
-                        className={`flex justify-between items-center p-3.5 bg-[#0E0926] hover:bg-[#150F38] border-t border-r border-b border-white/5 rounded-xl transition-all hover:translate-x-1 ${isRun
-                          ? 'border-l-4 border-amber-400'
-                          : isBike
-                            ? 'border-l-4 border-cyan-400'
-                            : 'border-l-4 border-emerald-400'
-                          }`}
+                        className="flex justify-between items-center p-3.5 bg-white hover:bg-zinc-50 border-l-4 border-l-black border-t border-r border-b border-zinc-200 rounded-xl transition-all hover:translate-x-0.5 shadow-sm"
                       >
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold flex items-center gap-1.5 ${isRun
-                                ? 'bg-amber-400/10 text-amber-400 border border-amber-400/30'
-                                : isBike
-                                  ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/30'
-                                  : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/30'
-                                }`}
+                              className="text-[10px] font-mono px-2 py-0.5 rounded tracking-wider uppercase font-bold flex items-center gap-1.5 bg-zinc-100 text-zinc-700 border border-zinc-200"
                             >
                               {c.type === 'caminata' && <Footprints className="w-3 h-3" />}
                               {c.type === 'running' && <Flame className="w-3 h-3" />}
@@ -1763,28 +1763,28 @@ export default function DailyView({
                               {c.type.toUpperCase()}
                             </span>
                             {c.time && (
-                              <span className="text-xs font-mono text-neutral-400">{c.time}</span>
+                              <span className="text-xs font-mono text-zinc-400">{c.time}</span>
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 text-white font-bold text-sm tracking-tight">
+                          <div className="flex items-center gap-2 text-zinc-900 font-bold text-sm tracking-tight">
                             <span>{c.from}</span>
-                            <span className="text-neutral-500 font-normal text-xs">➔</span>
-                            <span className="text-emerald-300">{c.to}</span>
+                            <span className="text-zinc-400 font-normal text-xs">➔</span>
+                            <span className="text-zinc-700">{c.to}</span>
                           </div>
 
-                          <div className="flex items-center gap-3 text-xs font-mono text-neutral-400">
-                            <span className="text-white font-bold">{c.distance} km</span>
+                          <div className="flex items-center gap-3 text-xs font-mono text-zinc-500">
+                            <span className="text-zinc-900 font-bold">{c.distance} km</span>
                             <span>•</span>
-                            <span className="text-amber-400 font-semibold flex items-center gap-1">
-                              <Flame className="w-3.5 h-3.5 inline" /> ~{c.caloriesBurned} kcal quemadas
+                            <span className="text-zinc-900 font-semibold flex items-center gap-1">
+                              <Flame className="w-3.5 h-3.5 inline text-black" /> ~{c.caloriesBurned} kcal quemadas
                             </span>
                           </div>
                         </div>
 
                         <button
                           onClick={() => onDeleteCardio && onDeleteCardio(c.id)}
-                          className="text-neutral-500 hover:text-rose-400 p-1.5 transition-colors cursor-pointer"
+                          className="text-zinc-400 hover:text-rose-600 p-1.5 transition-colors cursor-pointer"
                           title="Eliminar sesión de cardio"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1804,9 +1804,9 @@ export default function DailyView({
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-neutral-400 hover:text-neon-purple transition-colors cursor-pointer"
+            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-zinc-500 hover:text-black transition-colors cursor-pointer font-semibold"
           >
-            <ArrowUp className="w-3.5 h-3.5 text-emerald-400 group-hover:-translate-y-1 transition-transform animate-bounce" />
+            <ArrowUp className="w-3.5 h-3.5 text-zinc-900 group-hover:-translate-y-1 transition-transform animate-bounce" />
             <span>VOLVER AL INICIO</span>
           </button>
         </div>

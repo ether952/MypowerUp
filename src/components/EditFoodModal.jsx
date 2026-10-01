@@ -44,22 +44,22 @@ export default function EditFoodModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
       <div
-        className="bg-[#0E0926] border border-cyan-500/40 w-full max-w-lg rounded-2xl shadow-2xl p-6 space-y-5 relative"
+        className="bg-white border border-zinc-200 w-full max-w-lg rounded-2xl shadow-2xl p-6 space-y-5 relative text-zinc-900"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabecera */}
-        <div className="flex justify-between items-center border-b border-white/10 pb-4">
+        <div className="flex justify-between items-center border-b border-zinc-200 pb-4">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-xl border ${isSupp ? 'bg-neon-mint/20 text-neon-mint border-neon-mint/40' : 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/40'}`}>
+            <div className="p-2 rounded-xl bg-zinc-100 text-zinc-900 border border-zinc-200">
               <Utensils className="w-5 h-5" />
             </div>
             <div>
-              <span className={`text-[10px] font-mono tracking-widest uppercase block ${isSupp ? 'text-neon-mint' : 'text-neon-cyan'}`}>
+              <span className="text-[10px] font-mono tracking-widest uppercase block font-bold text-zinc-500">
                 // MODIFICAR REGISTRO
               </span>
-              <h3 className="text-lg font-black text-white uppercase tracking-tight font-display">
+              <h3 className="text-lg font-extrabold text-zinc-900 uppercase tracking-tight font-display">
                 Editar {isSupp ? 'Suplemento' : 'Alimento / Comida'}
               </h3>
             </div>
@@ -67,7 +67,7 @@ export default function EditFoodModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-neutral-400 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            className="text-zinc-400 hover:text-black p-1.5 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -75,15 +75,14 @@ export default function EditFoodModal({
 
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
-          {/* Selector de Tipo de Comida / Suplemento */}
+          {/* Selector de Tipo de Comida */}
           <div className="space-y-2">
-            <label className="block uppercase text-neutral-400 tracking-wider text-[11px]">
+            <label className="block uppercase text-zinc-600 tracking-wider text-[11px] font-bold">
               Momento del Día / Tipo
             </label>
-            <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-[#080419] border border-white/10">
+            <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-zinc-100 border border-zinc-200">
               {MEAL_TYPES.map((type) => {
                 const isSelected = mealType === type.id;
-                const isTypeSupp = type.id === 'suplementacion';
 
                 return (
                   <button
@@ -92,10 +91,8 @@ export default function EditFoodModal({
                     onClick={() => setMealType(type.id)}
                     className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold tracking-wider transition-all cursor-pointer ${
                       isSelected
-                        ? isTypeSupp
-                          ? 'bg-neon-mint text-space-950 font-black shadow-md shadow-emerald-500/30'
-                          : 'bg-gradient-to-r from-neon-cyan to-neon-blue text-space-950 font-black shadow-md shadow-cyan-500/30'
-                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                        ? 'bg-black text-white shadow-sm'
+                        : 'text-zinc-600 hover:text-black hover:bg-zinc-200'
                     }`}
                   >
                     {type.label}
@@ -108,28 +105,28 @@ export default function EditFoodModal({
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
             {/* Horario */}
             <div className="md:col-span-4 space-y-1.5">
-              <label className="block uppercase text-neutral-400 tracking-wider text-[11px]">
+              <label className="block uppercase text-zinc-600 tracking-wider text-[11px] font-bold">
                 Horario
               </label>
               <input
                 type="time"
                 value={mealTime}
                 onChange={(e) => setMealTime(e.target.value)}
-                className="w-full input-futuristic-cyan px-3 py-2.5 text-xs text-center text-white rounded-xl font-mono cursor-pointer"
+                className="w-full bg-white border border-zinc-300 focus:border-black px-3 py-2 text-xs text-center text-zinc-900 rounded-xl font-mono cursor-pointer outline-none shadow-sm"
                 required
               />
             </div>
 
             {/* Nombre del Alimento o Suplemento */}
             <div className="md:col-span-8 space-y-1.5">
-              <label className="block uppercase text-neutral-300 font-bold tracking-wider text-[11px]">
-                {isSupp ? 'Nombre del Suplemento' : 'Nombre del Alimento o Plato'}
+              <label className="block uppercase text-zinc-700 font-bold tracking-wider text-[11px]">
+                {isSupp ? 'Nombre del Suplemento' : 'Nombre del Alimento'}
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full input-futuristic-cyan px-4 py-2.5 text-xs text-white rounded-xl font-medium"
+                className="w-full bg-white border border-zinc-300 focus:border-black px-4 py-2 text-xs text-zinc-900 rounded-xl font-medium outline-none shadow-sm"
                 placeholder={isSupp ? 'Ej: Proteína Whey 30g' : 'Ej: Pechuga de pollo 200g'}
                 required
                 autoFocus
@@ -141,7 +138,7 @@ export default function EditFoodModal({
           <div className="grid grid-cols-2 gap-4">
             {/* Calorías */}
             <div className="space-y-1.5">
-              <label className="block uppercase text-neon-cyan tracking-wider text-[11px] font-bold">
+              <label className="block uppercase text-zinc-900 tracking-wider text-[11px] font-extrabold">
                 Calorías (Kcal)
               </label>
               <input
@@ -150,14 +147,14 @@ export default function EditFoodModal({
                 max="10000"
                 value={calories}
                 onChange={(e) => setCalories(e.target.value)}
-                className="w-full input-futuristic-cyan px-3 py-2.5 rounded-xl text-neon-cyan font-black text-center text-sm"
+                className="w-full bg-white border border-zinc-300 focus:border-black px-3 py-2 rounded-xl text-zinc-900 font-black text-center text-sm outline-none shadow-sm"
                 required
               />
             </div>
 
             {/* Proteína */}
             <div className="space-y-1.5">
-              <label className="block uppercase text-neon-mint tracking-wider text-[11px] font-bold">
+              <label className="block uppercase text-zinc-900 tracking-wider text-[11px] font-extrabold">
                 Proteína (G)
               </label>
               <input
@@ -167,23 +164,23 @@ export default function EditFoodModal({
                 step="0.5"
                 value={protein}
                 onChange={(e) => setProtein(e.target.value)}
-                className="w-full input-futuristic-cyan px-3 py-2.5 rounded-xl text-neon-mint font-black text-center text-sm"
+                className="w-full bg-white border border-zinc-300 focus:border-black px-3 py-2 rounded-xl text-zinc-900 font-black text-center text-sm outline-none shadow-sm"
               />
             </div>
           </div>
 
           {/* Botones de Acción */}
-          <div className="pt-3 flex items-center justify-end gap-3 border-t border-white/10">
+          <div className="pt-3 flex items-center justify-end gap-3 border-t border-zinc-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-neutral-400 hover:text-white uppercase tracking-wider transition-colors cursor-pointer font-bold"
+              className="px-4 py-2 text-zinc-500 hover:text-black uppercase tracking-wider transition-colors cursor-pointer font-bold"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue hover:from-neon-blue hover:to-neon-purple text-white font-bold uppercase rounded-xl shadow-lg shadow-cyan-600/30 flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+              className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-md flex items-center gap-2 cursor-pointer transition-all"
             >
               <Check className="w-4 h-4 stroke-[3]" />
               <span>Guardar Cambios</span>

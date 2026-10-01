@@ -25,6 +25,7 @@ import MyPowerUpView from './components/MyPowerUpView';
 import GoalsModal from './components/GoalsModal';
 import AuthModal from './components/AuthModal';
 import HeaderLoginDropdown from './components/HeaderLoginDropdown';
+import Footer from './components/Footer';
 import {
   getLocalDateString,
   formatDisplayDate,
@@ -542,35 +543,35 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-space-950 text-neutral-100 flex flex-col font-sans selection:bg-neon-purple selection:text-white relative">
+    <div className="min-h-screen bg-[#FAFAFA] text-zinc-900 flex flex-col font-sans selection:bg-black selection:text-white relative">
 
-      {/* Toast HUD */}
+      {/* Toast HUD Minimalist */}
       {toast && (
-        <div className="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-xl bg-neon-purple/90 text-white font-mono text-xs font-bold tracking-wider shadow-2xl backdrop-blur-md animate-fade-in-up border border-neon-violet">
+        <div className="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-xl bg-zinc-900 text-white font-mono text-xs font-semibold tracking-wider shadow-2xl backdrop-blur-md animate-fade-in-up border border-zinc-700">
           <span>// {toast}</span>
         </div>
       )}
 
-      {/* HEADER HUD FUTURISTA */}
-      <header className="sticky top-0 z-40 bg-space-950/80 backdrop-blur-2xl border-b border-white/10">
+      {/* HEADER MINIMALISTA MONOCROMÁTICO */}
+      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-zinc-200/80 transition-all">
         <div className="w-full px-4 sm:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
 
-          {/* GRUPO IZQUIERDO: Marca & Pestañas de Navegación (Bien a la izquierda) */}
+          {/* GRUPO IZQUIERDO: Marca & Pestañas de Navegación */}
           <div className="flex flex-wrap items-center gap-6 lg:gap-10">
-            {/* Nombre Marca (Sin icono y fuente más liviana) */}
+            {/* Nombre Marca */}
             <div className="flex items-center">
-              <h1 className="text-lg sm:text-xl font-bold tracking-wider text-white uppercase font-display">
+              <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-zinc-900 uppercase font-display">
                 MYPOWERUP
               </h1>
             </div>
 
-            {/* Navegación de Pestañas HUD (A la izquierda junto al logo) */}
-            <nav className="flex items-center gap-1 sm:gap-2 font-mono text-xs">
+            {/* Navegación de Pestañas */}
+            <nav className="flex items-center gap-1 sm:gap-1.5 font-mono text-xs">
               <button
                 onClick={() => setActiveTab('daily')}
-                className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'daily'
-                    ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                    : 'text-neutral-400 hover:text-white'
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase ${activeTab === 'daily'
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
                   }`}
               >
                 01 // REGISTRO
@@ -578,9 +579,9 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('charts')}
-                className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'charts'
-                    ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                    : 'text-neutral-400 hover:text-white'
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase ${activeTab === 'charts'
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
                   }`}
               >
                 02 // GRÁFICOS
@@ -588,9 +589,9 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('history')}
-                className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase ${activeTab === 'history'
-                    ? 'bg-gradient-to-r from-neon-purple to-neon-violet text-white shadow-md shadow-purple-600/30'
-                    : 'text-neutral-400 hover:text-white'
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase ${activeTab === 'history'
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
                   }`}
               >
                 03 // HISTORIAL
@@ -598,25 +599,25 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('mypowerup')}
-                className={`px-3.5 py-1.5 rounded-xl font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 ${activeTab === 'mypowerup'
-                    ? 'bg-gradient-to-r from-neon-purple via-violet-500 to-neon-cyan text-white shadow-md shadow-purple-600/30'
-                    : 'text-violet-300 hover:text-white border border-purple-500/30 bg-purple-950/30 hover:bg-purple-900/40 shadow-[0_0_8px_rgba(168,85,247,0.15)]'
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 ${activeTab === 'mypowerup'
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-zinc-700 hover:text-black border border-zinc-200 bg-zinc-50 hover:bg-zinc-100'
                   }`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse"></span>
                 <span>04 // MYPOWERUP</span>
               </button>
             </nav>
           </div>
 
-          {/* GRUPO DERECHO: Selector de Fecha, 3 Puntitos & Usuario (Bien a la derecha) */}
+          {/* GRUPO DERECHO: Selector de Fecha, 3 Puntitos & Usuario */}
           <div className="flex items-center gap-3 sm:gap-4">
 
-            {/* Control de Fecha (Libre sin recuadro) */}
+            {/* Control de Fecha */}
             <div className="flex items-center gap-1 text-xs font-mono">
               <button
                 onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
-                className="p-1 text-neutral-400 hover:text-neon-cyan transition-colors"
+                className="p-1 text-zinc-400 hover:text-black transition-colors"
                 title="Día anterior"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -624,7 +625,7 @@ export default function App() {
 
               <button
                 onClick={() => setSelectedDate(getLocalDateString())}
-                className="px-2 py-0.5 text-neutral-400 hover:text-white uppercase font-bold text-[11px] transition-colors"
+                className="px-2 py-0.5 text-zinc-500 hover:text-black uppercase font-bold text-[11px] transition-colors"
               >
                 Hoy
               </button>
@@ -633,50 +634,50 @@ export default function App() {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-white px-1 py-0.5 focus:outline-none cursor-pointer text-xs font-mono font-bold"
+                className="bg-transparent text-zinc-900 px-1 py-0.5 focus:outline-none cursor-pointer text-xs font-mono font-bold border-b border-transparent focus:border-black transition-colors"
               />
 
               <button
                 onClick={() => setSelectedDate(shiftDate(selectedDate, 1))}
-                className="p-1 text-neutral-400 hover:text-neon-cyan transition-colors"
+                className="p-1 text-zinc-400 hover:text-black transition-colors"
                 title="Día siguiente"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Botón de 3 Puntitos (Opciones una debajo de la otra) */}
+            {/* Botón de 3 Puntitos */}
             <div className="relative" ref={actionsMenuRef}>
               <button
                 onClick={() => setIsActionsOpen(!isActionsOpen)}
-                className="p-2 text-neutral-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                className="p-2 text-zinc-500 hover:text-black hover:bg-zinc-100 rounded-xl transition-all"
                 title="Más opciones"
               >
                 <MoreVertical className="w-4 h-4" />
               </button>
 
               {isActionsOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-space-950/95 border border-purple-500/30 rounded-2xl shadow-2xl py-2 z-50 backdrop-blur-2xl font-mono text-xs divide-y divide-white/5 animate-fade-in-up">
+                <div className="absolute right-0 mt-2 w-52 bg-white/95 border border-zinc-200 rounded-xl shadow-xl py-2 z-50 backdrop-blur-xl font-mono text-xs divide-y divide-zinc-100 animate-fade-in-up">
                   <button
                     onClick={() => { setIsGoalsOpen(true); setIsActionsOpen(false); }}
-                    className="w-full px-4 py-2.5 text-left text-neutral-300 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-zinc-700 hover:text-black hover:bg-zinc-50 flex items-center gap-2.5 transition-colors"
                   >
-                    <Sliders className="w-4 h-4 text-neon-purple" />
+                    <Sliders className="w-4 h-4 text-zinc-900" />
                     <span>Configurar Metas</span>
                   </button>
 
                   <button
                     onClick={() => { handleExportData(); setIsActionsOpen(false); }}
-                    className="w-full px-4 py-2.5 text-left text-neutral-300 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-zinc-700 hover:text-black hover:bg-zinc-50 flex items-center gap-2.5 transition-colors"
                   >
-                    <Download className="w-4 h-4 text-neon-cyan" />
+                    <Download className="w-4 h-4 text-zinc-900" />
                     <span>Exportar Backup</span>
                   </button>
 
                   <label
-                    className="w-full px-4 py-2.5 text-left text-neutral-300 hover:text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full px-4 py-2.5 text-left text-zinc-700 hover:text-black hover:bg-zinc-50 flex items-center gap-2.5 transition-colors cursor-pointer"
                   >
-                    <Upload className="w-4 h-4 text-neon-cyan" />
+                    <Upload className="w-4 h-4 text-zinc-900" />
                     <span>Importar Backup</span>
                     <input
                       type="file"
@@ -690,7 +691,7 @@ export default function App() {
                   {Object.keys(data).length > 0 && (
                     <button
                       onClick={() => { handleClearAllData(); setIsActionsOpen(false); }}
-                      className="w-full px-4 py-2.5 text-left text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex items-center gap-2.5 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>Vaciar Todos los Datos</span>
@@ -700,34 +701,34 @@ export default function App() {
               )}
             </div>
 
-            {/* SECCIÓN USUARIO / LOGIN HUD (Suelto sin línea separadora) */}
+            {/* SECCIÓN USUARIO */}
             <div className="flex items-center">
               {user ? (
-                <div className="flex items-center gap-2 bg-space-900/60 rounded-xl p-1 pr-2 text-xs font-mono">
+                <div className="flex items-center gap-2 bg-zinc-100 border border-zinc-200 rounded-xl p-1 pr-2 text-xs font-mono">
                   {user.photoURL ? (
                     <img
                       src={user.photoURL}
                       alt="avatar"
-                      className="w-7 h-7 rounded-lg object-cover border border-neon-cyan/40"
+                      className="w-7 h-7 rounded-lg object-cover border border-zinc-300"
                     />
                   ) : (
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-neon-purple to-neon-violet flex items-center justify-center text-white font-bold text-[11px] shadow-sm">
+                    <div className="w-7 h-7 rounded-lg bg-zinc-900 flex items-center justify-center text-white font-bold text-[11px] shadow-sm">
                       {(user.displayName || user.email || 'U')[0].toUpperCase()}
                     </div>
                   )}
 
                   <div className="hidden sm:block text-left">
-                    <p className="text-[11px] font-bold text-white leading-tight truncate max-w-[100px]">
+                    <p className="text-[11px] font-bold text-zinc-900 leading-tight truncate max-w-[100px]">
                       {user.displayName || user.email.split('@')[0]}
                     </p>
-                    <p className="text-[9px] text-emerald-400 leading-tight">
+                    <p className="text-[9px] text-emerald-600 font-bold leading-tight">
                       ● CLOUD ACTIVO
                     </p>
                   </div>
 
                   <button
                     onClick={handleLogout}
-                    className="p-1.5 hover:bg-white/10 text-neutral-400 hover:text-rose-400 rounded-lg transition-colors ml-1"
+                    className="p-1.5 hover:bg-zinc-200 text-zinc-500 hover:text-rose-600 rounded-lg transition-colors ml-1"
                     title="Cerrar Sesión"
                   >
                     <LogOut className="w-3.5 h-3.5" />
@@ -737,12 +738,12 @@ export default function App() {
                 <div className="relative">
                   <button
                     onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)}
-                    className="group relative p-2 rounded-xl hover:bg-white/5 transition-all duration-300 flex items-center justify-center active:scale-95 cursor-pointer"
+                    className="group relative p-2 rounded-xl hover:bg-zinc-100 transition-all duration-300 flex items-center justify-center active:scale-95 cursor-pointer"
                     title="Iniciar Sesión / Acceso Rápido"
                   >
                     <div className="relative flex items-center justify-center">
-                      <UserIcon className="w-4 h-4 text-neutral-200 group-hover:text-white transition-colors" />
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-gradient-to-r from-neon-purple to-neon-cyan shadow-[0_0_8px_#06B6D4] animate-pulse"></span>
+                      <UserIcon className="w-4 h-4 text-zinc-700 group-hover:text-black transition-colors" />
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-black shadow-sm animate-pulse"></span>
                     </div>
                   </button>
 
@@ -832,6 +833,9 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Footer Global de la Plataforma */}
+      <Footer onOpenAuth={() => { setAuthModalMode('login'); setIsAuthModalOpen(true); }} />
 
       {/* Modal de Metas */}
       <GoalsModal

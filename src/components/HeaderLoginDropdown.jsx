@@ -89,25 +89,22 @@ export default function HeaderLoginDropdown({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-[#070318]/95 border border-purple-500/35 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-4 z-50 backdrop-blur-2xl font-mono text-xs animate-fade-in select-none"
+      className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white border border-zinc-200 rounded-2xl shadow-2xl p-4 z-50 backdrop-blur-xl font-mono text-xs animate-fade-in select-none text-zinc-900"
     >
-      {/* Glow */}
-      <div className="ambient-glow-purple -top-10 -right-10 w-24 h-24 opacity-20 pointer-events-none"></div>
-
       {/* Cabecera */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
+      <div className="flex items-center justify-between border-b border-zinc-200 pb-2.5 mb-3">
         <div>
-          <span className="text-[9px] text-neon-purple uppercase tracking-widest block font-bold">
+          <span className="text-[9px] text-zinc-500 uppercase tracking-widest block font-bold">
             // ACCESO RÁPIDO
           </span>
-          <h4 className="text-white font-bold text-xs uppercase tracking-tight">
+          <h4 className="text-zinc-900 font-extrabold text-xs uppercase tracking-tight">
             {isResetMode ? 'Recuperar Cuenta' : 'Iniciar Sesión'}
           </h4>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="text-neutral-500 hover:text-white text-[11px] p-1 transition-colors"
+          className="text-zinc-400 hover:text-black text-[11px] p-1 transition-colors cursor-pointer"
         >
           ✕
         </button>
@@ -115,12 +112,12 @@ export default function HeaderLoginDropdown({
 
       {/* Mensajes */}
       {error && (
-        <div className="p-2 mb-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px]">
+        <div className="p-2 mb-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[11px]">
           {error}
         </div>
       )}
       {message && (
-        <div className="p-2 mb-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px]">
+        <div className="p-2 mb-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px]">
           {message}
         </div>
       )}
@@ -128,7 +125,7 @@ export default function HeaderLoginDropdown({
       {/* Formulario */}
       <form onSubmit={handleLoginSubmit} className="space-y-2.5">
         <div>
-          <label className="block text-[10px] text-neutral-400 uppercase tracking-wider mb-1 font-bold">
+          <label className="block text-[10px] text-zinc-600 uppercase tracking-wider mb-1 font-bold">
             Email
           </label>
           <input
@@ -137,20 +134,20 @@ export default function HeaderLoginDropdown({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="tu@email.com"
-            className="w-full bg-space-950 border border-white/15 focus:border-neon-purple focus:outline-none px-3 py-2 rounded-xl text-white text-xs font-sans placeholder:text-neutral-600"
+            className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none px-3 py-2 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-sm"
           />
         </div>
 
         {!isResetMode && (
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="block text-[10px] text-neutral-400 uppercase tracking-wider font-bold">
+              <label className="block text-[10px] text-zinc-600 uppercase tracking-wider font-bold">
                 Contraseña
               </label>
               <button
                 type="button"
                 onClick={() => { setIsResetMode(true); setError(null); }}
-                className="text-[9px] text-neon-cyan hover:underline"
+                className="text-[9px] text-zinc-600 hover:text-black underline cursor-pointer"
               >
                 ¿Olvidaste?
               </button>
@@ -162,7 +159,7 @@ export default function HeaderLoginDropdown({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-space-950 border border-white/15 focus:border-neon-purple focus:outline-none px-3 py-2 rounded-xl text-white text-xs font-sans placeholder:text-neutral-600"
+              className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none px-3 py-2 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-sm"
             />
           </div>
         )}
@@ -170,7 +167,7 @@ export default function HeaderLoginDropdown({
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 bg-gradient-to-r from-neon-purple to-neon-violet hover:opacity-95 text-white font-bold uppercase rounded-xl shadow-md shadow-purple-600/30 transition-all text-xs tracking-wider disabled:opacity-50 cursor-pointer"
+          className="w-full py-2.5 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-md transition-all text-xs tracking-wider disabled:opacity-50 cursor-pointer"
         >
           {loading
             ? 'Procesando...'
@@ -183,7 +180,7 @@ export default function HeaderLoginDropdown({
           <button
             type="button"
             onClick={() => { setIsResetMode(false); setError(null); setMessage(null); }}
-            className="w-full text-center py-1 text-neutral-400 hover:text-white text-[11px] transition-colors"
+            className="w-full text-center py-1 text-zinc-500 hover:text-black text-[11px] transition-colors cursor-pointer"
           >
             ← Volver a ingresar
           </button>
@@ -197,7 +194,7 @@ export default function HeaderLoginDropdown({
             type="button"
             onClick={handleGoogleSubmit}
             disabled={loading}
-            className="w-full py-2 px-3 bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold disabled:opacity-50 cursor-pointer"
+            className="w-full py-2 px-3 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border border-zinc-200 rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold disabled:opacity-50 cursor-pointer shadow-sm"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
               <path
@@ -222,17 +219,17 @@ export default function HeaderLoginDropdown({
         </div>
       )}
 
-      {/* Enlace para Crear Cuenta (Abre pantalla completa de bienvenida / registro) */}
-      <div className="border-t border-white/10 mt-3 pt-2.5 text-center">
+      {/* Enlace para Crear Cuenta */}
+      <div className="border-t border-zinc-200 mt-3 pt-2.5 text-center">
         <button
           type="button"
           onClick={() => {
             onClose();
             onOpenRegisterScreen();
           }}
-          className="text-[11px] text-neon-cyan hover:text-white font-bold transition-colors cursor-pointer"
+          className="text-[11px] text-zinc-600 hover:text-black font-bold transition-colors cursor-pointer"
         >
-          ¿No tienes cuenta? <span className="underline">Crear Cuenta</span>
+          ¿No tienes cuenta? <span className="underline text-black font-extrabold">Crear Cuenta</span>
         </button>
       </div>
     </div>
