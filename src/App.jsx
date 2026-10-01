@@ -560,8 +560,8 @@ export default function App() {
           <div className="flex flex-wrap items-center gap-6 lg:gap-10">
             {/* Nombre Marca */}
             <div className="flex items-center">
-              <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-zinc-900 uppercase font-display">
-                MYPOWERUP
+              <h1 className="text-lg sm:text-xl font-black tracking-tight text-zinc-950 uppercase font-display select-none">
+                MYPOWER<span className="text-yellow-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]">UP</span>
               </h1>
             </div>
 
@@ -569,43 +569,43 @@ export default function App() {
             <nav className="flex items-center gap-1 sm:gap-1.5 font-mono text-xs">
               <button
                 onClick={() => setActiveTab('daily')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase ${activeTab === 'daily'
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${activeTab === 'daily'
                     ? 'bg-black text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+                    : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
                   }`}
               >
-                01 // REGISTRO
+                REGISTRO
               </button>
 
               <button
                 onClick={() => setActiveTab('charts')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase ${activeTab === 'charts'
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${activeTab === 'charts'
                     ? 'bg-black text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+                    : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
                   }`}
               >
-                02 // GRÁFICOS
+                GRÁFICOS
               </button>
 
               <button
                 onClick={() => setActiveTab('history')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase ${activeTab === 'history'
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${activeTab === 'history'
                     ? 'bg-black text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+                    : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
                   }`}
               >
-                03 // HISTORIAL
+                HISTORIAL
               </button>
 
               <button
                 onClick={() => setActiveTab('mypowerup')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 ${activeTab === 'mypowerup'
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${activeTab === 'mypowerup'
                     ? 'bg-black text-white shadow-sm'
-                    : 'text-zinc-700 hover:text-black border border-zinc-200 bg-zinc-50 hover:bg-zinc-100'
+                    : 'text-zinc-800 hover:text-black border border-zinc-300 bg-white hover:bg-zinc-50'
                   }`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse"></span>
-                <span>04 // MYPOWERUP</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${activeTab === 'mypowerup' ? 'bg-yellow-400' : 'bg-black'} animate-pulse`}></span>
+                <span>MY<span className="text-yellow-400 font-extrabold">UP</span></span>
               </button>
             </nav>
           </div>

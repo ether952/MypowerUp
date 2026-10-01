@@ -111,8 +111,8 @@ export default function MyPowerUpView({
           <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase font-bold">
             // SISTEMA DE DESAFÍOS & GAMIFICACIÓN
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase tracking-tight font-display mt-0.5">
-            MYPOWERUP
+          <h2 className="text-2xl sm:text-3xl font-black text-black uppercase tracking-tight font-display mt-0.5 select-none">
+            MYPOWER<span className="text-yellow-400">UP</span>
           </h2>
         </div>
 
