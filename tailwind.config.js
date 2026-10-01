@@ -12,15 +12,17 @@ export default {
           900: '#FFFFFF', // Tarjetas y superficies blancas
           850: '#F4F4F5', // Contenedores secundarios y pills (zinc-100)
           800: '#E4E4E7', // Bordes sutiles y hovers (zinc-200)
-          700: '#D4D4D8', // Bordes más marcados (zinc-300)
-          600: '#71717A', // Textos secundarios (zinc-500)
+          700: '#D4D4D8', // Bordes marcados (zinc-300)
+          600: '#3F3F46', // Textos secundarios oscuros (zinc-700)
+          500: '#27272A', // Textos destacados oscuros (zinc-800)
+          400: '#18181B', // Textos primarios oscuros (zinc-900)
         },
         neon: {
-          purple: '#18181B', // Zinc 900 elegante
-          violet: '#27272A', // Zinc 800
-          fuchsia: '#09090B', // Negro profundo
-          cyan: '#3F3F46',   // Zinc 700
-          mint: '#10B981',   // Acento sutil verde esmeralda / minimalista
+          purple: '#09090B', // Negro puro elegante
+          violet: '#18181B', // Zinc 900
+          fuchsia: '#000000', // Negro total
+          cyan: '#27272A',   // Zinc 800
+          mint: '#10B981',   // Acento sutil verde esmeralda
           blue: '#18181B',
           yellow: '#000000',
         }

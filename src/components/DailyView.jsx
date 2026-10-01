@@ -35,6 +35,7 @@ import { estimateNutritionWithAI } from '../services/aiNutritionService';
 import ItemActionMenu from './ItemActionMenu';
 import EditWorkoutModal from './EditWorkoutModal';
 import EditFoodModal from './EditFoodModal';
+import VisualGymExercisePicker from './VisualGymExercisePicker';
 import bgMusculacion from '../assets/bg-musculacion-hd.png';
 import bgAlimentos from '../assets/bg-alimentos-hd.png';
 import bgCardio from '../assets/bg-cardio-hd.png';
@@ -94,6 +95,7 @@ export default function DailyView({
   onUpdateRememberedFoods
 }) {
   // === ESTADOS GYM ===
+  const [isVisualGymPicker, setIsVisualGymPicker] = useState(true);
   const [exerciseName, setExerciseName] = useState('');
   const [sets, setSets] = useState('');
   const [reps, setReps] = useState('');
@@ -671,10 +673,53 @@ export default function DailyView({
             </div>
           </ScrollReveal>
 
-          {/* Formulario de Carga de Ejercicios */}
-          <div className={`${isWorkoutFormOpen ? 'block' : 'hidden'} md:block`}>
+          {/* Toggle de Modo de Carga: Visual (Ruleta & Placas) vs Manual */}
+          <ScrollReveal delay={50} className="relative z-30">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-zinc-200 shadow-sm font-mono text-xs">
+              <span className="text-zinc-800 font-extrabold uppercase text-[11px] flex items-center gap-1.5 pl-1">
+                <Dumbbell className="w-4 h-4 text-black" />
+                <span>Modo de Carga de Ejercicios:</span>
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setIsVisualGymPicker(true)}
+                  className={`px-3.5 py-1.5 rounded-xl font-extrabold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isVisualGymPicker
+                      ? 'bg-black text-white shadow-md'
+                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Selector Visual & Placas</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsVisualGymPicker(false)}
+                  className={`px-3.5 py-1.5 rounded-xl font-extrabold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
+                    !isVisualGymPicker
+                      ? 'bg-black text-white shadow-md'
+                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300'
+                  }`}
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>Formulario Manual</span>
+                </button>
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* RENDERIZADO SEGÚN EL MODO ELEGIDO */}
+          {isVisualGymPicker ? (
             <ScrollReveal delay={100} className="relative z-30">
-              <form onSubmit={handleSubmitWorkout} className="space-y-4 sm:space-y-5 pt-1 relative">
+              <VisualGymExercisePicker onAddWorkout={onAddWorkout} />
+            </ScrollReveal>
+          ) : (
+            <div className={`${isWorkoutFormOpen ? 'block' : 'hidden'} md:block`}>
+              <ScrollReveal delay={100} className="relative z-30">
+                <form onSubmit={handleSubmitWorkout} className="space-y-4 sm:space-y-5 pt-1 relative bg-white border border-zinc-200 rounded-3xl p-5 sm:p-7 shadow-sm">
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
 
@@ -999,6 +1044,7 @@ export default function DailyView({
               </form>
             </ScrollReveal>
           </div>
+        )}
 
           {/* Listado de Ejercicios del Día */}
           <ScrollReveal delay={150} className="relative z-10">
