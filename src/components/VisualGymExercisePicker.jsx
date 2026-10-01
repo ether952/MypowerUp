@@ -320,13 +320,13 @@ export default function VisualGymExercisePicker({
                 onClick={() => handleSelectExercise(ex)}
                 className={`flex-shrink-0 w-36 sm:w-44 snap-center p-3 rounded-2xl border transition-all flex flex-col items-center justify-between text-center cursor-pointer group select-none ${
                   isSelected
-                    ? 'bg-zinc-950 text-white border-black shadow-xl ring-2 ring-black scale-[1.03]'
+                    ? 'bg-white text-zinc-950 border-black shadow-xl ring-2 ring-black scale-[1.03]'
                     : 'bg-zinc-50 hover:bg-white border-zinc-200 text-zinc-900 hover:border-zinc-400 hover:shadow-md'
                 }`}
               >
                 {/* Contenedor del Sprite Isométrico Ampliado & Nítido */}
                 <div className={`w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden flex items-center justify-center p-2 relative transition-all ${
-                  isSelected ? 'bg-zinc-900 shadow-inner' : 'bg-white group-hover:bg-zinc-100 border border-zinc-100'
+                  isSelected ? 'bg-zinc-100 border-2 border-black shadow-inner' : 'bg-white group-hover:bg-zinc-100 border border-zinc-200'
                 }`}>
                   <div
                     className="w-full h-full transform group-hover:scale-110 transition-transform duration-300"
@@ -339,18 +339,16 @@ export default function VisualGymExercisePicker({
                     }}
                   />
                   {isSelected && (
-                    <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-md ring-2 ring-black animate-pulse" />
+                    <span className="absolute top-2 right-2 w-3 h-3 rounded-full bg-yellow-400 border border-black shadow-md animate-pulse" />
                   )}
                 </div>
 
                 <div className="mt-2.5 w-full space-y-1">
-                  <span className={`text-[10px] font-mono uppercase tracking-wider block font-extrabold truncate ${
-                    isSelected ? 'text-zinc-400' : 'text-zinc-500'
-                  }`}>
+                  <span className="text-[10px] font-mono uppercase tracking-wider block font-extrabold truncate text-zinc-500">
                     {ex.category}
                   </span>
                   <h4 className={`text-xs sm:text-sm font-black font-display tracking-tight leading-snug line-clamp-2 ${
-                    isSelected ? 'text-white' : 'text-black'
+                    isSelected ? 'text-black underline decoration-2 decoration-yellow-400 underline-offset-4' : 'text-zinc-900'
                   }`}>
                     {ex.name}
                   </h4>
