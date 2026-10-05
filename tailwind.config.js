@@ -8,23 +8,24 @@ export default {
     extend: {
       colors: {
         space: {
-          950: '#FAFAFA', // Canvas base claro
-          900: '#FFFFFF', // Tarjetas y superficies blancas
-          850: '#F4F4F5', // Contenedores secundarios y pills (zinc-100)
-          800: '#E4E4E7', // Bordes sutiles y hovers (zinc-200)
-          700: '#D4D4D8', // Bordes marcados (zinc-300)
-          600: '#3F3F46', // Textos secundarios oscuros (zinc-700)
-          500: '#27272A', // Textos destacados oscuros (zinc-800)
-          400: '#18181B', // Textos primarios oscuros (zinc-900)
+          950: '#121214', // Canvas base oscuro principal
+          900: '#18181B', // Tarjetas y superficies elevadas
+          850: '#222226', // Contenedores secundarios y pills
+          800: '#2E2E34', // Bordes sutiles y hovers
+          700: '#3E3E48', // Bordes marcados
+          600: '#8A8F98', // Color de fuente solicitado
+          500: '#B4B8C0', // Subtítulos y labels
+          400: '#FFFFFF', // Títulos primarios blancos
         },
         neon: {
-          purple: '#09090B', // Negro puro elegante
-          violet: '#18181B', // Zinc 900
-          fuchsia: '#000000', // Negro total
-          cyan: '#27272A',   // Zinc 800
-          mint: '#10B981',   // Acento sutil verde esmeralda
+          purple: '#18181B',
+          violet: '#27272A',
+          fuchsia: '#121214',
+          cyan: '#2E2E34',
+          mint: '#22C55E',   // Verde enérgico para el UP
+          green: '#4ADE80',
           blue: '#18181B',
-          yellow: '#000000',
+          yellow: '#22C55E',
         }
       },
       fontFamily: {

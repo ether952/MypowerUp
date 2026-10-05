@@ -5,11 +5,11 @@ const nutritionCache = new Map();
 
 // Modelos Gemini en orden de prioridad
 const GEMINI_MODELS = [
-  'models/gemini-3.5-flash-lite',
-  'models/gemini-3.5-flash',
-  'models/gemini-flash-latest',
-  'models/gemini-flash-lite-latest',
-  'models/gemini-3-flash-preview'
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-8b',
+  'gemini-2.0-flash-lite'
 ];
 
 /**
@@ -91,7 +91,8 @@ Responde OBLIGATORIAMENTE en formato JSON exacto con la siguiente estructura:
 
   for (const modelName of GEMINI_MODELS) {
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
+      const cleanModel = modelName.replace(/^models\//, '');
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${apiKey}`;
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {

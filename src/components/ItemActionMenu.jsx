@@ -4,7 +4,6 @@ import { MoreVertical, Pencil, XCircle } from 'lucide-react';
 export default function ItemActionMenu({
   onEdit,
   onDelete,
-  variant = 'purple',
   itemName = 'ítem',
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,11 +67,11 @@ export default function ItemActionMenu({
       <button
         type="button"
         onClick={toggleOpen}
-        className="p-1.5 rounded-lg text-zinc-400 hover:text-black hover:bg-zinc-100 transition-colors cursor-pointer select-none focus:outline-none"
+        className="p-1.5 rounded-lg text-[#8A8F98] hover:text-white hover:bg-[#222226] transition-colors cursor-pointer select-none focus:outline-none"
         title={`Opciones de ${itemName}`}
         aria-label={`Opciones de ${itemName}`}
       >
-        <MoreVertical className="w-4 h-4 stroke-[2.5]" />
+        <MoreVertical className="w-4 h-4" />
       </button>
 
       {isOpen && (
@@ -80,15 +79,15 @@ export default function ItemActionMenu({
           onClick={(e) => e.stopPropagation()}
           className={`absolute right-0 ${
             openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-          } w-36 bg-white/95 backdrop-blur-xl border border-zinc-200 rounded-xl shadow-xl py-1.5 z-50 font-mono text-xs divide-y divide-zinc-100 animate-fade-in-up`}
+          } w-36 bg-[#18181B] border border-[#2E2E34] rounded-xl shadow-2xl py-1.5 z-50 font-mono text-xs divide-y divide-[#2E2E34] animate-fade-in-up backdrop-blur-xl`}
         >
           {onEdit && (
             <button
               type="button"
               onClick={handleEditClick}
-              className="w-full px-3 py-2 text-left text-zinc-700 hover:text-black hover:bg-zinc-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+              className="w-full px-3 py-2 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
             >
-              <Pencil className="w-3.5 h-3.5 shrink-0 text-zinc-800" />
+              <Pencil className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
               <span>Editar</span>
             </button>
           )}
@@ -97,9 +96,9 @@ export default function ItemActionMenu({
             <button
               type="button"
               onClick={handleDeleteClick}
-              className="w-full px-3 py-2 text-left text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex items-center gap-2.5 transition-colors cursor-pointer group"
+              className="w-full px-3 py-2 text-left text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 flex items-center gap-2.5 transition-colors cursor-pointer group"
             >
-              <XCircle className="w-3.5 h-3.5 shrink-0 text-rose-500 group-hover:scale-110 transition-transform" />
+              <XCircle className="w-3.5 h-3.5 shrink-0 text-rose-400 group-hover:scale-110 transition-transform" />
               <span>Eliminar</span>
             </button>
           )}

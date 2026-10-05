@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  ChevronLeft,
-  ChevronRight,
   Download,
   Upload,
   Trash2,
@@ -15,7 +13,7 @@ import {
   User as UserIcon,
   ShieldCheck,
   AlertCircle,
-  MoreVertical
+  Settings
 } from 'lucide-react';
 
 import DailyView from './components/DailyView';
@@ -24,6 +22,7 @@ import HistoryView from './components/HistoryView';
 import MyPowerUpView from './components/MyPowerUpView';
 import GoalsModal from './components/GoalsModal';
 import AuthModal from './components/AuthModal';
+import GeminiApiKeyModal from './components/GeminiApiKeyModal';
 import HeaderLoginDropdown from './components/HeaderLoginDropdown';
 import Footer from './components/Footer';
 import {
@@ -58,99 +57,149 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState(isFirebaseConfigured ? 'syncing' : 'local'); // 'local' | 'syncing' | 'synced' | 'error'
   const isInitialLoadRef = useRef(true);
   const saveTimeoutRef = useRef(null);
-  const lastSyncedPayloadRef = useRef(null);
+  const lastLocalUpdateTimestampRef = useRef(Date.now());
 
-  // === ESTADOS DE DATOS (Con fallback a LocalStorage) ===
+  // Escuchar cambios de sesión de Firebase
+  useEffect(() => {
+    if (!isFirebaseConfigured) return;
+
+    const unsubscribe = subscribeToAuthChanges(async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        setSyncStatus('syncing');
+        try {
+          const cloudData = await getUserCloudData(currentUser.uid);
+          if (cloudData) {
+            if (cloudData.data) setData(cloudData.data);
+            if (cloudData.goals) setGoals(cloudData.goals);
+            if (cloudData.rememberedWorkouts) setRememberedWorkouts(cloudData.rememberedWorkouts);
+            if (cloudData.rememberedFoods) setRememberedFoods(cloudData.rememberedFoods);
+            if (cloudData.challengeCalibration !== undefined) {
+              setChallengeCalibration(cloudData.challengeCalibration);
+              if (cloudData.challengeCalibration) {
+                saveStoredChallengeCalibration(cloudData.challengeCalibration);
+              }
+            }
+            if (cloudData.updatedAt) {
+              lastLocalUpdateTimestampRef.current = new Date(cloudData.updatedAt).getTime();
+            }
+          }
+          setSyncStatus('synced');
+        } catch (error) {
+          console.error('Error al cargar datos de Firebase:', error);
+          setSyncStatus('error');
+        }
+      } else {
+        setSyncStatus('local');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Suscripción en tiempo real a cambios remotos de Firestore
+  useEffect(() => {
+    if (!user || !isFirebaseConfigured) return;
+
+    const unsubscribe = subscribeToUserCloudData(user.uid, (cloudDoc, hasPendingWrites) => {
+      if (!cloudDoc || hasPendingWrites) return;
+
+      if (isInitialLoadRef.current) {
+        isInitialLoadRef.current = false;
+        if (cloudDoc.data) setData(cloudDoc.data);
+        if (cloudDoc.goals) setGoals(cloudDoc.goals);
+        if (cloudDoc.rememberedWorkouts) setRememberedWorkouts(cloudDoc.rememberedWorkouts);
+        if (cloudDoc.rememberedFoods) setRememberedFoods(cloudDoc.rememberedFoods);
+        if (cloudDoc.challengeCalibration !== undefined) {
+          setChallengeCalibration(cloudDoc.challengeCalibration);
+          if (cloudDoc.challengeCalibration) {
+            saveStoredChallengeCalibration(cloudDoc.challengeCalibration);
+          }
+        }
+        if (cloudDoc.updatedAt) {
+          lastLocalUpdateTimestampRef.current = new Date(cloudDoc.updatedAt).getTime();
+        }
+        setSyncStatus('synced');
+        return;
+      }
+
+      // Solo aplicar si la actualización de la nube es más reciente que nuestra última modificación local
+      const remoteTime = cloudDoc.updatedAt ? new Date(cloudDoc.updatedAt).getTime() : 0;
+      if (remoteTime > lastLocalUpdateTimestampRef.current) {
+        if (cloudDoc.data) setData(cloudDoc.data);
+        if (cloudDoc.goals) setGoals(cloudDoc.goals);
+        if (cloudDoc.rememberedWorkouts) setRememberedWorkouts(cloudDoc.rememberedWorkouts);
+        if (cloudDoc.rememberedFoods) setRememberedFoods(cloudDoc.rememberedFoods);
+        if (cloudDoc.challengeCalibration !== undefined) {
+          setChallengeCalibration(cloudDoc.challengeCalibration);
+          if (cloudDoc.challengeCalibration) {
+            saveStoredChallengeCalibration(cloudDoc.challengeCalibration);
+          }
+        }
+        lastLocalUpdateTimestampRef.current = remoteTime;
+      }
+      setSyncStatus('synced');
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // === ESTADO PRINCIPAL DE LA APLICACIÓN ===
   const [data, setData] = useState(() => {
     try {
       const saved = localStorage.getItem('mypowerup_data');
-      if (saved) return JSON.parse(saved);
+      return saved ? JSON.parse(saved) : {};
     } catch (e) {
-      console.error('Error loading data', e);
+      return {};
     }
-    return {};
   });
 
   const [goals, setGoals] = useState(() => {
     try {
       const saved = localStorage.getItem('mypowerup_goals');
-      if (saved) return JSON.parse(saved);
+      return saved ? JSON.parse(saved) : { calories: 2400, protein: 150, tonnage: 100 };
     } catch (e) {
-      console.error('Error loading goals', e);
+      return { calories: 2400, protein: 150, tonnage: 100 };
     }
-    return { calories: 2400, protein: 150, tonnage: 100 };
   });
 
   const [rememberedWorkouts, setRememberedWorkouts] = useState(() => {
     try {
       const saved = localStorage.getItem('mypowerup_remembered_workouts');
-      if (saved) return JSON.parse(saved);
+      return saved ? JSON.parse(saved) : {};
     } catch (e) {
       return {};
     }
-    return {};
   });
 
   const [rememberedFoods, setRememberedFoods] = useState(() => {
     try {
       const saved = localStorage.getItem('mypowerup_remembered_foods');
-      if (saved) return JSON.parse(saved);
+      return saved ? JSON.parse(saved) : {};
     } catch (e) {
       return {};
     }
-    return {};
   });
 
+  // Estado del perfil de calibración MyPowerUp
   const [challengeCalibration, setChallengeCalibration] = useState(() => {
     return getStoredChallengeCalibration();
   });
 
-  // === PRIVACIDAD Y VISIBILIDAD DEL PESO (Oculto de base por defecto) ===
-  const [isWeightVisible, setIsWeightVisible] = useState(() => {
-    try {
-      const saved = localStorage.getItem('mypowerup_show_weight');
-      return saved !== null ? JSON.parse(saved) : false; // Oculto de base
-    } catch (e) {
-      return false;
-    }
-  });
-
-  const toggleWeightVisibility = () => {
-    setIsWeightVisible((prev) => {
-      const next = !prev;
-      localStorage.setItem('mypowerup_show_weight', JSON.stringify(next));
-      return next;
-    });
-  };
-
+  // Modal de metas, menú de acciones y configuración de IA
   const [isGoalsOpen, setIsGoalsOpen] = useState(false);
+  const [isGeminiModalOpen, setIsGeminiModalOpen] = useState(false);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
-  const [toast, setToast] = useState(null);
-  const fileInputRef = useRef(null);
+  const [isWeightVisible, setIsWeightVisible] = useState(false);
+  const [toast, setToast] = useState('');
+
   const actionsMenuRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  const showToast = (message) => {
-    setToast(message);
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  // 0. Auto-abrir login para usuarios nuevos al iniciar la app
+  // Cerrar menú al hacer clic fuera
   useEffect(() => {
-    const prompted = localStorage.getItem('mypowerup_auth_prompted');
-    const guestSession = localStorage.getItem('mypowerup_guest_session');
-    if (!prompted && !guestSession) {
-      const timer = setTimeout(() => {
-        setIsAuthModalOpen(true);
-        localStorage.setItem('mypowerup_auth_prompted', 'true');
-      }, 700);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  // Cerrar menú de 3 puntitos al hacer clic fuera
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (actionsMenuRef.current && !actionsMenuRef.current.contains(e.target)) {
+    const handleClickOutside = (event) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target)) {
         setIsActionsOpen(false);
       }
     };
@@ -158,10 +207,34 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 1. Guardar siempre en LocalStorage como caché offline rápido
+  // Guardar en LocalStorage y Cloud con debounce
   useEffect(() => {
     localStorage.setItem('mypowerup_data', JSON.stringify(data));
-  }, [data]);
+
+    if (user && isFirebaseConfigured) {
+      setSyncStatus('syncing');
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+      saveTimeoutRef.current = setTimeout(async () => {
+        try {
+          const nowISO = new Date().toISOString();
+          lastLocalUpdateTimestampRef.current = new Date(nowISO).getTime();
+          await saveUserCloudData(user.uid, {
+            data,
+            goals,
+            rememberedWorkouts,
+            rememberedFoods,
+            challengeCalibration,
+            updatedAt: nowISO
+          });
+          setSyncStatus('synced');
+        } catch (error) {
+          console.error('Error guardando en la nube:', error);
+          setSyncStatus('error');
+        }
+      }, 1000);
+    }
+  }, [data, user, goals, rememberedWorkouts, rememberedFoods, challengeCalibration]);
 
   useEffect(() => {
     localStorage.setItem('mypowerup_goals', JSON.stringify(goals));
@@ -178,325 +251,183 @@ export default function App() {
   useEffect(() => {
     if (challengeCalibration) {
       saveStoredChallengeCalibration(challengeCalibration);
-    } else {
-      localStorage.removeItem('mypowerup_challenge_calibration');
     }
   }, [challengeCalibration]);
 
-  // 2. Suscripción a Autenticación y Sincronización en Tiempo Real con Firebase Firestore
-  useEffect(() => {
-    if (!isFirebaseConfigured) {
-      setSyncStatus('local');
-      return;
-    }
-
-    let cloudDataUnsubscribe = null;
-
-    const authUnsubscribe = subscribeToAuthChanges((currentUser) => {
-      setUser(currentUser);
-      if (cloudDataUnsubscribe) {
-        cloudDataUnsubscribe();
-        cloudDataUnsubscribe = null;
-      }
-
-      if (currentUser) {
-        setSyncStatus('syncing');
-
-        // Escuchar datos de Firestore en tiempo real para sincronización instantánea entre celular y PC
-        cloudDataUnsubscribe = subscribeToUserCloudData(
-          currentUser.uid,
-          async (cloudData) => {
-            if (cloudData) {
-              // Si la nube ya contiene datos, sincronizarlos
-              if (cloudData.data !== undefined) setData(cloudData.data);
-              if (cloudData.goals !== undefined) setGoals(cloudData.goals);
-              if (cloudData.rememberedWorkouts !== undefined) setRememberedWorkouts(cloudData.rememberedWorkouts);
-              if (cloudData.rememberedFoods !== undefined) setRememberedFoods(cloudData.rememberedFoods);
-
-              if (cloudData.challengeCalibration !== undefined) {
-                setChallengeCalibration(cloudData.challengeCalibration);
-                if (cloudData.challengeCalibration) {
-                  saveStoredChallengeCalibration(cloudData.challengeCalibration);
-                }
-              }
-
-              // Si en la nube no había calibración pero localmente sí tenemos (ej: hecha en este celu antes de sincronizar)
-              if (challengeCalibration && !cloudData.challengeCalibration) {
-                saveUserCloudData(currentUser.uid, { challengeCalibration });
-              }
-
-              const mergedPayload = {
-                data: cloudData.data !== undefined ? cloudData.data : data,
-                goals: cloudData.goals !== undefined ? cloudData.goals : goals,
-                rememberedWorkouts: cloudData.rememberedWorkouts !== undefined ? cloudData.rememberedWorkouts : rememberedWorkouts,
-                rememberedFoods: cloudData.rememberedFoods !== undefined ? cloudData.rememberedFoods : rememberedFoods,
-                challengeCalibration: cloudData.challengeCalibration !== undefined ? cloudData.challengeCalibration : challengeCalibration
-              };
-              lastSyncedPayloadRef.current = JSON.stringify(mergedPayload);
-
-              if (isInitialLoadRef.current) {
-                showToast(`Bienvenido ${currentUser.displayName || currentUser.email.split('@')[0]} // Sincronizado en tiempo real`);
-                isInitialLoadRef.current = false;
-              }
-              setSyncStatus('synced');
-            } else {
-              // Primer login: subir datos locales actuales a la nube
-              const initialPayload = {
-                data,
-                goals,
-                rememberedWorkouts,
-                rememberedFoods,
-                challengeCalibration: challengeCalibration || null
-              };
-              lastSyncedPayloadRef.current = JSON.stringify(initialPayload);
-              await saveUserCloudData(currentUser.uid, initialPayload);
-              showToast('Cuenta inicializada en la nube');
-              isInitialLoadRef.current = false;
-              setSyncStatus('synced');
-            }
-          },
-          (err) => {
-            console.error('Error al sincronizar con la nube:', err);
-            setSyncStatus('error');
-            if (isInitialLoadRef.current) {
-              showToast('Modo sin conexión');
-              isInitialLoadRef.current = false;
-            }
-          }
-        );
-      } else {
-        setSyncStatus('local');
-        isInitialLoadRef.current = false;
-      }
-    });
-
-    return () => {
-      if (cloudDataUnsubscribe) cloudDataUnsubscribe();
-      authUnsubscribe();
-    };
-  }, []);
-
-  // 3. Auto-guardado en Firestore (Cloud Sync) al detectar cambios locales
-  useEffect(() => {
-    if (!user || isInitialLoadRef.current) return;
-
-    const currentPayload = {
-      data,
-      goals,
-      rememberedWorkouts,
-      rememberedFoods,
-      challengeCalibration: challengeCalibration || null
-    };
-
-    const serialized = JSON.stringify(currentPayload);
-    // Si coincide con lo último sincronizado, omitir re-guardado
-    if (serialized === lastSyncedPayloadRef.current) return;
-
-    setSyncStatus('syncing');
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-
-    saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        await saveUserCloudData(user.uid, currentPayload);
-        lastSyncedPayloadRef.current = serialized;
-        setSyncStatus('synced');
-      } catch (err) {
-        console.error('Error auto-guardando en la nube:', err);
-        setSyncStatus('error');
-      }
-    }, 1000); // 1 segundo de debounce
-
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [data, goals, rememberedWorkouts, rememberedFoods, challengeCalibration, user]);
-
-  const handleLogout = async () => {
-    if (window.confirm('¿Deseas cerrar tu sesión actual?')) {
-      try {
-        await logoutUser();
-        showToast('Sesión cerrada');
-      } catch (err) {
-        showToast('Error al cerrar sesión');
-      }
-    }
+  // Mensaje Toast
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => {
+      setToast('');
+    }, 3000);
   };
 
-  const currentDay = data[selectedDate] || { foods: [], workouts: [] };
-
-  const handleAddFood = async (food) => {
-    let finalFood = { ...food };
-    // Si no se proveyeron calorías o proteínas, resolver con IA o base nutricional
-    if ((!finalFood.calories || Number(finalFood.calories) === 0) && (!finalFood.protein || Number(finalFood.protein) === 0)) {
-      try {
-        const aiEst = await estimateNutritionWithAI(finalFood.name);
-        if (aiEst.calories > 0) finalFood.calories = aiEst.calories;
-        if (aiEst.protein > 0) finalFood.protein = aiEst.protein;
-        if (aiEst.suggestedMealType && (!finalFood.mealType || finalFood.mealType === 'almuerzo')) {
-          finalFood.mealType = aiEst.suggestedMealType;
-        }
-      } catch (e) {
-        const estimated = estimateNutrition(finalFood.name);
-        if (estimated.matched) {
-          finalFood.calories = estimated.calories;
-          finalFood.protein = estimated.protein;
-          if (estimated.defaultMealType && (!finalFood.mealType || finalFood.mealType === 'almuerzo')) {
-            finalFood.mealType = estimated.defaultMealType;
-          }
-        }
-      }
-    }
-
-    const newFood = { id: Date.now(), ...finalFood };
-    setData((prev) => ({
-      ...prev,
-      [selectedDate]: {
-        ...currentDay,
-        foods: [...(currentDay.foods || []), newFood],
-      },
-    }));
-
-    const macroTag = (finalFood.calories > 0 || finalFood.protein > 0)
-      ? ` (${finalFood.calories} kcal • ${finalFood.protein}g prot)`
-      : '';
-    showToast(`Guardado: ${finalFood.name}${macroTag}`);
+  // Visibilidad de peso
+  const toggleWeightVisibility = () => {
+    setIsWeightVisible((prev) => !prev);
   };
 
-  const handleDeleteFood = (id, targetDate = selectedDate) => {
-    setData((prev) => {
-      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+  // Día activo
+  const currentDay = data[selectedDate] || { foods: [], workouts: [], cardios: [] };
+
+  // Handlers para Alimentos
+  const handleAddFood = (food) => {
+    lastLocalUpdateTimestampRef.current = Date.now();
+    const newId = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    setData((prevData) => {
+      const day = prevData[selectedDate] || { foods: [], workouts: [], cardios: [] };
+      const newFoods = [...(day.foods || []), { ...food, id: newId }];
       return {
-        ...prev,
-        [targetDate]: {
-          ...day,
-          foods: (day.foods || []).filter((item) => item.id !== id),
-        },
+        ...prevData,
+        [selectedDate]: { ...day, foods: newFoods },
       };
     });
-    showToast('Registro eliminado');
+    showToast('Alimento registrado');
   };
 
-  const handleUpdateFood = (id, updatedFood, targetDate = selectedDate) => {
-    setData((prev) => {
-      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+  const handleUpdateFood = (foodId, updatedFood, targetDate = selectedDate) => {
+    lastLocalUpdateTimestampRef.current = Date.now();
+    setData((prevData) => {
+      const day = prevData[targetDate] || { foods: [], workouts: [], cardios: [] };
+      const newFoods = (day.foods || []).map((f) => (String(f.id) === String(foodId) ? { ...f, ...updatedFood } : f));
       return {
-        ...prev,
-        [targetDate]: {
-          ...day,
-          foods: (day.foods || []).map((item) => (item.id === id ? { ...item, ...updatedFood } : item)),
-        },
+        ...prevData,
+        [targetDate]: { ...day, foods: newFoods },
       };
     });
-    showToast(`Actualizado: ${updatedFood.name}`);
+    showToast('Alimento actualizado');
   };
 
+  const handleDeleteFood = (foodId, targetDate = selectedDate) => {
+    lastLocalUpdateTimestampRef.current = Date.now();
+    setData((prevData) => {
+      const day = prevData[targetDate] || { foods: [], workouts: [], cardios: [] };
+      const newFoods = (day.foods || []).filter((f) => String(f.id) !== String(foodId));
+      return {
+        ...prevData,
+        [targetDate]: { ...day, foods: newFoods },
+      };
+    });
+    showToast('Alimento eliminado');
+  };
+
+  // Handlers para Entrenamientos
   const handleAddWorkout = (workout) => {
-    const newWorkout = { id: Date.now(), ...workout };
-    setData((prev) => ({
-      ...prev,
-      [selectedDate]: {
-        ...currentDay,
-        workouts: [...(currentDay.workouts || []), newWorkout],
-      },
-    }));
-    showToast(`Guardado: ${workout.name}`);
+    lastLocalUpdateTimestampRef.current = Date.now();
+    const newId = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    setData((prevData) => {
+      const day = prevData[selectedDate] || { foods: [], workouts: [], cardios: [] };
+      const newWorkouts = [...(day.workouts || []), { ...workout, id: newId }];
+      return {
+        ...prevData,
+        [selectedDate]: { ...day, workouts: newWorkouts },
+      };
+    });
+    showToast('Ejercicio registrado');
   };
 
-  const handleDeleteWorkout = (id, targetDate = selectedDate) => {
-    setData((prev) => {
-      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+  const handleUpdateWorkout = (workoutId, updatedWorkout, targetDate = selectedDate) => {
+    lastLocalUpdateTimestampRef.current = Date.now();
+    setData((prevData) => {
+      const day = prevData[targetDate] || { foods: [], workouts: [], cardios: [] };
+      const newWorkouts = (day.workouts || []).map((w) => (String(w.id) === String(workoutId) ? { ...w, ...updatedWorkout } : w));
       return {
-        ...prev,
-        [targetDate]: {
-          ...day,
-          workouts: (day.workouts || []).filter((item) => item.id !== id),
-        },
+        ...prevData,
+        [targetDate]: { ...day, workouts: newWorkouts },
+      };
+    });
+    showToast('Ejercicio actualizado');
+  };
+
+  const handleDeleteWorkout = (workoutId, targetDate = selectedDate) => {
+    lastLocalUpdateTimestampRef.current = Date.now();
+    setData((prevData) => {
+      const day = prevData[targetDate] || { foods: [], workouts: [], cardios: [] };
+      const newWorkouts = (day.workouts || []).filter((w) => String(w.id) !== String(workoutId));
+      return {
+        ...prevData,
+        [targetDate]: { ...day, workouts: newWorkouts },
       };
     });
     showToast('Ejercicio eliminado');
   };
 
-  const handleUpdateWorkout = (id, updatedWorkout, targetDate = selectedDate) => {
-    setData((prev) => {
-      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+  // Handlers para Cardio
+  const handleAddCardio = (cardioItem) => {
+    lastLocalUpdateTimestampRef.current = Date.now();
+    const newId = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    setData((prevData) => {
+      const day = prevData[selectedDate] || { foods: [], workouts: [], cardios: [] };
+      const newCardios = [...(day.cardios || []), { ...cardioItem, id: newId }];
       return {
-        ...prev,
-        [targetDate]: {
-          ...day,
-          workouts: (day.workouts || []).map((item) => (item.id === id ? { ...item, ...updatedWorkout } : item)),
-        },
+        ...prevData,
+        [selectedDate]: { ...day, cardios: newCardios }
       };
     });
-    showToast(`Actualizado: ${updatedWorkout.name}`);
+    showToast('Cardio registrado');
   };
 
-  const handleAddCardio = (cardio) => {
-    const newCardio = { id: Date.now(), ...cardio };
-    setData((prev) => ({
-      ...prev,
-      [selectedDate]: {
-        ...currentDay,
-        cardios: [...(currentDay.cardios || []), newCardio],
-      },
-    }));
-    showToast(`Cardio registrado: ${cardio.distance} km (~${cardio.caloriesBurned} kcal)`);
-  };
-
-  const handleDeleteCardio = (id, targetDate = selectedDate) => {
-    setData((prev) => {
-      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
+  const handleDeleteCardio = (cardioId, targetDate = selectedDate) => {
+    lastLocalUpdateTimestampRef.current = Date.now();
+    setData((prevData) => {
+      const day = prevData[targetDate] || { foods: [], workouts: [], cardios: [] };
+      const newCardios = (day.cardios || []).filter((c) => String(c.id) !== String(cardioId));
       return {
-        ...prev,
-        [targetDate]: {
-          ...day,
-          cardios: (day.cardios || []).filter((item) => item.id !== id),
-        },
+        ...prevData,
+        [targetDate]: { ...day, cardios: newCardios }
       };
     });
     showToast('Cardio eliminado');
   };
 
+  // Handler de Peso
   const handleUpdateWeight = (newWeight, targetDate = selectedDate) => {
-    setData((prev) => {
-      const day = prev[targetDate] || { foods: [], workouts: [], cardios: [] };
-      const val = newWeight === '' || newWeight === null ? null : parseFloat(newWeight);
+    lastLocalUpdateTimestampRef.current = Date.now();
+    setData((prevData) => {
+      const day = prevData[targetDate] || { foods: [], workouts: [], cardios: [] };
       return {
-        ...prev,
-        [targetDate]: {
-          ...day,
-          weight: isNaN(val) ? null : val,
-        },
+        ...prevData,
+        [targetDate]: { ...day, weight: newWeight !== null ? newWeight.toString() : '' },
       };
     });
-    if (newWeight !== '' && newWeight !== null && !isNaN(parseFloat(newWeight))) {
-      showToast(`Peso corporal guardado: ${parseFloat(newWeight).toFixed(1)} kg`);
-    } else {
-      showToast('Registro de peso eliminado');
+    showToast('Peso corporal actualizado');
+  };
+
+  // Autenticación Logout
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      setUser(null);
+      setIsActionsOpen(false);
+      showToast('Sesión cerrada');
+    } catch (e) {
+      showToast('Error al cerrar sesión');
     }
   };
 
+  // Backup & Limpieza
   const handleClearAllData = () => {
-    if (window.confirm('¿Vaciar todos los datos de la aplicación?')) {
+    if (window.confirm('¿Seguro que deseas eliminar todos los datos locales? Esta acción no se puede deshacer.')) {
       setData({});
-      setChallengeCalibration(null);
+      setRememberedWorkouts({});
+      setRememberedFoods({});
       localStorage.removeItem('mypowerup_data');
-      localStorage.removeItem('mypowerup_challenge_calibration');
-      if (user) {
-        saveUserCloudData(user.uid, { data: {}, challengeCalibration: null });
-      }
-      showToast('Todos los datos han sido borrados');
+      localStorage.removeItem('mypowerup_remembered_workouts');
+      localStorage.removeItem('mypowerup_remembered_foods');
+      showToast('Datos reiniciados');
     }
   };
 
   const handleExportData = () => {
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
-      JSON.stringify({ 
-        data, 
-        goals, 
-        rememberedWorkouts, 
-        rememberedFoods, 
+      JSON.stringify({
+        data,
+        goals,
+        rememberedWorkouts,
+        rememberedFoods,
         challengeCalibration,
-        version: '3.2' 
+        exportDate: new Date().toISOString(),
+        version: '1.0'
       }, null, 2)
     )}`;
     const downloadAnchor = document.createElement('a');
@@ -543,25 +474,25 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-zinc-900 flex flex-col font-sans selection:bg-black selection:text-white relative">
+    <div className="min-h-screen bg-[#F8F9FA] text-zinc-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white relative">
 
       {/* Toast HUD Minimalist */}
       {toast && (
-        <div className="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-xl bg-zinc-900 text-white font-mono text-xs font-semibold tracking-wider shadow-2xl backdrop-blur-md animate-fade-in-up border border-zinc-700">
-          <span>// {toast}</span>
+        <div className="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-xl bg-zinc-900 text-white font-mono text-xs font-semibold tracking-wider shadow-2xl backdrop-blur-md animate-fade-in-up border border-zinc-800">
+          <span>{toast}</span>
         </div>
       )}
 
-      {/* HEADER MINIMALISTA MONOCROMÁTICO */}
-      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-zinc-200/80 transition-all">
-        <div className="w-full px-4 sm:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+      {/* HEADER ELEGANTE OSCURO (IGUAL AL TONO DEL FOOTER) */}
+      <header className="sticky top-0 z-40 bg-[#121214]/95 backdrop-blur-xl border-b border-[#2E2E34] transition-all shadow-md">
+        <div className="w-full pl-3 sm:pl-6 pr-1 sm:pr-2 py-2 flex items-center justify-between gap-3">
 
           {/* GRUPO IZQUIERDO: Marca & Pestañas de Navegación */}
-          <div className="flex flex-wrap items-center gap-6 lg:gap-10">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8">
             {/* Nombre Marca */}
             <div className="flex items-center">
-              <h1 className="text-lg sm:text-xl font-black tracking-tight text-zinc-950 uppercase font-display select-none">
-                MYPOWER<span className="text-yellow-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]">UP</span>
+              <h1 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase font-display select-none">
+                MYPOWER<span className="text-emerald-500 drop-shadow-xs">UP</span>
               </h1>
             </div>
 
@@ -569,185 +500,200 @@ export default function App() {
             <nav className="flex items-center gap-1 sm:gap-1.5 font-mono text-xs">
               <button
                 onClick={() => setActiveTab('daily')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${activeTab === 'daily'
-                    ? 'bg-black text-white shadow-sm'
-                    : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-                  }`}
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${
+                  activeTab === 'daily'
+                    ? 'bg-white text-zinc-950 shadow-sm'
+                    : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
+                }`}
               >
                 REGISTRO
               </button>
 
               <button
-                onClick={() => setActiveTab('charts')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${activeTab === 'charts'
-                    ? 'bg-black text-white shadow-sm'
-                    : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-                  }`}
-              >
-                GRÁFICOS
-              </button>
-
-              <button
                 onClick={() => setActiveTab('history')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${activeTab === 'history'
-                    ? 'bg-black text-white shadow-sm'
-                    : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-                  }`}
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${
+                  activeTab === 'history' || activeTab === 'charts'
+                    ? 'bg-white text-zinc-950 shadow-sm'
+                    : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
+                }`}
               >
-                HISTORIAL
+                HISTORIAL & GRÁFICOS
               </button>
 
               <button
                 onClick={() => setActiveTab('mypowerup')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${activeTab === 'mypowerup'
-                    ? 'bg-black text-white shadow-sm'
-                    : 'text-zinc-800 hover:text-black border border-zinc-300 bg-white hover:bg-zinc-50'
-                  }`}
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'mypowerup'
+                    ? 'bg-white text-zinc-950 shadow-sm'
+                    : 'text-[#8A8F98] hover:text-white border border-[#2E2E34] bg-[#18181B] hover:bg-[#222226]'
+                }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${activeTab === 'mypowerup' ? 'bg-yellow-400' : 'bg-black'} animate-pulse`}></span>
-                <span>MY<span className="text-yellow-400 font-extrabold">UP</span></span>
+                <span className={`w-1.5 h-1.5 rounded-full ${activeTab === 'mypowerup' ? 'bg-emerald-500' : 'bg-zinc-500'} animate-pulse`}></span>
+                <span>MY<span className="text-emerald-500 font-extrabold">UP</span></span>
               </button>
             </nav>
           </div>
 
-          {/* GRUPO DERECHO: Selector de Fecha, 3 Puntitos & Usuario */}
-          <div className="flex items-center gap-3 sm:gap-4">
-
-            {/* Control de Fecha */}
-            <div className="flex items-center gap-1 text-xs font-mono">
-              <button
-                onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
-                className="p-1 text-zinc-400 hover:text-black transition-colors"
-                title="Día anterior"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={() => setSelectedDate(getLocalDateString())}
-                className="px-2 py-0.5 text-zinc-500 hover:text-black uppercase font-bold text-[11px] transition-colors"
-              >
-                Hoy
-              </button>
-
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-zinc-900 px-1 py-0.5 focus:outline-none cursor-pointer text-xs font-mono font-bold border-b border-transparent focus:border-black transition-colors"
-              />
-
-              <button
-                onClick={() => setSelectedDate(shiftDate(selectedDate, 1))}
-                className="p-1 text-zinc-400 hover:text-black transition-colors"
-                title="Día siguiente"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Botón de 3 Puntitos */}
-            <div className="relative" ref={actionsMenuRef}>
-              <button
-                onClick={() => setIsActionsOpen(!isActionsOpen)}
-                className="p-2 text-zinc-500 hover:text-black hover:bg-zinc-100 rounded-xl transition-all"
-                title="Más opciones"
-              >
-                <MoreVertical className="w-4 h-4" />
-              </button>
-
-              {isActionsOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-white/95 border border-zinc-200 rounded-xl shadow-xl py-2 z-50 backdrop-blur-xl font-mono text-xs divide-y divide-zinc-100 animate-fade-in-up">
-                  <button
-                    onClick={() => { setIsGoalsOpen(true); setIsActionsOpen(false); }}
-                    className="w-full px-4 py-2.5 text-left text-zinc-700 hover:text-black hover:bg-zinc-50 flex items-center gap-2.5 transition-colors"
-                  >
-                    <Sliders className="w-4 h-4 text-zinc-900" />
-                    <span>Configurar Metas</span>
-                  </button>
-
-                  <button
-                    onClick={() => { handleExportData(); setIsActionsOpen(false); }}
-                    className="w-full px-4 py-2.5 text-left text-zinc-700 hover:text-black hover:bg-zinc-50 flex items-center gap-2.5 transition-colors"
-                  >
-                    <Download className="w-4 h-4 text-zinc-900" />
-                    <span>Exportar Backup</span>
-                  </button>
-
-                  <label
-                    className="w-full px-4 py-2.5 text-left text-zinc-700 hover:text-black hover:bg-zinc-50 flex items-center gap-2.5 transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-4 h-4 text-zinc-900" />
-                    <span>Importar Backup</span>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={(e) => { handleImportData(e); setIsActionsOpen(false); }}
-                      accept=".json"
-                      className="hidden"
-                    />
-                  </label>
-
-                  {Object.keys(data).length > 0 && (
-                    <button
-                      onClick={() => { handleClearAllData(); setIsActionsOpen(false); }}
-                      className="w-full px-4 py-2.5 text-left text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex items-center gap-2.5 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>Vaciar Todos los Datos</span>
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* SECCIÓN USUARIO */}
-            <div className="flex items-center">
-              {user ? (
-                <div className="flex items-center gap-2 bg-zinc-100 border border-zinc-200 rounded-xl p-1 pr-2 text-xs font-mono">
+          {/* GRUPO DERECHO: Botón de Usuario con Tuerquita & Menú desplegable pegado al lateral */}
+          <div className="flex items-center justify-end">
+            {user ? (
+              <div className="relative" ref={actionsMenuRef}>
+                {/* Botón de Usuario con tuerquita */}
+                <button
+                  type="button"
+                  onClick={() => setIsActionsOpen(!isActionsOpen)}
+                  className="flex items-center gap-2 bg-[#18181B] hover:bg-[#222226] border border-[#2E2E34] hover:border-[#3E3E48] rounded-2xl p-1 pr-2 text-xs font-mono transition-all shadow-sm cursor-pointer select-none group"
+                  title="Opciones de cuenta y configuración"
+                >
                   {user.photoURL ? (
                     <img
                       src={user.photoURL}
                       alt="avatar"
-                      className="w-7 h-7 rounded-lg object-cover border border-zinc-300"
+                      className="w-7 h-7 rounded-xl object-cover border border-[#2E2E34] group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="w-7 h-7 rounded-lg bg-zinc-900 flex items-center justify-center text-white font-bold text-[11px] shadow-sm">
+                    <div className="w-7 h-7 rounded-xl bg-zinc-800 flex items-center justify-center text-emerald-400 font-bold text-xs shadow-sm">
                       {(user.displayName || user.email || 'U')[0].toUpperCase()}
                     </div>
                   )}
 
                   <div className="hidden sm:block text-left">
-                    <p className="text-[11px] font-bold text-zinc-900 leading-tight truncate max-w-[100px]">
+                    <p className="text-xs font-bold text-white leading-tight truncate max-w-[140px]">
                       {user.displayName || user.email.split('@')[0]}
-                    </p>
-                    <p className="text-[9px] text-emerald-600 font-bold leading-tight">
-                      ● CLOUD ACTIVO
                     </p>
                   </div>
 
+                  {/* Icono de Tuerquita que despliega el menú */}
+                  <div className="p-1 rounded-lg text-[#8A8F98] group-hover:text-white group-hover:bg-[#2E2E34] transition-colors">
+                    <Settings className={`w-3.5 h-3.5 transition-transform duration-300 ${isActionsOpen ? 'rotate-90 text-white' : ''}`} />
+                  </div>
+                </button>
+
+                {/* Desplegable Suave pegado al lateral derecho sin duplicar info de usuario */}
+                {isActionsOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-[#18181B] border border-[#2E2E34] rounded-2xl shadow-2xl py-1.5 z-50 font-mono text-xs divide-y divide-[#2E2E34] animate-fade-in-up">
+                    {/* Opciones de Configuración */}
+                    <div className="py-1">
+                      <button
+                        onClick={() => { setIsGoalsOpen(true); setIsActionsOpen(false); }}
+                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
+                      >
+                        <Sliders className="w-4 h-4 text-emerald-400" />
+                        <span>Configurar Metas</span>
+                      </button>
+
+                      <button
+                        onClick={() => { setIsGeminiModalOpen(true); setIsActionsOpen(false); }}
+                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
+                      >
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        <span>Configurar IA Gemini</span>
+                      </button>
+
+                      <button
+                        onClick={() => { handleExportData(); setIsActionsOpen(false); }}
+                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
+                      >
+                        <Download className="w-4 h-4 text-emerald-400" />
+                        <span>Exportar Backup</span>
+                      </button>
+
+                      <label
+                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4 text-emerald-400" />
+                        <span>Importar Backup</span>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={(e) => { handleImportData(e); setIsActionsOpen(false); }}
+                          accept=".json"
+                          className="hidden"
+                        />
+                      </label>
+
+                      {Object.keys(data).length > 0 && (
+                        <button
+                          onClick={() => { handleClearAllData(); setIsActionsOpen(false); }}
+                          className="w-full px-4 py-2.5 text-left text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span>Vaciar Todos los Datos</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Botón Cerrar Sesión abajo de todo */}
+                    <div className="pt-1">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full px-4 py-2.5 text-left text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer font-bold"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Cerrar Sesión</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2" ref={actionsMenuRef}>
+                {/* Botón de Tuerquita para no autenticados */}
+                <div className="relative">
                   <button
-                    onClick={handleLogout}
-                    className="p-1.5 hover:bg-zinc-200 text-zinc-500 hover:text-rose-600 rounded-lg transition-colors ml-1"
-                    title="Cerrar Sesión"
+                    onClick={() => setIsActionsOpen(!isActionsOpen)}
+                    className="p-2 text-[#8A8F98] hover:text-white hover:bg-[#222226] rounded-xl border border-[#2E2E34] transition-all cursor-pointer"
+                    title="Opciones de datos"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
+                    <Settings className="w-4 h-4" />
                   </button>
+
+                  {isActionsOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-[#18181B] border border-[#2E2E34] rounded-2xl shadow-2xl py-2 z-50 font-mono text-xs divide-y divide-[#2E2E34] animate-fade-in-up">
+                      <button
+                        onClick={() => { setIsGoalsOpen(true); setIsActionsOpen(false); }}
+                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
+                      >
+                        <Sliders className="w-4 h-4 text-emerald-400" />
+                        <span>Configurar Metas</span>
+                      </button>
+
+                      <button
+                        onClick={() => { handleExportData(); setIsActionsOpen(false); }}
+                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
+                      >
+                        <Download className="w-4 h-4 text-emerald-400" />
+                        <span>Exportar Backup</span>
+                      </button>
+
+                      <label
+                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4 text-emerald-400" />
+                        <span>Importar Backup</span>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={(e) => { handleImportData(e); setIsActionsOpen(false); }}
+                          accept=".json"
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
-              ) : (
+
+                {/* Botón Entrar */}
                 <div className="relative">
                   <button
                     onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)}
-                    className="group relative p-2 rounded-xl hover:bg-zinc-100 transition-all duration-300 flex items-center justify-center active:scale-95 cursor-pointer"
+                    className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-md"
                     title="Iniciar Sesión / Acceso Rápido"
                   >
-                    <div className="relative flex items-center justify-center">
-                      <UserIcon className="w-4 h-4 text-zinc-700 group-hover:text-black transition-colors" />
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-black shadow-sm animate-pulse"></span>
-                    </div>
+                    <UserIcon className="w-3.5 h-3.5 text-black" />
+                    <span>Entrar</span>
                   </button>
 
-                  {/* Desplegable de Login Rápido debajo del botón de la personita */}
                   <HeaderLoginDropdown
                     isOpen={isLoginDropdownOpen}
                     onClose={() => setIsLoginDropdownOpen(false)}
@@ -760,9 +706,8 @@ export default function App() {
                     }}
                   />
                 </div>
-              )}
-            </div>
-
+              </div>
+            )}
           </div>
 
         </div>
@@ -774,6 +719,7 @@ export default function App() {
           <DailyView
             currentDay={currentDay}
             selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
             data={data}
             goals={goals}
             isWeightVisible={isWeightVisible}
@@ -794,8 +740,9 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'charts' && (
-          <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+        {(activeTab === 'history' || activeTab === 'charts') && (
+          <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-12">
+            {/* 1. SECCIÓN DE GRÁFICOS & PROGRESIÓN (ARRIBA) */}
             <ChartsView
               data={data}
               goals={goals}
@@ -804,11 +751,11 @@ export default function App() {
               onUpdateWeight={handleUpdateWeight}
               onSelectDate={handleSelectDateFromHistory}
             />
-          </div>
-        )}
 
-        {activeTab === 'history' && (
-          <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+            {/* DIVISOR ELEGANTE */}
+            <div className="border-t border-zinc-200 pt-2" />
+
+            {/* 2. SECCIÓN DE HISTORIAL & REGISTROS (ABAJO) */}
             <HistoryView
               data={data}
               goals={goals}
@@ -848,12 +795,19 @@ export default function App() {
         }}
       />
 
+      {/* Modal de Configuración de IA Gemini */}
+      <GeminiApiKeyModal
+        isOpen={isGeminiModalOpen}
+        onClose={() => setIsGeminiModalOpen(false)}
+        onToast={showToast}
+      />
+
       {/* Pantalla Completa de Bienvenida / Registro Cloud */}
       <AuthModal
         isOpen={isAuthModalOpen}
         initialMode={authModalMode}
         onClose={() => setIsAuthModalOpen(false)}
-        onAuthSuccess={() => {
+        onSuccess={() => {
           showToast('Sesión iniciada con éxito');
         }}
       />

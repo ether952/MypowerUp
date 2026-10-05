@@ -72,14 +72,14 @@ export default function WeightEvolutionChart({
     return [Math.floor(min - padding), Math.ceil(max + padding)];
   }, [filteredData]);
 
-  // Tooltip minimalista monocromático
+  // Tooltip minimalista Light
   const CustomWeightTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const d = payload[0].payload;
       return (
-        <div className="bg-white border border-zinc-200 p-2.5 rounded-xl shadow-xl text-xs font-mono space-y-0.5">
+        <div className="bg-white border border-zinc-200 p-2.5 rounded-xl shadow-xl text-xs font-mono space-y-0.5 text-zinc-900">
           <p className="text-zinc-500 text-[10px]">{d.dateStr}</p>
-          <p className="text-zinc-900 font-extrabold text-sm">
+          <p className="text-emerald-600 font-extrabold text-sm">
             {isWeightVisible ? `${d.weight} kg` : '•••• kg'}
           </p>
         </div>
@@ -91,18 +91,18 @@ export default function WeightEvolutionChart({
   return (
     <div className="w-full pt-2 font-mono select-none">
       
-      {/* BOTÓN PRINCIPAL */}
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-white hover:bg-zinc-50 border border-zinc-200 transition-all duration-300 shadow-sm">
+      {/* BOTÓN PRINCIPAL LIGHT */}
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-white hover:bg-zinc-50 border border-zinc-200 transition-all duration-300 shadow-xs">
         <button
           type="button"
           onClick={() => setIsChartOpen(!isChartOpen)}
           className="flex-1 flex items-center justify-between text-left cursor-pointer group"
         >
           <div className="space-y-0.5">
-            <span className="text-[10px] text-zinc-500 tracking-widest uppercase font-bold block">
-              // MÉTRICA CORPORAL
+            <span className="text-[10px] text-emerald-600 tracking-widest uppercase font-bold block">
+              MÉTRICA CORPORAL
             </span>
-            <span className="text-sm sm:text-base font-extrabold text-zinc-900 tracking-tight uppercase font-display group-hover:text-black transition-colors">
+            <span className="text-sm sm:text-base font-extrabold text-zinc-900 tracking-tight uppercase font-display group-hover:text-emerald-600 transition-colors">
               Evolución Corporal & Consejos
             </span>
           </div>
@@ -114,8 +114,8 @@ export default function WeightEvolutionChart({
               </span>
             )}
             <span
-              className={`text-xs px-2.5 py-1 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-700 transition-transform duration-300 ${
-                isChartOpen ? 'rotate-180 text-black border-zinc-400' : ''
+              className={`text-xs px-2.5 py-1 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-600 transition-transform duration-300 ${
+                isChartOpen ? 'rotate-180 text-emerald-600 border-emerald-500/50' : ''
               }`}
             >
               ▼
@@ -124,16 +124,16 @@ export default function WeightEvolutionChart({
         </button>
       </div>
 
-      {/* CONTENIDO DESPLEGABLE */}
+      {/* CONTENIDO DESPLEGABLE LIGHT */}
       <div
         className={`overflow-hidden transition-all duration-500 ease-out ${
           isChartOpen ? 'max-h-[1400px] opacity-100 mt-4' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="p-4 sm:p-6 rounded-2xl bg-white border border-zinc-200 space-y-6 shadow-sm">
+        <div className="p-4 sm:p-6 rounded-2xl bg-white border border-zinc-200 space-y-6 shadow-xs">
           
           {/* Barra de Controles Minimalistas */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-zinc-100 pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-zinc-200 pb-4">
             
             {/* Stats Rápidas */}
             <div className="flex items-center gap-4">
@@ -149,7 +149,7 @@ export default function WeightEvolutionChart({
                   <span className="text-[10px] text-zinc-500 uppercase block">Variación</span>
                   <span
                     className={`font-bold text-sm ${
-                      stats.deltaTotal < 0 ? 'text-zinc-900' : 'text-zinc-600'
+                      stats.deltaTotal < 0 ? 'text-emerald-600' : 'text-amber-600'
                     }`}
                   >
                     {isWeightVisible
@@ -161,12 +161,12 @@ export default function WeightEvolutionChart({
             </div>
 
             {/* Acciones */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Ocultar / Revelar */}
               <button
                 type="button"
                 onClick={onToggleVisibility}
-                className="px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 text-xs font-bold transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-200 text-xs font-bold transition-all cursor-pointer"
               >
                 {isWeightVisible ? 'Ocultar' : 'Revelar'}
               </button>
@@ -180,8 +180,8 @@ export default function WeightEvolutionChart({
                     onClick={() => setRangeFilter(r)}
                     className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                       rangeFilter === r
-                        ? 'bg-black text-white shadow-sm'
-                        : 'text-zinc-600 hover:text-black'
+                        ? 'bg-zinc-900 text-white shadow-xs'
+                        : 'text-zinc-600 hover:text-zinc-900'
                     }`}
                   >
                     {r === 'all' ? 'TODO' : `${r}D`}
@@ -196,7 +196,7 @@ export default function WeightEvolutionChart({
                   setModalDate(getLocalDateString());
                   setIsModalOpen(true);
                 }}
-                className="px-3 py-1.5 bg-black hover:bg-zinc-800 text-white font-bold rounded-lg shadow-sm text-xs transition-all cursor-pointer"
+                className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg shadow-xs text-xs transition-all cursor-pointer"
               >
                 + Registrar
               </button>
@@ -218,9 +218,9 @@ export default function WeightEvolutionChart({
                     margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
                   >
                     <defs>
-                      <linearGradient id="minimalGradMono" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#09090B" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#09090B" stopOpacity={0.0} />
+                      <linearGradient id="weightGradLight" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E4E4E7" vertical={false} />
@@ -244,10 +244,10 @@ export default function WeightEvolutionChart({
                     <Area
                       type="monotone"
                       dataKey="weight"
-                      stroke="#09090B"
+                      stroke="#10B981"
                       strokeWidth={2.5}
                       fillOpacity={1}
-                      fill="url(#minimalGradMono)"
+                      fill="url(#weightGradLight)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -264,12 +264,9 @@ export default function WeightEvolutionChart({
             <button
               type="button"
               onClick={() => setIsTipsOpen(!isTipsOpen)}
-              className="w-full py-2.5 px-4 rounded-xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 flex items-center justify-between text-xs font-bold text-zinc-800 transition-all cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 flex items-center justify-between text-xs font-bold text-zinc-900 transition-all cursor-pointer"
             >
-              <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
-                <span>Consejos & Frecuencia Recomendada</span>
-              </span>
+              <span>Consejos & Frecuencia Recomendada</span>
               <span className="text-zinc-500 text-[11px] font-mono">
                 {isTipsOpen ? 'Ocultar ▲' : 'Ver Consejos ▼'}
               </span>
@@ -285,7 +282,7 @@ export default function WeightEvolutionChart({
                 
                 {/* 1. Pregunta de Objetivo */}
                 <div className="space-y-2">
-                  <span className="text-[11px] text-zinc-700 font-bold block">
+                  <span className="text-[11px] text-zinc-600 font-bold block">
                     ¿Cuál es tu objetivo actual?
                   </span>
                   <div className="grid grid-cols-3 gap-2 text-[11px]">
@@ -300,8 +297,8 @@ export default function WeightEvolutionChart({
                         onClick={() => handleSelectGoal(g.id)}
                         className={`py-2 px-2 rounded-lg font-bold transition-all text-center cursor-pointer ${
                           goalType === g.id
-                            ? 'bg-black text-white shadow-sm'
-                            : 'bg-white text-zinc-600 hover:text-black border border-zinc-200'
+                            ? 'bg-zinc-900 text-white shadow-xs font-black'
+                            : 'bg-white text-zinc-600 hover:text-zinc-900 border border-zinc-200'
                         }`}
                       >
                         {g.label}
@@ -311,12 +308,12 @@ export default function WeightEvolutionChart({
                 </div>
 
                 {/* 2. Recomendación Personalizada */}
-                <div className="p-3.5 rounded-lg bg-white border border-zinc-200 space-y-1.5">
-                  <div className="flex items-center justify-between text-zinc-600">
+                <div className="p-3.5 rounded-lg bg-white border border-zinc-200 space-y-1.5 shadow-xs">
+                  <div className="flex items-center justify-between text-zinc-500">
                     <span className="text-[10px] text-zinc-900 uppercase font-bold">
                       Frecuencia Sugerida
                     </span>
-                    <span className="text-[10px] text-zinc-500 font-mono">
+                    <span className="text-[10px] text-emerald-600 font-mono font-bold">
                       {recommendation.frequencyBadge}
                     </span>
                   </div>

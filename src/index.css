@@ -13,24 +13,24 @@ html {
 
 body {
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #FAFAFA;
-  color: #09090B;
+  background-color: #F8F9FA;
+  color: #18181B;
   overflow-x: clip;
   background-image:
-    radial-gradient(circle at 15% 10%, rgba(0, 0, 0, 0.02) 0%, transparent 40%),
-    radial-gradient(circle at 85% 20%, rgba(0, 0, 0, 0.015) 0%, transparent 40%),
-    radial-gradient(circle at 50% 90%, rgba(0, 0, 0, 0.02) 0%, transparent 50%);
+    radial-gradient(circle at 15% 10%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(0, 0, 0, 0.02) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(34, 197, 94, 0.03) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
-/* Custom scrollbar - Minimalist */
+/* Custom scrollbar - Minimalist Light */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F4F4F5;
+  background: #F1F3F5;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -39,7 +39,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #71717A;
+  background: #A1A1AA;
 }
 
 /* Ambient subtle glows */
@@ -47,7 +47,7 @@ body {
   position: absolute;
   filter: blur(120px);
   pointer-events: none;
-  background: radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.06) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -55,7 +55,7 @@ body {
   position: absolute;
   filter: blur(120px);
   pointer-events: none;
-  background: radial-gradient(circle, rgba(0, 0, 0, 0.025) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.05) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -63,56 +63,56 @@ body {
   position: absolute;
   filter: blur(120px);
   pointer-events: none;
-  background: radial-gradient(circle, rgba(0, 0, 0, 0.02) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.05) 0%, transparent 70%);
   border-radius: 50%;
 }
 
-/* Futuristic / Minimal Inputs */
+/* Futuristic / Minimal Inputs Light */
 .input-futuristic {
   background: #FFFFFF;
   border: 1px solid #E4E4E7;
-  border-bottom: 2px solid #09090B;
-  color: #09090B;
+  border-bottom: 2px solid #D4D4D8;
+  color: #18181B;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .input-futuristic:focus {
   background: #FFFFFF;
-  border-color: #09090B;
-  border-bottom-color: #000000;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+  border-color: #22C55E;
+  border-bottom-color: #22C55E;
+  box-shadow: 0 4px 20px -2px rgba(34, 197, 94, 0.15);
   outline: none;
 }
 
 .input-futuristic-cyan {
   background: #FFFFFF;
   border: 1px solid #E4E4E7;
-  border-bottom: 2px solid #27272A;
-  color: #09090B;
+  border-bottom: 2px solid #D4D4D8;
+  color: #18181B;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .input-futuristic-cyan:focus {
   background: #FFFFFF;
-  border-color: #27272A;
-  border-bottom-color: #09090B;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+  border-color: #22C55E;
+  border-bottom-color: #22C55E;
+  box-shadow: 0 4px 20px -2px rgba(34, 197, 94, 0.15);
   outline: none;
 }
 
 .input-futuristic-emerald {
   background: #FFFFFF;
   border: 1px solid #E4E4E7;
-  border-bottom: 2px solid #18181B;
-  color: #09090B;
+  border-bottom: 2px solid #22C55E;
+  color: #18181B;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .input-futuristic-emerald:focus {
   background: #FFFFFF;
-  border-color: #18181B;
-  border-bottom-color: #000000;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+  border-color: #22C55E;
+  border-bottom-color: #4ADE80;
+  box-shadow: 0 4px 20px -2px rgba(34, 197, 94, 0.2);
   outline: none;
 }
 
@@ -156,4 +156,4 @@ body {
 
 .animate-shadow-island {
   animation: shadow-island 4s ease-in-out infinite;
-}
+}

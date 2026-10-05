@@ -109,10 +109,10 @@ export default function MyPowerUpView({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-4">
         <div>
           <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase font-bold">
-            // SISTEMA DE DESAFÍOS & GAMIFICACIÓN
+            SISTEMA DE DESAFÍOS & GAMIFICACIÓN
           </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-black uppercase tracking-tight font-display mt-0.5 select-none">
-            MYPOWER<span className="text-yellow-400">UP</span>
+          <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight font-display mt-0.5 select-none">
+            MYPOWER<span className="text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.35)]">UP</span>
           </h2>
         </div>
 
@@ -136,7 +136,7 @@ export default function MyPowerUpView({
         {/* BARRA LATERAL */}
         <aside className="w-full lg:w-56 xl:w-60 flex-shrink-0 space-y-2">
           <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest px-1 font-bold">
-            // Desafíos
+            Desafíos
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -266,7 +266,7 @@ export default function MyPowerUpView({
 
               <div className="space-y-3">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
-                  // GUÍA DE FUNCIONAMIENTO
+                  GUÍA DE FUNCIONAMIENTO
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase font-display tracking-tight leading-tight">
                   Entrena, supera tus marcas y sube de nivel
@@ -280,7 +280,7 @@ export default function MyPowerUpView({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6 border-y border-zinc-200">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-900">
-                    <span>01 //</span>
+                    <span>01.</span>
                     <span>AUTOMÁTICO</span>
                   </div>
                   <h4 className="font-display font-bold text-zinc-900 text-sm sm:text-base">
@@ -293,7 +293,7 @@ export default function MyPowerUpView({
 
                 <div className="space-y-2 md:border-l md:border-zinc-200 md:pl-6">
                   <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-900">
-                    <span>02 //</span>
+                    <span>02.</span>
                     <span>SIN FRUSTRACIÓN</span>
                   </div>
                   <h4 className="font-display font-bold text-zinc-900 text-sm sm:text-base">
@@ -306,7 +306,7 @@ export default function MyPowerUpView({
 
                 <div className="space-y-2 md:border-l md:border-zinc-200 md:pl-6">
                   <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-900">
-                    <span>03 //</span>
+                    <span>03.</span>
                     <span>PROGRESIÓN +20%</span>
                   </div>
                   <h4 className="font-display font-bold text-zinc-900 text-sm sm:text-base">
@@ -325,7 +325,7 @@ export default function MyPowerUpView({
                   <div className="flex items-center gap-2 text-zinc-900">
                     <Trophy className="w-5 h-5 text-black" />
                     <span className="text-xs font-mono font-bold uppercase tracking-wider">
-                      // FUERZA & TONELAJE
+                      FUERZA & TONELAJE
                     </span>
                   </div>
                   <div>
@@ -357,7 +357,7 @@ export default function MyPowerUpView({
                   <div className="flex items-center gap-2 text-zinc-900">
                     <Flame className="w-5 h-5 text-black" />
                     <span className="text-xs font-mono font-bold uppercase tracking-wider">
-                      // RESISTENCIA & CARDIO
+                      RESISTENCIA & CARDIO
                     </span>
                   </div>
                   <div>
@@ -390,7 +390,7 @@ export default function MyPowerUpView({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-zinc-900 font-mono text-xs font-bold">
                     <Gamepad2 className="w-4 h-4 text-black" />
-                    <span>// MINIJUEGO INTERACTIVO</span>
+                    <span>MINIJUEGO INTERACTIVO</span>
                   </div>
                   <h4 className="font-display font-extrabold text-zinc-900 text-base">
                     PowerUp City: Tu avatar y mapa de entrenamiento
@@ -420,7 +420,7 @@ export default function MyPowerUpView({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-4">
                 <div className="space-y-1">
                   <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
-                    // DESAFÍO DE TONELAJE & VOLUMEN
+                    DESAFÍO DE TONELAJE & VOLUMEN
                   </span>
                   <div className="flex items-center gap-3">
                     <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase font-display">
@@ -507,9 +507,8 @@ export default function MyPowerUpView({
                   {/* RULETA DE RANGOS */}
                   <div className="space-y-3 pt-2">
                     <div className="flex justify-between items-center font-mono text-xs text-zinc-500">
-                      <span className="flex items-center gap-1.5 text-zinc-900 font-bold">
-                        <Award className="w-4 h-4 text-black" />
-                        // RULETA DE RANGOS SEMANALES
+                      <span className="text-zinc-900 font-bold">
+                        RULETA DE RANGOS SEMANALES
                       </span>
 
                       <div className="flex items-center gap-1.5">
@@ -606,7 +605,7 @@ export default function MyPowerUpView({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-4">
                 <div className="space-y-1">
                   <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
-                    // DESAFÍO DE DISTANCIA & CARDIO
+                    DESAFÍO DE DISTANCIA & CARDIO
                   </span>
                   <div className="flex items-center gap-3">
                     <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase font-display">
@@ -634,7 +633,7 @@ export default function MyPowerUpView({
 
               {/* SELECTOR DE DISCIPLINA */}
               <div className="flex items-center gap-3 font-mono text-xs">
-                <span className="text-zinc-500 uppercase text-[11px] font-bold">// Disciplina:</span>
+                <span className="text-zinc-500 uppercase text-[11px] font-bold">Disciplina:</span>
                 <div className="flex items-center gap-1">
                   {[
                     { id: 'caminata', label: 'Caminata', icon: Footprints },

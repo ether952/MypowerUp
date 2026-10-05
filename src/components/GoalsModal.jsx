@@ -19,18 +19,18 @@ export default function GoalsModal({ isOpen, onClose, currentGoals, onSaveGoals 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
-      <div className="bg-white border border-zinc-200 w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-6 relative text-zinc-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-fade-in">
+      <div className="bg-[#18181B] border border-[#2E2E34] w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-6 relative text-white">
         
         {/* Cabecera */}
-        <div className="flex justify-between items-center border-b border-zinc-200 pb-4">
+        <div className="flex justify-between items-center border-b border-[#2E2E34] pb-4">
           <div>
-            <span className="text-[10px] font-mono text-zinc-500 tracking-widest uppercase font-bold">// CONFIGURACIÓN</span>
-            <h3 className="text-lg font-extrabold text-zinc-900 uppercase tracking-tight">Metas Diarias</h3>
+            <span className="text-[10px] font-mono text-[#8A8F98] tracking-widest uppercase font-bold">CONFIGURACIÓN</span>
+            <h3 className="text-lg font-extrabold text-white uppercase tracking-tight">Metas Diarias</h3>
           </div>
           <button 
             onClick={onClose}
-            className="text-zinc-400 hover:text-black p-1 rounded-lg transition-colors cursor-pointer"
+            className="text-[#8A8F98] hover:text-white p-1 rounded-lg hover:bg-[#222226] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -40,8 +40,8 @@ export default function GoalsModal({ isOpen, onClose, currentGoals, onSaveGoals 
         <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
           
           <div className="space-y-1.5">
-            <label className="block uppercase text-zinc-600 tracking-wider font-bold">
-              // Meta de Calorías (Kcal)
+            <label className="block uppercase text-[#8A8F98] tracking-wider font-bold">
+              Meta de Calorías (Kcal)
             </label>
             <input
               type="number"
@@ -49,14 +49,14 @@ export default function GoalsModal({ isOpen, onClose, currentGoals, onSaveGoals 
               max="10000"
               value={calories}
               onChange={(e) => setCalories(e.target.value)}
-              className="w-full bg-white border border-zinc-300 focus:border-black px-4 py-2.5 rounded-xl text-zinc-900 font-bold outline-none shadow-sm transition-colors"
+              className="w-full bg-[#222226] border border-[#2E2E34] focus:border-emerald-500 px-4 py-2.5 rounded-xl text-white font-bold outline-none shadow-sm transition-colors"
               required
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block uppercase text-zinc-600 tracking-wider font-bold">
-              // Meta de Proteína (g)
+            <label className="block uppercase text-[#8A8F98] tracking-wider font-bold">
+              Meta de Proteína (g)
             </label>
             <input
               type="number"
@@ -64,14 +64,14 @@ export default function GoalsModal({ isOpen, onClose, currentGoals, onSaveGoals 
               max="500"
               value={protein}
               onChange={(e) => setProtein(e.target.value)}
-              className="w-full bg-white border border-zinc-300 focus:border-black px-4 py-2.5 rounded-xl text-zinc-900 font-bold outline-none shadow-sm transition-colors"
+              className="w-full bg-[#222226] border border-[#2E2E34] focus:border-emerald-500 px-4 py-2.5 rounded-xl text-white font-bold outline-none shadow-sm transition-colors"
               required
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block uppercase text-zinc-600 tracking-wider font-bold">
-              // Meta de Peso Gym / Carga (Kg)
+            <label className="block uppercase text-[#8A8F98] tracking-wider font-bold">
+              Meta de Peso Gym / Carga (Kg)
             </label>
             <input
               type="number"
@@ -80,27 +80,26 @@ export default function GoalsModal({ isOpen, onClose, currentGoals, onSaveGoals 
               step="5"
               value={tonnage}
               onChange={(e) => setTonnage(e.target.value)}
-              className="w-full bg-white border border-zinc-300 focus:border-black px-4 py-2.5 rounded-xl text-zinc-900 font-bold outline-none shadow-sm transition-colors"
+              className="w-full bg-[#222226] border border-[#2E2E34] focus:border-emerald-500 px-4 py-2.5 rounded-xl text-white font-bold outline-none shadow-sm transition-colors"
               required
             />
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-zinc-200">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#2E2E34]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-zinc-500 hover:text-black uppercase tracking-wider transition-colors cursor-pointer"
+              className="px-4 py-2 text-[#8A8F98] hover:text-white uppercase tracking-wider transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-md transition-colors cursor-pointer"
+              className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase rounded-xl shadow-md transition-colors cursor-pointer"
             >
               Guardar Metas
             </button>
           </div>
-
         </form>
 
       </div>

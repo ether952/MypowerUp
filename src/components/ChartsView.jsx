@@ -4,9 +4,9 @@ import {
   Bar, 
   AreaChart, 
   Area, 
-  PieChart,
-  Pie,
-  Cell,
+  PieChart, 
+  Pie, 
+  Cell, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -15,30 +15,23 @@ import {
   ReferenceLine 
 } from 'recharts';
 import { 
-  Dumbbell, 
-  TrendingUp, 
-  PieChart as PieIcon, 
-  Sparkles,
-  Award,
-  Zap,
-  ChevronDown,
-  Scale,
-  Activity,
-  Flame
+  Sparkles, 
+  ChevronDown 
 } from 'lucide-react';
 import { getDaysRangeData, getLocalDateString } from '../utils/helpers';
 import WeightEvolutionChart from './WeightEvolutionChart';
 
-// Paleta minimalista monocromática refinada para distribución
+// Paleta vibrante y armónica para distribución de ejercicios
 const PIE_COLORS = [
-  '#09090B', // Negro puro
-  '#27272A', // Zinc 800
-  '#3F3F46', // Zinc 700
-  '#52525B', // Zinc 600
-  '#71717A', // Zinc 500
-  '#A1A1AA', // Zinc 400
-  '#18181B', // Zinc 900
-  '#D4D4D8'  // Zinc 300
+  '#10B981', // Esmeralda
+  '#06B6D4', // Cian
+  '#8B5CF6', // Púrpura
+  '#F59E0B', // Ámbar
+  '#EC4899', // Rosa
+  '#3B82F6', // Azul
+  '#14B8A6', // Teal
+  '#A855F7', // Violeta
+  '#6366F1'  // Indigo
 ];
 
 export default function ChartsView({
@@ -170,18 +163,18 @@ export default function ChartsView({
   const netWeightGain = latestWeight - initialWeight;
   const percentGain = initialWeight > 0 ? Math.round(((latestWeight - initialWeight) / initialWeight) * 100) : 0;
 
-  // Tooltips personalizados Minimalistas Monocromáticos
+  // Tooltips personalizados Light Theme
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-zinc-200 p-3 rounded-xl shadow-xl font-mono text-xs space-y-1.5">
+        <div className="bg-white border border-zinc-200 p-3 rounded-xl shadow-xl font-mono text-xs space-y-1.5 text-zinc-900">
           <p className="font-bold text-zinc-900 border-b border-zinc-100 pb-1">{label}</p>
           {payload.map((entry, index) => (
             <div key={index} className="flex items-center justify-between gap-4 py-0.5">
-              <span className="font-medium text-zinc-600">
+              <span className="font-medium text-zinc-500">
                 {entry.name}:
               </span>
-              <span className="font-bold text-zinc-900">
+              <span className="font-bold text-emerald-600">
                 {Number(entry.value).toLocaleString()} {entry.unit || ''}
               </span>
             </div>
@@ -196,16 +189,16 @@ export default function ChartsView({
     if (active && payload && payload.length) {
       const d = payload[0].payload;
       return (
-        <div className="bg-white border border-zinc-200 p-3.5 rounded-xl shadow-xl font-mono text-xs space-y-1">
+        <div className="bg-white border border-zinc-200 p-3.5 rounded-xl shadow-xl font-mono text-xs space-y-1 text-zinc-900">
           <p className="font-bold text-zinc-900 border-b border-zinc-100 pb-1 flex items-center justify-between gap-3">
             <span>{label} ({d.dateStr})</span>
-            <span className="text-black font-extrabold">{d.weight} kg</span>
+            <span className="text-emerald-600 font-extrabold">{d.weight} kg</span>
           </p>
           <p className="text-zinc-600">
             Series × Reps: <strong className="text-zinc-900">{d.sets} × {d.reps}</strong>
           </p>
           <p className="text-zinc-500 text-[11px]">
-            Volumen acumulado: <strong className="text-zinc-900">{d.volume.toLocaleString()} kg</strong>
+            Volumen acumulado: <strong className="text-cyan-600">{d.volume.toLocaleString()} kg</strong>
           </p>
         </div>
       );
@@ -214,19 +207,19 @@ export default function ChartsView({
   };
 
   return (
-    <div className="space-y-10 animate-fade-in-up">
+    <div className="space-y-8 animate-fade-in-up">
       
       {/* Cabecera & Selector de Rango */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-5">
         <div>
-          <span className="text-xs font-mono tracking-widest text-zinc-500 uppercase">// RENDIMIENTO & PROGRESIÓN</span>
+          <span className="text-xs font-mono tracking-widest text-emerald-600 uppercase font-bold">RENDIMIENTO & PROGRESIÓN</span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase tracking-tight font-display mt-0.5">
             GRÁFICOS & EVOLUCIÓN
           </h2>
         </div>
 
         {/* Selector de Rango de Días */}
-        <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-zinc-200 shadow-sm font-mono text-xs">
+        <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-zinc-200 shadow-xs font-mono text-xs">
           {[7, 14, 30].map(days => (
             <button
               key={days}
@@ -234,8 +227,8 @@ export default function ChartsView({
               onClick={() => setRangeDays(days)}
               className={`px-3.5 py-1.5 rounded-lg font-bold transition-all uppercase cursor-pointer ${
                 rangeDays === days 
-                  ? 'bg-black text-white shadow-sm' 
-                  : 'text-zinc-500 hover:text-black hover:bg-zinc-100'
+                  ? 'bg-zinc-900 text-white shadow-xs' 
+                  : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
               {days === 7 ? '7 DÍAS' : `${days} DÍAS`}
@@ -247,37 +240,34 @@ export default function ChartsView({
       {/* ========================================================================= */}
       {/* 01. SECCIÓN DE RENDIMIENTO, GIMNASIO & NUTRICIÓN                          */}
       {/* ========================================================================= */}
-      <div className="space-y-12">
+      <div className="space-y-8">
 
         {/* KPI HUD - DISEÑO ABIERTO Y ELEGANTE */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-6 border-y border-zinc-200">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-5 bg-white border border-zinc-200 rounded-2xl shadow-xs">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
+            <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
               <span>Días Entrenados</span>
             </div>
             <div className="text-3xl sm:text-4xl font-extrabold font-display text-zinc-900 tracking-tight">
-              {activeGymDays} <span className="text-xs font-mono text-zinc-500 font-normal uppercase">/ {rangeDays} DÍAS</span>
+              {activeGymDays} <span className="text-xs font-mono text-zinc-400 font-normal uppercase">/ {rangeDays} DÍAS</span>
             </div>
           </div>
 
           <div className="space-y-1 sm:border-l sm:border-zinc-200 sm:pl-6">
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-700"></span>
+            <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
               <span>Promedio Kcal</span>
             </div>
-            <div className="text-3xl sm:text-4xl font-extrabold font-display text-zinc-900 tracking-tight">
-              {avgCalories.toLocaleString()} <span className="text-xs font-mono text-zinc-500 font-normal uppercase">KCAL</span>
+            <div className="text-3xl sm:text-4xl font-extrabold font-display text-amber-600 tracking-tight">
+              {avgCalories.toLocaleString()} <span className="text-xs font-mono text-zinc-400 font-normal uppercase">KCAL</span>
             </div>
           </div>
 
           <div className="space-y-1 sm:border-l sm:border-zinc-200 sm:pl-6">
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-900"></span>
+            <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
               <span>Promedio Proteína</span>
             </div>
-            <div className="text-3xl sm:text-4xl font-extrabold font-display text-zinc-900 tracking-tight">
-              {avgProtein} <span className="text-xs font-mono text-zinc-500 font-normal uppercase">G</span>
+            <div className="text-3xl sm:text-4xl font-extrabold font-display text-cyan-600 tracking-tight">
+              {avgProtein} <span className="text-xs font-mono text-zinc-400 font-normal uppercase">G</span>
             </div>
           </div>
         </div>
@@ -285,12 +275,11 @@ export default function ChartsView({
         {/* ========================================================================= */}
         {/* SECCIÓN: PROGRESIÓN DE FUERZA (SUBIDA DE PESOS)                           */}
         {/* ========================================================================= */}
-        <div className="space-y-6 pt-2 border-b border-zinc-200 pb-12">
+        <div className="space-y-5 bg-white border border-zinc-200 rounded-2xl p-5 sm:p-6 shadow-xs">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
-                <TrendingUp className="w-4 h-4 text-zinc-900" />
-                <span>// SOBRECARGA PROGRESIVA & FUERZA</span>
+              <div className="text-xs font-mono text-emerald-600 uppercase tracking-wider font-bold">
+                <span>SOBRECARGA PROGRESIVA & FUERZA</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-extrabold text-zinc-900 uppercase tracking-tight font-display">
                 SUBIDA DE PESOS POR EJERCICIO
@@ -304,7 +293,7 @@ export default function ChartsView({
                 <select
                   value={selectedExercise}
                   onChange={(e) => setSelectedExercise(e.target.value)}
-                  className="bg-white border border-zinc-300 text-zinc-900 px-3.5 py-2 rounded-xl text-xs font-mono focus:border-black outline-none w-full sm:w-auto cursor-pointer shadow-sm"
+                  className="bg-zinc-50 border border-zinc-200 text-zinc-900 px-3.5 py-2 rounded-xl text-xs font-mono focus:border-zinc-900 outline-none w-full sm:w-auto cursor-pointer shadow-xs"
                 >
                   {availableExercises.map((ex) => (
                     <option key={ex} value={ex} className="bg-white text-zinc-900">
@@ -317,13 +306,13 @@ export default function ChartsView({
           </div>
 
           {availableExercises.length === 0 ? (
-            <div className="py-12 text-center text-zinc-500 font-mono text-sm border-t border-b border-zinc-200">
-              Registra ejercicios en la vista de Diario para comenzar a visualizar la curva de subida de pesos.
+            <div className="py-12 text-center text-zinc-500 font-mono text-sm border-t border-b border-zinc-100">
+              Registra ejercicios en la vista de Registro para comenzar a visualizar la curva de subida de pesos.
             </div>
           ) : exerciseProgressionData.length <= 1 ? (
-            <div className="py-8 px-6 bg-white border border-zinc-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs shadow-sm">
+            <div className="py-8 px-6 bg-zinc-50 border border-zinc-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs shadow-xs">
               <div className="flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-zinc-900" />
+                <Sparkles className="w-5 h-5 text-emerald-600" />
                 <div>
                   <p className="text-zinc-900 font-bold">{selectedExercise}: {currentMaxWeight} kg registrados.</p>
                   <p className="text-zinc-500 text-[11px]">Registra este ejercicio en más sesiones para dibujar la curva de progresión de fuerza.</p>
@@ -333,35 +322,35 @@ export default function ChartsView({
           ) : (
             <div className="space-y-4">
               {/* Medidores de Progresión */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 bg-white border border-zinc-200 rounded-2xl p-4 shadow-sm font-mono">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 bg-zinc-50 border border-zinc-200 rounded-xl p-4 shadow-xs font-mono">
                 <div>
                   <span className="text-[10px] text-zinc-500 uppercase block">Peso Inicial</span>
-                  <span className="text-lg sm:text-xl font-extrabold text-zinc-800">{initialWeight} kg</span>
+                  <span className="text-lg sm:text-xl font-extrabold text-zinc-900">{initialWeight} kg</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-zinc-500 uppercase block">Peso Actual</span>
-                  <span className="text-lg sm:text-xl font-extrabold text-zinc-900">{latestWeight} kg</span>
+                  <span className="text-lg sm:text-xl font-extrabold text-emerald-600">{latestWeight} kg</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-zinc-500 uppercase block">PR Máximo</span>
-                  <span className="text-lg sm:text-xl font-extrabold text-black">{currentMaxWeight} kg</span>
+                  <span className="text-lg sm:text-xl font-extrabold text-cyan-600">{currentMaxWeight} kg</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-zinc-500 uppercase block">Ganancia</span>
-                  <span className={`text-lg sm:text-xl font-extrabold ${netWeightGain >= 0 ? 'text-zinc-900' : 'text-zinc-600'}`}>
+                  <span className={`text-lg sm:text-xl font-extrabold ${netWeightGain >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {netWeightGain >= 0 ? `+${netWeightGain}` : netWeightGain} kg ({percentGain >= 0 ? `+${percentGain}` : percentGain}%)
                   </span>
                 </div>
               </div>
 
-              {/* Gráfico de Progresión Monocromático */}
-              <div className="h-72 w-full pt-4 bg-white border border-zinc-200 rounded-2xl p-4 shadow-sm">
+              {/* Gráfico de Progresión Light */}
+              <div className="h-72 w-full pt-4 bg-white border border-zinc-200 rounded-xl p-4 shadow-xs">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={exerciseProgressionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
-                      <linearGradient id="monoAreaProgression" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#09090B" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#09090B" stopOpacity={0}/>
+                      <linearGradient id="neonAreaProgression" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="2 2" stroke="#E4E4E7" vertical={false} />
@@ -374,11 +363,11 @@ export default function ChartsView({
                       dataKey="weight"
                       name="Carga Máxima"
                       unit="kg"
-                      stroke="#09090B"
+                      stroke="#10B981"
                       strokeWidth={2.5}
-                      dot={{ fill: '#09090B', stroke: '#FFFFFF', strokeWidth: 2, r: 4 }}
-                      activeDot={{ fill: '#000000', stroke: '#FFFFFF', strokeWidth: 2, r: 6 }}
-                      fill="url(#monoAreaProgression)"
+                      dot={{ fill: '#10B981', stroke: '#FFFFFF', strokeWidth: 2, r: 4 }}
+                      activeDot={{ fill: '#059669', stroke: '#FFFFFF', strokeWidth: 2, r: 6 }}
+                      fill="url(#neonAreaProgression)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -390,11 +379,10 @@ export default function ChartsView({
         {/* ========================================================================= */}
         {/* SECCIÓN: FRECUENCIA Y DISTRIBUCIÓN (% DE EJERCICIOS)                     */}
         {/* ========================================================================= */}
-        <div className="space-y-6 pt-2 border-b border-zinc-200 pb-12">
+        <div className="space-y-5 bg-white border border-zinc-200 rounded-2xl p-5 sm:p-6 shadow-xs">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
-              <PieIcon className="w-4 h-4 text-zinc-900" />
-              <span>// FRECUENCIA & DISTRIBUCIÓN MUSCULAR</span>
+            <div className="text-xs font-mono text-cyan-600 uppercase tracking-wider font-bold">
+              <span>FRECUENCIA & DISTRIBUCIÓN MUSCULAR</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-extrabold text-zinc-900 uppercase tracking-tight font-display">
               % DE VECES QUE SE HICIERON CADA EJERCICIO
@@ -402,13 +390,13 @@ export default function ChartsView({
           </div>
 
           {exerciseDistribution.length === 0 ? (
-            <div className="py-12 text-center text-zinc-500 font-mono text-sm border-t border-b border-zinc-200">
+            <div className="py-12 text-center text-zinc-500 font-mono text-sm border-t border-b border-zinc-100">
               No hay suficientes registros de ejercicios para calcular los porcentajes.
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2 bg-zinc-50 border border-zinc-200 rounded-xl p-6 shadow-xs">
               
-              {/* Gráfico Donut Minimalista */}
+              {/* Gráfico Donut Light */}
               <div className="lg:col-span-5 h-72 relative flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -433,9 +421,9 @@ export default function ChartsView({
                         if (active && payload && payload.length) {
                           const d = payload[0].payload;
                           return (
-                            <div className="bg-white border border-zinc-200 p-2.5 rounded-xl shadow-xl text-xs font-mono">
+                            <div className="bg-white border border-zinc-200 p-2.5 rounded-xl shadow-xl text-xs font-mono text-zinc-900">
                               <p className="font-bold text-zinc-900">{d.name}</p>
-                              <p className="text-black font-extrabold">{d.percentage}% del total</p>
+                              <p className="text-emerald-600 font-extrabold">{d.percentage}% del total</p>
                               <p className="text-zinc-500 text-[10px]">{d.count} series / veces</p>
                             </div>
                           );
@@ -463,7 +451,7 @@ export default function ChartsView({
                   <span>Frecuencia / %</span>
                 </div>
 
-                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-2 divide-y divide-zinc-100">
+                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-2 divide-y divide-zinc-200">
                   {exerciseDistribution.map((item, idx) => {
                     const color = PIE_COLORS[idx % PIE_COLORS.length];
                     return (
@@ -475,13 +463,13 @@ export default function ChartsView({
                           </span>
                           <div className="flex items-center gap-2">
                             <span className="text-zinc-500 text-[11px] font-normal">{item.count} veces</span>
-                            <span className="font-bold px-2 py-0.5 rounded-md text-[11px] bg-zinc-100 text-zinc-900">
+                            <span className="font-bold px-2 py-0.5 rounded-md text-[11px] bg-white text-zinc-900 border border-zinc-200">
                               {item.percentage}%
                             </span>
                           </div>
                         </div>
 
-                        <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
+                        <div className="w-full bg-zinc-200 rounded-full h-1.5 overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-700 ease-out"
                             style={{
@@ -503,14 +491,13 @@ export default function ChartsView({
         {/* ========================================================================= */}
         {/* SECCIÓN: GRÁFICOS DE NUTRICIÓN (CALORÍAS Y PROTEÍNAS)                     */}
         {/* ========================================================================= */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
           
           {/* Calorías */}
-          <div className="space-y-3 bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
+          <div className="space-y-3 bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs">
             <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
-              <h3 className="font-mono font-bold text-sm uppercase text-zinc-900 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                // CALORÍAS DIARIAS (KCAL)
+              <h3 className="font-mono font-bold text-sm uppercase text-amber-600">
+                CALORÍAS DIARIAS (KCAL)
               </h3>
               <span className="text-xs font-mono text-zinc-500">Meta: {goals?.calories || 2400}</span>
             </div>
@@ -519,28 +506,27 @@ export default function ChartsView({
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="monoAreaCal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#09090B" stopOpacity={0.12}/>
-                      <stop offset="95%" stopColor="#09090B" stopOpacity={0}/>
+                    <linearGradient id="neonAreaCal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25}/>
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="2 2" stroke="#E4E4E7" vertical={false} />
                   <XAxis dataKey="shortLabel" stroke="#71717A" fontSize={11} tickLine={false} />
                   <YAxis stroke="#71717A" fontSize={11} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <ReferenceLine y={goals?.calories || 2400} stroke="#71717A" strokeDasharray="3 3" />
-                  <Area type="monotone" dataKey="calories" name="Calorías" unit="kcal" stroke="#09090B" strokeWidth={2} fill="url(#monoAreaCal)" />
+                  <ReferenceLine y={goals?.calories || 2400} stroke="#F59E0B" strokeDasharray="3 3" />
+                  <Area type="monotone" dataKey="calories" name="Calorías" unit="kcal" stroke="#F59E0B" strokeWidth={2} fill="url(#neonAreaCal)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Proteína */}
-          <div className="space-y-3 bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
+          <div className="space-y-3 bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs">
             <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
-              <h3 className="font-mono font-bold text-sm uppercase text-zinc-900 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                // PROTEÍNA DIARIA (G)
+              <h3 className="font-mono font-bold text-sm uppercase text-cyan-600">
+                PROTEÍNA DIARIA (G)
               </h3>
               <span className="text-xs font-mono text-zinc-500">Meta: {goals?.protein || 150}g</span>
             </div>
@@ -549,17 +535,17 @@ export default function ChartsView({
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="monoAreaProt" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#27272A" stopOpacity={0.12}/>
-                      <stop offset="95%" stopColor="#27272A" stopOpacity={0}/>
+                    <linearGradient id="neonAreaProt" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.25}/>
+                      <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="2 2" stroke="#E4E4E7" vertical={false} />
                   <XAxis dataKey="shortLabel" stroke="#71717A" fontSize={11} tickLine={false} />
                   <YAxis stroke="#71717A" fontSize={11} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <ReferenceLine y={goals?.protein || 150} stroke="#71717A" strokeDasharray="3 3" />
-                  <Area type="monotone" dataKey="protein" name="Proteína" unit="g" stroke="#27272A" strokeWidth={2} fill="url(#monoAreaProt)" />
+                  <ReferenceLine y={goals?.protein || 150} stroke="#06B6D4" strokeDasharray="3 3" />
+                  <Area type="monotone" dataKey="protein" name="Proteína" unit="g" stroke="#06B6D4" strokeWidth={2} fill="url(#neonAreaProt)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -571,7 +557,7 @@ export default function ChartsView({
       {/* ========================================================================= */}
       {/* 02. EVOLUCIÓN CORPORAL & CONSEJOS (ÚLTIMO GRÁFICO / DESPLEGABLE)          */}
       {/* ========================================================================= */}
-      <div className="pt-6 border-t border-zinc-200">
+      <div className="pt-2">
         <WeightEvolutionChart
           data={data}
           goals={goals}

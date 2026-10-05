@@ -5,6 +5,9 @@ import {
   ArrowDown,
   ArrowUp,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
   Clock,
   Dumbbell,
   Zap,
@@ -29,13 +32,16 @@ import {
   getCurrentTimeString,
   estimateNutrition,
   CARDIO_TYPES,
-  calculateCardioCalories
+  calculateCardioCalories,
+  getLocalDateString,
+  formatDisplayDate
 } from '../utils/helpers';
 import { estimateNutritionWithAI } from '../services/aiNutritionService';
 import ItemActionMenu from './ItemActionMenu';
 import EditWorkoutModal from './EditWorkoutModal';
 import EditFoodModal from './EditFoodModal';
 import VisualGymExercisePicker from './VisualGymExercisePicker';
+import ExerciseDbPicker from './ExerciseDbPicker';
 import bgMusculacion from '../assets/bg-musculacion-hd.png';
 import bgAlimentos from '../assets/bg-alimentos-hd.png';
 import bgCardio from '../assets/bg-cardio-hd.png';
@@ -76,6 +82,7 @@ function ScrollReveal({ children, className = '', delay = 0 }) {
 export default function DailyView({
   currentDay,
   selectedDate,
+  onSelectDate,
   data = {},
   goals = {},
   isWeightVisible = false,
@@ -94,8 +101,38 @@ export default function DailyView({
   rememberedFoods: propRememberedFoods,
   onUpdateRememberedFoods
 }) {
+  // === MANEJO DE FECHAS ===
+  const isToday = selectedDate === getLocalDateString();
+  const displayFormattedDate = useMemo(() => {
+    if (!selectedDate) return '';
+    const parts = selectedDate.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return selectedDate;
+  }, [selectedDate]);
+
+  const handlePrevDay = () => {
+    if (!selectedDate) return;
+    const [y, m, d] = selectedDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() - 1);
+    onSelectDate && onSelectDate(getLocalDateString(date));
+  };
+
+  const handleNextDay = () => {
+    if (!selectedDate) return;
+    const [y, m, d] = selectedDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() + 1);
+    onSelectDate && onSelectDate(getLocalDateString(date));
+  };
+
+  const handleToday = () => {
+    onSelectDate && onSelectDate(getLocalDateString());
+  };
   // === ESTADOS GYM ===
-  const [isVisualGymPicker, setIsVisualGymPicker] = useState(true);
+  const [gymInputMode, setGymInputMode] = useState('visual'); // 'visual' | 'manual'
   const [exerciseName, setExerciseName] = useState('');
   const [sets, setSets] = useState('');
   const [reps, setReps] = useState('');
@@ -298,7 +335,7 @@ export default function DailyView({
   // AUTORRELLENADO & ESTIMACIÓN CON IA PARA COMIDAS
   // ==========================================
   const triggerAiEstimation = async (textToEstimate) => {
-    if (!textToEstimate || textToEstimate.trim().length < 3) return;
+    if (!textToEstimate || textToEstimate.trim().length < 2) return;
     const clean = textToEstimate.trim();
     const query = clean.toLowerCase();
 
@@ -314,21 +351,19 @@ export default function DailyView({
       return;
     }
 
-    if (clean.toLowerCase() === lastEstimatedFood.toLowerCase()) return;
-
     const currentReqId = ++aiRequestIdRef.current;
     setIsEstimatingAI(true);
 
     try {
       const result = await estimateNutritionWithAI(clean);
-      if (currentReqId === aiRequestIdRef.current) {
-        if (result.calories > 0) {
+      if (currentReqId === aiRequestIdRef.current && result) {
+        if (result.calories !== undefined && result.calories !== null) {
           setCalories(String(result.calories));
         }
-        if (result.protein > 0) {
+        if (result.protein !== undefined && result.protein !== null) {
           setProtein(String(result.protein));
         }
-        if (result.suggestedMealType && mealType === 'almuerzo') {
+        if (result.suggestedMealType && (mealType === 'almuerzo' || mealType === 'comida')) {
           setMealType(result.suggestedMealType);
         }
         setLastEstimatedFood(clean);
@@ -371,11 +406,11 @@ export default function DailyView({
       if (exactRemembered.mealType) setMealType(exactRemembered.mealType);
       setIsEstimatingAI(false);
     } else {
-      // Si es un plato nuevo, disparar IA tras una breve pausa de tipeo (800ms)
-      if (clean.length >= 3) {
+      // Disparar estimación inteligente tras una pausa de tipeo (450ms)
+      if (clean.length >= 2) {
         aiDebounceTimerRef.current = setTimeout(() => {
           triggerAiEstimation(clean);
-        }, 800);
+        }, 450);
       }
     }
 
@@ -567,6 +602,60 @@ export default function DailyView({
   return (
     <div className="w-full relative pb-4">
 
+      {/* BARRA DE SELECCIÓN DE FECHA - LIGHT THEME */}
+      <div className="bg-white/90 backdrop-blur-md border-b border-zinc-200 sticky top-14 z-20 px-3 sm:px-8 py-2.5 shadow-xs">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={handlePrevDay}
+              className="p-1.5 text-zinc-600 hover:text-black hover:bg-zinc-100 rounded-lg border border-zinc-200 transition-colors cursor-pointer"
+              title="Día anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleToday}
+              className={`px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${isToday
+                ? 'bg-emerald-500 text-black shadow-xs'
+                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                }`}
+            >
+              HOY
+            </button>
+
+            {/* Selector interactivo con calendario */}
+            <div className="relative flex items-center">
+              <label className="flex items-center gap-2 px-3 py-1 bg-zinc-50 border border-zinc-200 hover:border-zinc-300 rounded-lg text-xs font-mono font-bold text-zinc-900 cursor-pointer transition-colors shadow-xs">
+                <span>{displayFormattedDate}</span>
+                <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                <input
+                  type="date"
+                  value={selectedDate || getLocalDateString()}
+                  onChange={(e) => onSelectDate && onSelectDate(e.target.value)}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNextDay}
+              className="p-1.5 text-zinc-600 hover:text-black hover:bg-zinc-100 rounded-lg border border-zinc-200 transition-colors cursor-pointer"
+              title="Día siguiente"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono font-semibold text-zinc-400 uppercase tracking-wider">
+            <span>Registro Diario</span>
+          </div>
+        </div>
+      </div>
+
       {/* ========================================================================= */}
       {/* 01. SECCIÓN SUPERIOR: ENTRENAMIENTO & GIMNASIO                            */}
       {/* ========================================================================= */}
@@ -577,7 +666,7 @@ export default function DailyView({
         <div className="ambient-glow-cyan w-80 h-80 top-1/2 -right-10 opacity-30 pointer-events-none" />
 
         {/* Imagen de fondo decorativa temática HD sutil */}
-        <div 
+        <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none"
           style={{
             maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)',
@@ -639,378 +728,391 @@ export default function DailyView({
             </div>
           </ScrollReveal>
 
-          {/* Toggle de Modo de Carga: Visual (Ruleta & Placas) vs Manual */}
+          {/* Toggle de Modo de Carga: Visual con GIFs vs Manual */}
           <ScrollReveal delay={50} className="relative z-30">
             <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-zinc-200 shadow-sm font-mono text-xs">
               <span className="text-zinc-800 font-extrabold uppercase text-[11px] flex items-center gap-1.5 pl-1">
-                <Dumbbell className="w-4 h-4 text-black" />
-                <span>Modo de Carga de Ejercicios:</span>
+                <span>Carga tu rutina:</span>
               </span>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => setIsVisualGymPicker(true)}
-                  className={`px-3.5 py-1.5 rounded-xl font-extrabold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
-                    isVisualGymPicker
-                      ? 'bg-black text-white shadow-md'
-                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300'
-                  }`}
+                  onClick={() => setGymInputMode('visual')}
+                  className={`px-3.5 py-1.5 rounded-xl font-extrabold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${gymInputMode === 'visual'
+                    ? 'bg-black text-white shadow-md'
+                    : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300'
+                    }`}
+                  title="Colección Visual de Ejercicios y GIFs"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Selector Visual & Placas</span>
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setIsVisualGymPicker(false)}
-                  className={`px-3.5 py-1.5 rounded-xl font-extrabold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
-                    !isVisualGymPicker
-                      ? 'bg-black text-white shadow-md'
-                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300'
-                  }`}
+                  onClick={() => setGymInputMode('manual')}
+                  className={`px-3.5 py-1.5 rounded-xl font-extrabold uppercase transition-all cursor-pointer flex items-center gap-1.5 ${gymInputMode === 'manual'
+                    ? 'bg-black text-white shadow-md'
+                    : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300'
+                    }`}
+                  title="Formulario Manual"
                 >
                   <Sliders className="w-3.5 h-3.5" />
-                  <span>Formulario Manual</span>
+                  <span>Manual</span>
                 </button>
               </div>
             </div>
           </ScrollReveal>
 
           {/* RENDERIZADO SEGÚN EL MODO ELEGIDO */}
-          {isVisualGymPicker ? (
+          {gymInputMode === 'visual' && (
             <ScrollReveal delay={100} className="relative z-30">
-              <VisualGymExercisePicker onAddWorkout={onAddWorkout} />
+              <VisualGymExercisePicker
+                onAddWorkout={onAddWorkout}
+                onUpdateRememberedWorkouts={onUpdateRememberedWorkouts}
+                rememberedWorkouts={propRememberedWorkouts || localRememberedWorkouts}
+              />
             </ScrollReveal>
-          ) : (
+          )}
+
+          {gymInputMode === 'manual' && (
             <div className={`${isWorkoutFormOpen ? 'block' : 'hidden'} md:block`}>
               <ScrollReveal delay={100} className="relative z-30">
                 <form onSubmit={handleSubmitWorkout} className="space-y-4 sm:space-y-5 pt-1 relative bg-white border border-zinc-200 rounded-3xl p-5 sm:p-7 shadow-sm">
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5">
 
-                  {/* Ejercicio con Dropdown */}
-                  <div ref={exerciseContainerRef} className="md:col-span-12 space-y-1.5 relative z-40">
-                    <div className="flex justify-between items-center text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">
-                      <label className="flex items-center gap-1.5">
-                        <span>Nombre del Ejercicio</span>
-                      </label>
+                    {/* Ejercicio con Dropdown */}
+                    <div ref={exerciseContainerRef} className="md:col-span-12 space-y-1.5 relative z-40">
+                      <div className="flex justify-between items-center text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">
+                        <label className="flex items-center gap-1.5">
+                          <span>Nombre del Ejercicio</span>
+                        </label>
 
-                      {/* Botón sugerencias */}
-                      <div className="relative z-50">
+                        {/* Botón sugerencias */}
+                        <div className="relative z-50">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowQuickExercises(!showQuickExercises);
+                              setShowExerciseSuggestions(false);
+                            }}
+                            className="text-zinc-800 hover:text-black hover:underline transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
+                          >
+                            [ Sugerencias ]
+                          </button>
+
+                          {/* Dropdown de Sugerencias con Acordeón */}
+                          {showQuickExercises && (
+                            <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col">
+                              {/* Encabezado Fijo Superior */}
+                              <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between text-[11px] font-mono text-zinc-900 uppercase font-bold tracking-wider select-none shrink-0">
+                                <span className="flex items-center gap-2">
+                                  <Dumbbell className="w-3.5 h-3.5 text-zinc-900" />
+                                  <span>Ejercicios por Músculo</span>
+                                </span>
+                                <span className="text-[10px] text-zinc-500 font-mono font-normal">
+                                  {Object.keys(EXERCISES_BY_MUSCLE).length} categorías
+                                </span>
+                              </div>
+
+                              {/* Lista scrolleable con categorías en acordeón */}
+                              <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100 custom-scrollbar">
+                                {Object.entries(EXERCISES_BY_MUSCLE).map(([muscle, exercises]) => {
+                                  const isExpanded = expandedMuscle === muscle;
+                                  return (
+                                    <div key={muscle} className="transition-colors">
+                                      <button
+                                        type="button"
+                                        onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
+                                        className={`w-full px-4 py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${isExpanded
+                                          ? 'bg-zinc-100 text-black font-bold'
+                                          : 'text-zinc-700 hover:bg-zinc-50 hover:text-black font-medium'
+                                          }`}
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span
+                                            className={`w-2 h-2 rounded-full transition-all ${isExpanded
+                                              ? 'bg-black shadow-sm'
+                                              : 'bg-zinc-400'
+                                              }`}
+                                          />
+                                          <span className="text-xs font-semibold">{muscle}</span>
+                                          <span className="text-[10px] font-mono text-zinc-400">({exercises.length})</span>
+                                        </div>
+                                        <ChevronDown
+                                          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-black' : 'text-zinc-400'
+                                            }`}
+                                        />
+                                      </button>
+
+                                      {/* Lista de ejercicios desplegada al hacer clic */}
+                                      {isExpanded && (
+                                        <div className="bg-zinc-50/50 py-1 border-t border-zinc-100 divide-y divide-zinc-100">
+                                          {exercises.map((name, idx) => (
+                                            <button
+                                              key={idx}
+                                              type="button"
+                                              onClick={() => {
+                                                setExerciseName(name);
+                                                setShowQuickExercises(false);
+                                              }}
+                                              className="w-full text-left px-5 py-2.5 text-xs text-zinc-700 hover:bg-zinc-100 hover:text-black transition-colors font-medium flex items-center justify-between group cursor-pointer"
+                                            >
+                                              <span className="group-hover:translate-x-0.5 transition-transform">{name}</span>
+                                              <span className="text-[10px] text-zinc-400 group-hover:text-black transition-colors font-mono">
+                                                elegir +
+                                              </span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="Ej: Press banca plano con barra, Sentadilla..."
+                        value={exerciseName}
+                        onChange={handleExerciseNameChange}
+                        onFocus={() => {
+                          if (exerciseName.trim().length > 0 && exerciseSuggestions.length > 0) {
+                            setShowExerciseSuggestions(true);
+                          }
+                        }}
+                        className="w-full input-futuristic px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 rounded-xl font-medium"
+                        required
+                      />
+
+                      {/* Dropdown de Autocompletado */}
+                      {showExerciseSuggestions && exerciseSuggestions.length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-zinc-100 animate-fade-in-up">
+                          <div className="px-4 py-2 bg-zinc-50 text-[10px] font-mono text-zinc-600 uppercase tracking-wider flex items-center justify-between font-bold">
+                            <span>Memoria Inteligente</span>
+                            <span className="text-zinc-400 font-normal">Click para autorrellenar</span>
+                          </div>
+                          {exerciseSuggestions.map((item, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleSelectExerciseSuggestion(item)}
+                              className="w-full text-left px-5 py-3 hover:bg-zinc-50 flex items-center justify-between text-xs transition-colors group cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                {item.sets ? (
+                                  <Zap className="w-3.5 h-3.5 text-black" />
+                                ) : (
+                                  <Dumbbell className="w-3.5 h-3.5 text-zinc-400 group-hover:text-black" />
+                                )}
+                                <span className="font-bold text-zinc-900 group-hover:text-black transition-colors">
+                                  {item.name}
+                                </span>
+                              </div>
+
+                              {item.sets ? (
+                                <span className="font-mono text-zinc-900 text-[11px] font-bold">
+                                  {item.sets}s × {item.reps}r @ <strong className="text-black">{item.weight}kg</strong>
+                                </span>
+                              ) : (
+                                <span className="text-zinc-400 text-[10px] font-mono">Ejercicio sugerido</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ETAPA 2 Y 3: REVELADO PROGRESIVO SUAVE AL COMPLETAR EL NOMBRE DEL EJERCICIO */}
+                    <div
+                      className={`md:col-span-12 overflow-hidden transition-all duration-500 ease-out space-y-4 ${exerciseName.trim().length > 0
+                        ? 'max-h-[1000px] opacity-100 translate-y-0 pt-1'
+                        : 'max-h-0 opacity-0 -translate-y-3 pointer-events-none'
+                        }`}
+                    >
+                      {/* Botón Diferente peso */}
+                      <div className="flex items-center pt-0.5">
                         <button
                           type="button"
                           onClick={() => {
-                            setShowQuickExercises(!showQuickExercises);
-                            setShowExerciseSuggestions(false);
+                            if (!useCustomSets) {
+                              const num = Math.max(1, parseInt(sets, 10) || 4);
+                              const initial = Array.from({ length: num }, (_, i) => ({
+                                setNumber: i + 1,
+                                reps: reps || '10',
+                                weight: weight || ''
+                              }));
+                              setCustomSets(initial);
+                            }
+                            setUseCustomSets(!useCustomSets);
                           }}
-                          className="text-zinc-800 hover:text-black hover:underline transition-colors flex items-center gap-1 lowercase text-[11px] font-bold cursor-pointer"
+                          className={`px-3.5 py-1 rounded-full text-xs font-mono font-bold tracking-wider transition-all duration-200 cursor-pointer select-none flex items-center gap-2 active:scale-95 ${useCustomSets
+                            ? 'bg-black text-white shadow-sm font-black'
+                            : 'bg-zinc-100 text-zinc-600 hover:text-black border border-zinc-200 hover:bg-zinc-200'
+                            }`}
                         >
-                          [ Sugerencias ]
+                          <span>Diferentes pesos</span>
                         </button>
-
-                        {/* Dropdown de Sugerencias con Acordeón */}
-                        {showQuickExercises && (
-                          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col">
-                            {/* Encabezado Fijo Superior */}
-                            <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between text-[11px] font-mono text-zinc-900 uppercase font-bold tracking-wider select-none shrink-0">
-                              <span className="flex items-center gap-2">
-                                <Dumbbell className="w-3.5 h-3.5 text-zinc-900" />
-                                <span>Ejercicios por Músculo</span>
-                              </span>
-                              <span className="text-[10px] text-zinc-500 font-mono font-normal">
-                                {Object.keys(EXERCISES_BY_MUSCLE).length} categorías
-                              </span>
-                            </div>
-
-                            {/* Lista scrolleable con categorías en acordeón */}
-                            <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100 custom-scrollbar">
-                              {Object.entries(EXERCISES_BY_MUSCLE).map(([muscle, exercises]) => {
-                                const isExpanded = expandedMuscle === muscle;
-                                return (
-                                  <div key={muscle} className="transition-colors">
-                                    <button
-                                      type="button"
-                                      onClick={() => setExpandedMuscle(isExpanded ? null : muscle)}
-                                      className={`w-full px-4 py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${isExpanded
-                                        ? 'bg-zinc-100 text-black font-bold'
-                                        : 'text-zinc-700 hover:bg-zinc-50 hover:text-black font-medium'
-                                        }`}
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <span
-                                          className={`w-2 h-2 rounded-full transition-all ${isExpanded
-                                            ? 'bg-black shadow-sm'
-                                            : 'bg-zinc-400'
-                                            }`}
-                                        />
-                                        <span className="text-xs font-semibold">{muscle}</span>
-                                        <span className="text-[10px] font-mono text-zinc-400">({exercises.length})</span>
-                                      </div>
-                                      <ChevronDown
-                                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-black' : 'text-zinc-400'
-                                          }`}
-                                      />
-                                    </button>
-
-                                    {/* Lista de ejercicios desplegada al hacer clic */}
-                                    {isExpanded && (
-                                      <div className="bg-zinc-50/50 py-1 border-t border-zinc-100 divide-y divide-zinc-100">
-                                        {exercises.map((name, idx) => (
-                                          <button
-                                            key={idx}
-                                            type="button"
-                                            onClick={() => {
-                                              setExerciseName(name);
-                                              setShowQuickExercises(false);
-                                            }}
-                                            className="w-full text-left px-5 py-2.5 text-xs text-zinc-700 hover:bg-zinc-100 hover:text-black transition-colors font-medium flex items-center justify-between group cursor-pointer"
-                                          >
-                                            <span className="group-hover:translate-x-0.5 transition-transform">{name}</span>
-                                            <span className="text-[10px] text-zinc-400 group-hover:text-black transition-colors font-mono">
-                                              elegir +
-                                            </span>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
                       </div>
-                    </div>
 
-                    <input
-                      type="text"
-                      placeholder="Ej: Press banca plano con barra, Sentadilla..."
-                      value={exerciseName}
-                      onChange={handleExerciseNameChange}
-                      onFocus={() => {
-                        if (exerciseName.trim().length > 0 && exerciseSuggestions.length > 0) {
-                          setShowExerciseSuggestions(true);
-                        }
-                      }}
-                      className="w-full input-futuristic px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 rounded-xl font-medium"
-                      required
-                    />
+                      {!useCustomSets ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 animate-fade-in">
+                          {/* Series */}
+                          <div className="space-y-1.5">
+                            <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Series</label>
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="4"
+                              value={sets}
+                              onChange={(e) => setSets(e.target.value)}
+                              className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
+                              required={!useCustomSets && exerciseName.trim().length > 0}
+                            />
+                          </div>
 
-                    {/* Dropdown de Autocompletado */}
-                    {showExerciseSuggestions && exerciseSuggestions.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-zinc-100 animate-fade-in-up">
-                        <div className="px-4 py-2 bg-zinc-50 text-[10px] font-mono text-zinc-600 uppercase tracking-wider flex items-center justify-between font-bold">
-                          <span>Memoria Inteligente</span>
-                          <span className="text-zinc-400 font-normal">Click para autorrellenar</span>
+                          {/* Repeticiones */}
+                          <div className="space-y-1.5">
+                            <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Reps</label>
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="8"
+                              value={reps}
+                              onChange={(e) => setReps(e.target.value)}
+                              className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
+                              required={!useCustomSets && exerciseName.trim().length > 0}
+                            />
+                          </div>
+
+                          {/* Peso */}
+                          <div className="space-y-1.5">
+                            <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Peso (Kg)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.5"
+                              placeholder="80"
+                              value={weight}
+                              onChange={(e) => setWeight(e.target.value)}
+                              className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
+                              required={!useCustomSets && exerciseName.trim().length > 0}
+                            />
+                          </div>
                         </div>
-                        {exerciseSuggestions.map((item, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handleSelectExerciseSuggestion(item)}
-                            className="w-full text-left px-5 py-3 hover:bg-zinc-50 flex items-center justify-between text-xs transition-colors group cursor-pointer"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              {item.sets ? (
-                                <Zap className="w-3.5 h-3.5 text-black" />
-                              ) : (
-                                <Dumbbell className="w-3.5 h-3.5 text-zinc-400 group-hover:text-black" />
-                              )}
-                              <span className="font-bold text-zinc-900 group-hover:text-black transition-colors">
-                                {item.name}
-                              </span>
-                            </div>
-
-                            {item.sets ? (
-                              <span className="font-mono text-zinc-900 text-[11px] font-bold">
-                                {item.sets}s × {item.reps}r @ <strong className="text-black">{item.weight}kg</strong>
-                              </span>
-                            ) : (
-                              <span className="text-zinc-400 text-[10px] font-mono">Ejercicio sugerido</span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Botón Diferente peso */}
-                  <div className="md:col-span-12 flex items-center pt-0.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!useCustomSets) {
-                          const num = Math.max(1, parseInt(sets, 10) || 4);
-                          const initial = Array.from({ length: num }, (_, i) => ({
-                            setNumber: i + 1,
-                            reps: reps || '10',
-                            weight: weight || ''
-                          }));
-                          setCustomSets(initial);
-                        }
-                        setUseCustomSets(!useCustomSets);
-                      }}
-                      className={`px-3.5 py-1 rounded-full text-xs font-mono font-bold tracking-wider transition-all duration-200 cursor-pointer select-none flex items-center gap-2 active:scale-95 ${useCustomSets
-                        ? 'bg-black text-white shadow-sm font-black'
-                        : 'bg-zinc-100 text-zinc-600 hover:text-black border border-zinc-200 hover:bg-zinc-200'
-                        }`}
-                    >
-                      <span>Diferentes pesos</span>
-                    </button>
-                  </div>
-
-                  {!useCustomSets ? (
-                    <>
-                      {/* Series */}
-                      <div className="md:col-span-4 space-y-1.5">
-                        <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Series</label>
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder="4"
-                          value={sets}
-                          onChange={(e) => setSets(e.target.value)}
-                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
-                          required={!useCustomSets}
-                        />
-                      </div>
-
-                      {/* Repeticiones */}
-                      <div className="md:col-span-4 space-y-1.5">
-                        <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Reps</label>
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder="8"
-                          value={reps}
-                          onChange={(e) => setReps(e.target.value)}
-                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
-                          required={!useCustomSets}
-                        />
-                      </div>
-
-                      {/* Peso */}
-                      <div className="md:col-span-4 space-y-1.5">
-                        <label className="block text-xs tracking-wider uppercase text-zinc-500 font-mono font-semibold">Peso (Kg)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          placeholder="80"
-                          value={weight}
-                          onChange={(e) => setWeight(e.target.value)}
-                          className="w-full input-futuristic px-3 py-2 text-sm text-center text-zinc-900 placeholder-zinc-400 rounded-xl font-mono font-bold"
-                          required={!useCustomSets}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="md:col-span-12 space-y-3">
-                      <div className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">
-                        // Series ({customSets.length})
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 max-h-64 overflow-y-auto custom-scrollbar p-1">
-                        {customSets.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="p-3 bg-white border border-zinc-200 rounded-xl flex items-center justify-between gap-2.5 hover:border-zinc-300 transition-colors shadow-sm"
-                          >
-                            <span className="text-xs font-mono font-black text-zinc-900 shrink-0">
-                              #{idx + 1}
-                            </span>
-
-                            <div className="flex items-center gap-2 flex-1">
-                              <div className="flex-1">
-                                <div className="text-[9px] font-mono text-zinc-500 uppercase">Reps</div>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  value={item.reps}
-                                  onChange={(e) => handleCustomSetChange(idx, 'reps', e.target.value)}
-                                  className="w-full input-futuristic px-2 py-1 text-xs text-center text-zinc-900 rounded-lg font-mono font-bold"
-                                  placeholder="10"
-                                  required
-                                />
-                              </div>
-
-                              <div className="flex-1">
-                                <div className="text-[9px] font-mono text-zinc-700 uppercase font-bold">Kg</div>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.5"
-                                  value={item.weight}
-                                  onChange={(e) => handleCustomSetChange(idx, 'weight', e.target.value)}
-                                  className="w-full input-futuristic px-2 py-1 text-xs text-center text-zinc-900 rounded-lg font-mono font-bold"
-                                  placeholder="80"
-                                  required
-                                />
-                              </div>
-                            </div>
-
-                            {customSets.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveCustomSet(idx)}
-                                className="p-1 text-zinc-400 hover:text-rose-600 transition-colors cursor-pointer"
-                                title="Eliminar esta serie"
-                              >
-                                <XCircle className="w-3.5 h-3.5" />
-                              </button>
-                            )}
+                      ) : (
+                        <div className="space-y-3 animate-fade-in">
+                          <div className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">
+                            Series ({customSets.length})
                           </div>
-                        ))}
-                      </div>
 
-                      {/* Botón + para agregar serie */}
-                      <div className="flex justify-center pt-1">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 max-h-64 overflow-y-auto custom-scrollbar p-1">
+                            {customSets.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="p-3 bg-white border border-zinc-200 rounded-xl flex items-center justify-between gap-2.5 hover:border-zinc-300 transition-colors shadow-sm"
+                              >
+                                <span className="text-xs font-mono font-black text-zinc-900 shrink-0">
+                                  #{idx + 1}
+                                </span>
+
+                                <div className="flex items-center gap-2 flex-1">
+                                  <div className="flex-1">
+                                    <div className="text-[9px] font-mono text-zinc-500 uppercase">Reps</div>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={item.reps}
+                                      onChange={(e) => handleCustomSetChange(idx, 'reps', e.target.value)}
+                                      className="w-full input-futuristic px-2 py-1 text-xs text-center text-zinc-900 rounded-lg font-mono font-bold"
+                                      placeholder="10"
+                                      required={useCustomSets}
+                                    />
+                                  </div>
+
+                                  <div className="flex-1">
+                                    <div className="text-[9px] font-mono text-zinc-700 uppercase font-bold">Kg</div>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.5"
+                                      value={item.weight}
+                                      onChange={(e) => handleCustomSetChange(idx, 'weight', e.target.value)}
+                                      className="w-full input-futuristic px-2 py-1 text-xs text-center text-zinc-900 rounded-lg font-mono font-bold"
+                                      placeholder="80"
+                                      required={useCustomSets}
+                                    />
+                                  </div>
+                                </div>
+
+                                {customSets.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveCustomSet(idx)}
+                                    className="p-1 text-zinc-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                    title="Eliminar esta serie"
+                                  >
+                                    <XCircle className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Botón + para agregar serie */}
+                          <div className="flex justify-center pt-1">
+                            <button
+                              type="button"
+                              onClick={handleAddCustomSet}
+                              className="w-9 h-9 rounded-full bg-black hover:bg-zinc-800 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:scale-105 active:scale-95 cursor-pointer group"
+                              title="Agregar serie"
+                              aria-label="Agregar serie"
+                            >
+                              <Plus className="w-5 h-5 stroke-[3] group-hover:rotate-90 transition-transform duration-200" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Fila de acción & cálculo en tiempo real */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-zinc-100">
+                        <div className="text-xs font-mono text-zinc-600">
+                          {Number(weight) > 0 ? (
+                            <div className="flex items-center gap-3 text-xs">
+                              <span>Peso: <strong className="text-zinc-900 font-bold">{Number(weight)} KG</strong></span>
+                              {Number(reps) > 0 && live1RM > 0 && (
+                                <>
+                                  <span className="text-zinc-300">•</span>
+                                  <span>1RM: <strong className="text-zinc-900 font-bold">{live1RM} KG</strong></span>
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-zinc-500 text-xs">Completa los datos para registrar tu ejercicio.</span>
+                          )}
+                        </div>
+
                         <button
-                          type="button"
-                          onClick={handleAddCustomSet}
-                          className="w-9 h-9 rounded-full bg-black hover:bg-zinc-800 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:scale-105 active:scale-95 cursor-pointer group"
-                          title="Agregar serie"
-                          aria-label="Agregar serie"
+                          type="submit"
+                          className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0 font-mono"
                         >
-                          <Plus className="w-5 h-5 stroke-[3] group-hover:rotate-90 transition-transform duration-200" />
+                          <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR EJERCICIO
                         </button>
                       </div>
+
                     </div>
-                  )}
 
-                </div>
-
-                {/* Fila de acción & cálculo en tiempo real */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
-                  <div className="text-xs font-mono text-zinc-600">
-                    {Number(weight) > 0 ? (
-                      <div className="flex items-center gap-3 text-xs">
-                        <span>Peso: <strong className="text-zinc-900 font-bold">{Number(weight)} KG</strong></span>
-                        {Number(reps) > 0 && live1RM > 0 && (
-                          <>
-                            <span className="text-zinc-400">//</span>
-                            <span>1RM: <strong className="text-zinc-900 font-bold">{live1RM} KG</strong></span>
-                          </>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-zinc-500 text-xs">Completa los datos para registrar tu ejercicio.</span>
-                    )}
                   </div>
 
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0 font-mono"
-                  >
-                    <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR EJERCICIO
-                  </button>
-                </div>
-
-              </form>
-            </ScrollReveal>
-          </div>
-        )}
+                </form>
+              </ScrollReveal>
+            </div>
+          )}
 
           {/* Listado de Ejercicios del Día */}
           <ScrollReveal delay={150} className="relative z-10">
@@ -1105,7 +1207,7 @@ export default function DailyView({
         <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-25 pointer-events-none" />
 
         {/* Imagen de fondo decorativa temática HD sutil */}
-        <div 
+        <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none"
           style={{
             maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)',
@@ -1557,7 +1659,7 @@ export default function DailyView({
         <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-20 pointer-events-none" />
 
         {/* Imagen de fondo decorativa temática HD sutil */}
-        <div 
+        <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none"
           style={{
             maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0) 95%)',

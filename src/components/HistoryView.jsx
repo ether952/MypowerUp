@@ -3,13 +3,7 @@ import {
   ChevronDown,
   ChevronRight,
   Search,
-  Sparkles,
   Calendar,
-  Flame,
-  Dumbbell,
-  Zap,
-  Activity,
-  Footprints,
   Scale,
   Eye,
   EyeOff,
@@ -85,12 +79,12 @@ export default function HistoryView({
   const tonPercent = Math.min(Math.round((dayTonnage / tonGoal) * 100), 100);
 
   return (
-    <div className="space-y-10 animate-fade-in-up">
+    <div className="space-y-8 animate-fade-in-up">
 
       {/* Cabecera Principal */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-5">
         <div>
-          <span className="text-xs font-mono tracking-widest text-zinc-500 uppercase">// BASE DE DATOS DIARIA</span>
+          <span className="text-xs font-mono tracking-widest text-emerald-600 uppercase font-bold">BASE DE DATOS DIARIA</span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase tracking-tight font-display mt-0.5">
             HISTORIAL & REGISTROS
           </h2>
@@ -101,7 +95,7 @@ export default function HistoryView({
           <button
             type="button"
             onClick={onToggleVisibility}
-            className="px-3.5 py-2 rounded-xl font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-sm"
+            className="px-3.5 py-2 rounded-xl font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-white hover:bg-zinc-50 text-zinc-700 hover:text-black border border-zinc-200 shadow-xs"
             title={isWeightVisible ? 'Ocultar peso en el historial' : 'Mostrar peso'}
           >
             {isWeightVisible ? (
@@ -111,60 +105,57 @@ export default function HistoryView({
               </>
             ) : (
               <>
-                <Eye className="w-3.5 h-3.5 text-zinc-900" />
+                <Eye className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Revelar Peso</span>
               </>
             )}
           </button>
 
-          <div className="text-xs font-mono text-zinc-600 bg-white px-3.5 py-2 rounded-xl border border-zinc-200 shadow-sm">
+          <div className="text-xs font-mono text-zinc-600 bg-white px-3.5 py-2 rounded-xl border border-zinc-200 shadow-xs">
             Total días: <strong className="text-zinc-900">{allDates.length}</strong>
           </div>
         </div>
       </div>
 
       {/* RESUMEN DEL DÍA SELECCIONADO */}
-      <div className="space-y-6 pt-2">
+      <div className="space-y-5 bg-white border border-zinc-200 rounded-2xl p-5 sm:p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <span className="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">// RESUMEN DEL DÍA</span>
+            <span className="text-[10px] font-mono text-emerald-600 tracking-widest uppercase font-bold">RESUMEN DEL DÍA</span>
             <h3 className="text-lg font-extrabold text-zinc-900 uppercase tracking-tight font-display">
               {formatDisplayDate(selectedHistoryDate)}
             </h3>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
+          <div className="flex items-center gap-2 text-xs font-mono text-zinc-600">
             <span>FECHA:</span>
             <input
               type="date"
               value={selectedHistoryDate}
               onChange={(e) => setSelectedHistoryDate(e.target.value)}
-              className="bg-white border border-zinc-300 text-zinc-900 px-3 py-1.5 rounded-lg text-xs font-mono focus:border-black outline-none cursor-pointer shadow-sm"
+              className="bg-zinc-50 border border-zinc-200 text-zinc-900 px-3 py-1.5 rounded-xl text-xs font-mono focus:border-zinc-900 outline-none cursor-pointer shadow-xs"
             />
           </div>
         </div>
 
         {/* MÉTRICAS SUELTAS Y MODERNAS */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-4 border-y border-zinc-200 font-mono">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-4 border-y border-zinc-100 font-mono">
 
           {/* 1. Calorías Totales */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs tracking-wider uppercase">
-              <span className="text-zinc-600 font-bold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
-                CALORÍAS
-              </span>
-              <span className="text-zinc-900 font-extrabold">{calPercent}%</span>
+              <span className="text-zinc-500 font-bold">CALORÍAS</span>
+              <span className="text-amber-600 font-extrabold">{calPercent}%</span>
             </div>
 
             <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-              {dayCalories.toLocaleString()} <span className="text-xs font-normal text-zinc-500 uppercase">KCAL</span>
+              {dayCalories.toLocaleString()} <span className="text-xs font-normal text-zinc-400 uppercase">KCAL</span>
             </div>
 
-            {/* Barra de progreso minimalista */}
+            {/* Barra de progreso light */}
             <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-black h-full rounded-full transition-all duration-700 ease-out"
+                className="bg-amber-500 h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${calPercent}%` }}
               />
             </div>
@@ -173,21 +164,18 @@ export default function HistoryView({
           {/* 2. Proteínas Totales */}
           <div className="space-y-2 sm:border-l sm:border-zinc-200 sm:pl-6">
             <div className="flex items-center justify-between text-xs tracking-wider uppercase">
-              <span className="text-zinc-600 font-bold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-700"></span>
-                PROTEÍNAS
-              </span>
-              <span className="text-zinc-900 font-extrabold">{protPercent}%</span>
+              <span className="text-zinc-500 font-bold">PROTEÍNAS</span>
+              <span className="text-cyan-600 font-extrabold">{protPercent}%</span>
             </div>
 
             <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-              {dayProtein} <span className="text-xs font-normal text-zinc-500 uppercase">G PROT</span>
+              {dayProtein} <span className="text-xs font-normal text-zinc-400 uppercase">G PROT</span>
             </div>
 
-            {/* Barra de progreso minimalista */}
+            {/* Barra de progreso light */}
             <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-zinc-800 h-full rounded-full transition-all duration-700 ease-out"
+                className="bg-cyan-500 h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${protPercent}%` }}
               />
             </div>
@@ -196,21 +184,18 @@ export default function HistoryView({
           {/* 3. Peso Total Cargas Gym */}
           <div className="space-y-2 lg:border-l lg:border-zinc-200 lg:pl-6">
             <div className="flex items-center justify-between text-xs tracking-wider uppercase">
-              <span className="text-zinc-600 font-bold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-900"></span>
-                CARGA GYM
-              </span>
-              <span className="text-zinc-900 font-extrabold">{tonPercent}%</span>
+              <span className="text-zinc-500 font-bold">CARGA GYM</span>
+              <span className="text-emerald-600 font-extrabold">{tonPercent}%</span>
             </div>
 
             <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-              {dayTonnage.toLocaleString()} <span className="text-xs font-normal text-zinc-500 uppercase">KG</span>
+              {dayTonnage.toLocaleString()} <span className="text-xs font-normal text-zinc-400 uppercase">KG</span>
             </div>
 
-            {/* Barra de progreso minimalista */}
+            {/* Barra de progreso light */}
             <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-zinc-900 h-full rounded-full transition-all duration-700 ease-out"
+                className="bg-emerald-500 h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${tonPercent}%` }}
               />
             </div>
@@ -219,14 +204,11 @@ export default function HistoryView({
           {/* 4. Peso Corporal del Día */}
           <div className="space-y-2 lg:border-l lg:border-zinc-200 lg:pl-6">
             <div className="flex items-center justify-between text-xs tracking-wider uppercase">
-              <span className="text-zinc-600 font-bold flex items-center gap-1.5">
-                <Scale className="w-3.5 h-3.5 text-zinc-900" />
-                PESO CORPORAL
-              </span>
+              <span className="text-zinc-500 font-bold">PESO CORPORAL</span>
               <button
                 type="button"
                 onClick={() => setEditingWeightDate(selectedHistoryDate)}
-                className="text-[10px] text-zinc-900 hover:text-black uppercase font-bold transition-colors underline cursor-pointer"
+                className="text-[10px] text-emerald-600 hover:text-emerald-700 uppercase font-bold transition-colors underline cursor-pointer"
               >
                 {currentDayStats.weight !== undefined && currentDayStats.weight !== null ? 'Editar' : '+ Cargar'}
               </button>
@@ -266,27 +248,22 @@ export default function HistoryView({
 
         {/* Banner de Cardio del día */}
         {dayCardios.length > 0 && (
-          <div className="p-4 rounded-2xl bg-white border border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-zinc-100 text-zinc-900">
-                <Footprints className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono text-zinc-500 font-bold uppercase tracking-wider block">
-                  // CARDIO & DESPLAZAMIENTOS ({dayCardios.length} {dayCardios.length === 1 ? 'SESIÓN' : 'SESIONES'})
-                </span>
-                <p className="text-zinc-900 font-extrabold text-base font-mono">
-                  {Math.round(dayCardioKm * 10) / 10} <span className="text-xs text-zinc-500 font-sans">KM</span> • <span>~{dayCardioBurned}</span> <span className="text-xs text-zinc-500 font-sans">KCAL QUEMADAS</span>
-                </p>
-              </div>
+          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div>
+              <span className="text-[10px] font-mono text-emerald-600 font-bold uppercase tracking-wider block">
+                CARDIO & DESPLAZAMIENTOS ({dayCardios.length} {dayCardios.length === 1 ? 'SESIÓN' : 'SESIONES'})
+              </span>
+              <p className="text-zinc-900 font-extrabold text-base font-mono mt-0.5">
+                {Math.round(dayCardioKm * 10) / 10} <span className="text-xs text-zinc-500 font-sans">KM</span> • <span className="text-emerald-600">~{dayCardioBurned}</span> <span className="text-xs text-zinc-500 font-sans">KCAL QUEMADAS</span>
+              </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {dayCardios.map((c) => (
-                <span key={c.id} className="text-xs font-mono px-2.5 py-1.5 rounded-lg bg-zinc-50 text-zinc-800 border border-zinc-200 flex items-center gap-1.5">
-                  <span className="text-black font-bold uppercase">{c.type}:</span>
+                <span key={c.id} className="text-xs font-mono px-2.5 py-1.5 rounded-lg bg-white text-zinc-900 border border-zinc-200 flex items-center gap-1.5 shadow-xs">
+                  <span className="text-emerald-600 font-bold uppercase">{c.type}:</span>
                   <span>{c.from} ➔ {c.to}</span>
-                  <span className="text-zinc-900 font-bold">({c.distance}km)</span>
+                  <span className="text-cyan-600 font-bold">({c.distance}km)</span>
                 </span>
               ))}
             </div>
@@ -295,11 +272,11 @@ export default function HistoryView({
       </div>
 
       {/* Buscador & Lista de Días */}
-      <div className="space-y-6">
+      <div className="space-y-5">
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="text-xs font-mono tracking-widest text-zinc-500 uppercase">
-            // REGISTRO CRONOLÓGICO DE DÍAS
+          <div className="text-xs font-mono tracking-widest text-zinc-500 uppercase font-bold">
+            REGISTRO CRONOLÓGICO DE DÍAS
           </div>
 
           <div className="relative w-full sm:w-80">
@@ -308,13 +285,13 @@ export default function HistoryView({
               placeholder="Buscar ejercicio, comida, fecha..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white border border-zinc-300 focus:border-black px-4 py-2.5 text-xs text-zinc-900 rounded-xl font-mono placeholder-zinc-400 outline-none shadow-sm transition-all"
+              className="w-full bg-white border border-zinc-200 focus:border-zinc-900 px-4 py-2.5 text-xs text-zinc-900 rounded-xl font-mono placeholder-zinc-400 outline-none shadow-xs transition-all"
             />
           </div>
         </div>
 
         {filteredDates.length === 0 ? (
-          <div className="py-16 text-center text-zinc-500 font-mono text-sm border-t border-b border-zinc-200">
+          <div className="py-16 text-center text-zinc-400 font-mono text-sm border-t border-b border-zinc-200">
             No hay registros disponibles en el historial todavía.
           </div>
         ) : (
@@ -337,20 +314,20 @@ export default function HistoryView({
               return (
                 <div
                   key={dateStr}
-                  className={`bg-white border rounded-2xl transition-all shadow-sm relative ${
+                  className={`bg-white border rounded-2xl transition-all shadow-xs relative ${
                     isExpanded ? 'overflow-visible z-20 border-zinc-300 shadow-md' : 'overflow-hidden z-0 border-zinc-200 hover:border-zinc-300'
                   } ${
-                    isSelected ? 'ring-1 ring-black' : ''
+                    isSelected ? 'ring-2 ring-emerald-500/40 border-emerald-500' : ''
                   }`}
                 >
                   <div
                     onClick={() => toggleExpand(dateStr)}
-                    className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer select-none hover:bg-zinc-50/70 transition-colors rounded-t-2xl"
+                    className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer select-none hover:bg-zinc-50 transition-colors rounded-t-2xl"
                   >
                     <div>
                       <div className="flex items-center gap-3">
                         <h4 className="font-extrabold text-base sm:text-lg text-zinc-900 capitalize">{formatDisplayDate(dateStr)}</h4>
-                        <span className="text-[11px] font-mono text-zinc-700 px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200">
+                        <span className="text-[11px] font-mono text-zinc-500 px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200">
                           {dateStr}
                         </span>
                       </div>
@@ -361,8 +338,7 @@ export default function HistoryView({
                         {cardios.length > 0 && (
                           <>
                             <span>•</span>
-                            <span className="text-zinc-900 font-bold flex items-center gap-1">
-                              <Footprints className="w-3.5 h-3.5" />
+                            <span className="text-emerald-600 font-bold">
                               {Math.round(totalCardioKm * 10) / 10} km cardio
                             </span>
                           </>
@@ -372,11 +348,11 @@ export default function HistoryView({
 
                     <div className="flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-2.5 text-xs font-mono flex-wrap">
-                        <span className="text-zinc-900 font-extrabold">{totalTonnage.toLocaleString()} kg gym</span>
+                        <span className="text-emerald-600 font-extrabold">{totalTonnage.toLocaleString()} kg gym</span>
                         <span className="text-zinc-300">•</span>
-                        <span className="text-zinc-700 font-semibold">{totalCalories} kcal</span>
+                        <span className="text-amber-600 font-semibold">{totalCalories} kcal</span>
                         <span className="text-zinc-300">•</span>
-                        <span className="text-zinc-700 font-semibold">{totalProtein}g prot</span>
+                        <span className="text-cyan-600 font-semibold">{totalProtein}g prot</span>
 
                         {/* Tag de Peso del Día */}
                         {dayData.weight !== undefined && dayData.weight !== null && dayData.weight !== '' ? (
@@ -391,7 +367,6 @@ export default function HistoryView({
                               className="text-zinc-900 font-bold bg-zinc-100 hover:bg-zinc-200 px-2.5 py-1 rounded-lg border border-zinc-200 flex items-center gap-1 transition-colors cursor-pointer"
                               title="Editar peso corporal de este día"
                             >
-                              <Scale className="w-3 h-3 text-zinc-700" />
                               <span>{isWeightVisible ? `${parseFloat(dayData.weight).toFixed(1)} kg` : '•••• kg'}</span>
                             </button>
                           </>
@@ -404,7 +379,7 @@ export default function HistoryView({
                                 e.stopPropagation();
                                 setEditingWeightDate(dateStr);
                               }}
-                              className="text-zinc-500 hover:text-black text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                              className="text-zinc-500 hover:text-emerald-600 text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
                               title="Cargar peso para este día"
                             >
                               <Plus className="w-3 h-3" />
@@ -416,7 +391,7 @@ export default function HistoryView({
                         {cardios.length > 0 && (
                           <>
                             <span className="text-zinc-300">•</span>
-                            <span className="text-zinc-600 font-medium">~{totalCardioBurned} kcal cardio</span>
+                            <span className="text-zinc-500 font-medium">~{totalCardioBurned} kcal cardio</span>
                           </>
                         )}
                       </div>
@@ -427,47 +402,47 @@ export default function HistoryView({
                           e.stopPropagation();
                           onSelectDate(dateStr);
                         }}
-                        className="px-3.5 py-1.5 bg-black text-white text-xs font-mono font-bold uppercase rounded-lg hover:bg-zinc-800 transition-colors shadow-sm cursor-pointer"
+                        className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-mono font-bold uppercase rounded-lg transition-colors shadow-xs cursor-pointer"
                       >
                         Cargar Día
                       </button>
 
                       <div className="text-zinc-400">
-                        {isExpanded ? <ChevronDown className="w-5 h-5 text-black" /> : <ChevronRight className="w-5 h-5" />}
+                        {isExpanded ? <ChevronDown className="w-5 h-5 text-emerald-600" /> : <ChevronRight className="w-5 h-5" />}
                       </div>
                     </div>
                   </div>
 
                   {/* Desglose Expandible */}
                   {isExpanded && (
-                    <div className={`p-6 border-t border-zinc-200 bg-zinc-50/60 grid grid-cols-1 ${cardios.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 animate-fade-in-up overflow-visible rounded-b-2xl`}>
+                    <div className={`p-6 border-t border-zinc-200 bg-zinc-50/70 grid grid-cols-1 ${cardios.length > 0 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 animate-fade-in-up overflow-visible rounded-b-2xl`}>
 
                       {/* Ejercicios */}
                       <div className="space-y-3">
-                        <div className="text-xs font-mono text-zinc-900 uppercase font-bold tracking-wider">
-                          // ENTRENAMIENTOS ({workouts.length})
+                        <div className="text-xs font-mono text-emerald-700 uppercase font-bold tracking-wider">
+                          ENTRENAMIENTOS ({workouts.length})
                         </div>
                         {workouts.length === 0 ? (
-                          <p className="text-xs font-mono text-zinc-500">Sin ejercicios registrados.</p>
+                          <p className="text-xs font-mono text-zinc-400">Sin ejercicios registrados.</p>
                         ) : (
                           <div className="space-y-2">
                             {workouts.map(w => {
                               return (
-                                <div key={w.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex justify-between items-center text-xs font-mono shadow-sm">
+                                <div key={w.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex justify-between items-center text-xs font-mono shadow-xs">
                                   <div className="space-y-1">
                                     <div className="text-zinc-900 font-bold">{w.name}</div>
                                     {w.detailedSets && Array.isArray(w.detailedSets) && w.detailedSets.length > 0 ? (
                                       <div className="flex flex-wrap items-center gap-1.5 text-zinc-500">
-                                        <span className="text-zinc-700 font-semibold">{w.sets} series:</span>
+                                        <span className="text-zinc-900 font-semibold">{w.sets} series:</span>
                                         {w.detailedSets.map((s, i) => (
-                                          <span key={i} className="px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-zinc-900 font-bold text-[10px]">
+                                          <span key={i} className="px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200 text-emerald-700 font-bold text-[10px]">
                                             {s.reps}×<span>{s.weight}kg</span>
                                           </span>
                                         ))}
                                       </div>
                                     ) : (
                                       <div className="text-zinc-500">
-                                        {w.sets}×{w.reps} con <strong className="text-zinc-900">{w.weight}kg</strong>
+                                        {w.sets}×{w.reps} con <strong className="text-emerald-700">{w.weight}kg</strong>
                                       </div>
                                     )}
                                   </div>
@@ -485,27 +460,27 @@ export default function HistoryView({
 
                       {/* Comidas y Suplementos */}
                       <div className="space-y-3">
-                        <div className="text-xs font-mono text-zinc-900 uppercase font-bold tracking-wider">
-                          // NUTRICIÓN & SUPLEMENTOS ({foods.length})
+                        <div className="text-xs font-mono text-amber-700 uppercase font-bold tracking-wider">
+                          NUTRICIÓN & SUPLEMENTOS ({foods.length})
                         </div>
                         {foods.length === 0 ? (
-                          <p className="text-xs font-mono text-zinc-500">Sin alimentos registrados.</p>
+                          <p className="text-xs font-mono text-zinc-400">Sin alimentos registrados.</p>
                         ) : (
                           <div className="space-y-2">
                             {foods.map(f => {
                               const isSupp = f.mealType === 'suplementacion';
                               return (
-                                <div key={f.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex justify-between items-center text-xs font-mono shadow-sm">
+                                <div key={f.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex justify-between items-center text-xs font-mono shadow-xs">
                                   <div className="space-y-0.5">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold bg-zinc-100 text-zinc-800 border border-zinc-200">
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold bg-amber-50 text-amber-800 border border-amber-200">
                                         {f.mealType || 'item'}
                                       </span>
                                       <span className="text-zinc-900 font-bold">{f.name}</span>
                                       {f.time && <span className="text-zinc-400 text-[10px]">({f.time})</span>}
                                     </div>
                                     <div className="text-zinc-500">
-                                      <span className="text-zinc-900 font-semibold">{f.calories} kcal</span> • <span>{f.protein}g</span>
+                                      <span className="text-amber-700 font-semibold">{f.calories} kcal</span> • <span className="text-cyan-700 font-semibold">{f.protein}g</span>
                                     </div>
                                   </div>
                                   <ItemActionMenu
@@ -523,16 +498,15 @@ export default function HistoryView({
                       {/* Sesiones de Cardio */}
                       {cardios.length > 0 && (
                         <div className="space-y-3">
-                          <div className="text-xs font-mono text-zinc-900 uppercase font-bold tracking-wider flex items-center gap-1.5">
-                            <Footprints className="w-3.5 h-3.5" />
-                            <span>// CARDIO & DISTANCIA ({cardios.length})</span>
+                          <div className="text-xs font-mono text-cyan-700 uppercase font-bold tracking-wider">
+                            CARDIO & DISTANCIA ({cardios.length})
                           </div>
                           <div className="space-y-2">
                             {cardios.map((c) => {
                               return (
-                                <div key={c.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex flex-col justify-between gap-1 text-xs font-mono shadow-sm">
+                                <div key={c.id} className="p-3 bg-white border border-zinc-200 rounded-xl flex flex-col justify-between gap-1 text-xs font-mono shadow-xs">
                                   <div className="flex justify-between items-center">
-                                    <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold bg-zinc-100 text-zinc-900 border border-zinc-200">
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold bg-cyan-50 text-cyan-800 border border-cyan-200">
                                       {c.type}
                                     </span>
                                     {c.time && <span className="text-zinc-400 text-[10px]">({c.time})</span>}
@@ -545,7 +519,7 @@ export default function HistoryView({
                                   </div>
 
                                   <div className="flex justify-between items-center text-zinc-500 text-[11px] pt-0.5">
-                                    <span className="text-zinc-900 font-bold">{c.distance} km</span>
+                                    <span className="text-emerald-700 font-bold">{c.distance} km</span>
                                     <span>~{c.caloriesBurned} kcal</span>
                                   </div>
                                 </div>

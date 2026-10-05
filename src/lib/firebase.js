@@ -124,7 +124,7 @@ export const subscribeToUserCloudData = (userId, onDataUpdate, onError) => {
   const docRef = doc(db, 'users', userId);
   return onSnapshot(docRef, (docSnap) => {
     if (docSnap.exists()) {
-      onDataUpdate(docSnap.data());
+      onDataUpdate(docSnap.data(), docSnap.metadata.hasPendingWrites);
     }
   }, (err) => {
     if (onError) onError(err);

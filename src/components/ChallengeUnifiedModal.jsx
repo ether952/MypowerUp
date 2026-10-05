@@ -58,7 +58,7 @@ export default function ChallengeUnifiedModal({
         {/* Cabecera */}
         <div className="border-b border-zinc-200 pb-4 pr-8">
           <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block font-bold">
-            // GUÍA RÁPIDA & CALIBRACIÓN
+            GUÍA RÁPIDA & CALIBRACIÓN
           </span>
           <h3 className="text-xl sm:text-2xl font-extrabold text-zinc-900 uppercase font-display tracking-tight mt-0.5">
             {isMuscle ? '¡Desafío de Musculación!' : '¡Desafío de Resistencia!'}
@@ -82,7 +82,7 @@ export default function ChallengeUnifiedModal({
         <div className="pt-2 border-t border-zinc-200 space-y-4">
           
           <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">
-            <span>// CALIBRACIÓN DE NIVEL</span>
+            <span>CALIBRACIÓN DE NIVEL</span>
             <span>PASO {step} DE 3</span>
           </div>
 

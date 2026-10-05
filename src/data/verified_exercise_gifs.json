@@ -1,0 +1,194 @@
+{
+  "press_banca_plano": {
+    "name": "Press Banca Plano con Barra",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bench-Press.gif"
+  },
+  "press_inclinado_barra": {
+    "name": "Press Inclinado con Barra",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Barbell-Bench-Press.gif"
+  },
+  "press_plano_mancuernas": {
+    "name": "Press Plano con Mancuernas",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Press.gif"
+  },
+  "press_inclinado_mancuernas": {
+    "name": "Press Inclinado Mancuernas",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif"
+  },
+  "press_declinado_barra": {
+    "name": "Press Declinado con Barra",
+    "gifUrl": ""
+  },
+  "peck_deck_mariposa": {
+    "name": "Peck Deck / Contractora",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Pec-Deck-Fly.gif"
+  },
+  "cruces_polea_alta": {
+    "name": "Cruces en Polea Alta",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crossover.gif"
+  },
+  "flexiones_suelo_pushups": {
+    "name": "Flexiones en Suelo / Pushups",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Up.gif"
+  },
+  "jalon_pecho": {
+    "name": "Jalón al Pecho en Polea",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif"
+  },
+  "peso_muerto": {
+    "name": "Peso Muerto con Barra",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Deadlift.gif"
+  },
+  "remo_barra_t": {
+    "name": "Remo Barra T con Apoyo",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/06/T-Bar-Row.gif"
+  },
+  "remo_sentado_polea": {
+    "name": "Remo Sentado en Polea Baja",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Cable-Row.gif"
+  },
+  "remo_unilateral_mancuerna": {
+    "name": "Remo con Mancuerna (Serrucho)",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif"
+  },
+  "remo_barra_inclinado": {
+    "name": "Remo con Barra Inclinado",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bent-Over-Row.gif"
+  },
+  "dominadas_barra": {
+    "name": "Dominadas en Barra Fija",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Pull-up.gif"
+  },
+  "dominadas_asistidas": {
+    "name": "Dominadas en Máquina Asistida",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Assisted-Pull-up.gif"
+  },
+  "prensa_piernas": {
+    "name": "Prensa de Piernas 45°",
+    "gifUrl": ""
+  },
+  "sentadilla_rack": {
+    "name": "Sentadilla con Barra en Rack",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/BARBELL-SQUAT.gif"
+  },
+  "extension_cuadriceps": {
+    "name": "Extensión de Cuádriceps",
+    "gifUrl": ""
+  },
+  "curl_femoral_tumbado": {
+    "name": "Curl Femoral Tumbado",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Curl.gif"
+  },
+  "sentadilla_hack": {
+    "name": "Sentadilla Hack en Máquina",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Sled-Hack-Squat.gif"
+  },
+  "sentadilla_frontal": {
+    "name": "Sentadilla Frontal con Barra",
+    "gifUrl": ""
+  },
+  "zancadas_mancuernas": {
+    "name": "Zancadas con Mancuernas",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif"
+  },
+  "elevacion_gemelos": {
+    "name": "Elevación de Gemelos en Máquina",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Standing-Calf-Raise.gif"
+  },
+  "hip_thrust": {
+    "name": "Hip Thrust con Barra",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Hip-Thrust.gif"
+  },
+  "press_militar_barra": {
+    "name": "Press Militar con Barra",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Barbell-Military-Press.gif"
+  },
+  "press_militar_mancuernas": {
+    "name": "Press de Hombros con Mancuernas",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Shoulder-Press.gif"
+  },
+  "elevaciones_laterales": {
+    "name": "Elevaciones Laterales con Mancuernas",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif"
+  },
+  "pajaros_posteriores": {
+    "name": "Pájaros / Deltoides Posterior",
+    "gifUrl": ""
+  },
+  "press_arnold": {
+    "name": "Press Arnold",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Arnold-Press.gif"
+  },
+  "encogimientos_trapecio": {
+    "name": "Encogimientos con Mancuernas",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Dumbbell-Shrug.gif"
+  },
+  "curl_barra_z": {
+    "name": "Curl Bíceps con Barra Z / Recta",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Curl.gif"
+  },
+  "curl_mancuernas": {
+    "name": "Curl Alterno con Mancuernas",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif"
+  },
+  "curl_martillo": {
+    "name": "Curl Martillo con Mancuernas",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif"
+  },
+  "curl_predicador": {
+    "name": "Curl Bíceps en Banco Scott (Predicador)",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Lever-Preacher-Curl.gif"
+  },
+  "triceps_polea_cuerda": {
+    "name": "Extensión de Tríceps en Polea (Cuerda)",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Rope-Pushdown.gif"
+  },
+  "triceps_polea_barra": {
+    "name": "Extensión de Tríceps Polea (Barra)",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Pushdown.gif"
+  },
+  "press_frances": {
+    "name": "Press Francés con Barra (Skullcrushers)",
+    "gifUrl": ""
+  },
+  "fondos_paralelas": {
+    "name": "Fondos en Barras Paralelas (Dips)",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Chest-Dips.gif"
+  },
+  "fondos_banco": {
+    "name": "Fondos de Tríceps en Banco",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bench-Dips.gif"
+  },
+  "crunch_polea": {
+    "name": "Crunch Abdominal en Polea",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Kneeling-Cable-Crunch.gif"
+  },
+  "elevacion_piernas": {
+    "name": "Elevación de Piernas Colgado",
+    "gifUrl": ""
+  },
+  "rueda_abdominal": {
+    "name": "Rueda Abdominal (Ab Wheel)",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Ab-Wheel-Rollout.gif"
+  },
+  "plancha_abdominal": {
+    "name": "Plancha Abdominal Isométrica",
+    "gifUrl": ""
+  },
+  "cinta_correr": {
+    "name": "Cinta de Correr",
+    "gifUrl": ""
+  },
+  "bici_estatica": {
+    "name": "Bicicleta Estática / Spinning",
+    "gifUrl": ""
+  },
+  "eliptica": {
+    "name": "Máquina Elíptica",
+    "gifUrl": ""
+  },
+  "remo_ergometro": {
+    "name": "Remo Indoor / Ergómetro",
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Rowing-Machine.gif"
+  }
+}
