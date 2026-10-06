@@ -840,8 +840,7 @@ export default function App() {
                     isOpen={isLoginDropdownOpen}
                     onClose={() => setIsLoginDropdownOpen(false)}
                     onOpenRegisterScreen={() => {
-                      setAuthModalMode('register');
-                      setIsAuthModalOpen(true);
+                      setPublicView('register');
                     }}
                     onAuthSuccess={() => {
                       showToast('Sesión iniciada con éxito');
@@ -924,7 +923,7 @@ export default function App() {
       </main>
 
       {/* Footer Global de la Plataforma */}
-      <Footer onOpenAuth={() => { setAuthModalMode('login'); setIsAuthModalOpen(true); }} />
+      <Footer onOpenAuth={() => {}} />
 
       {/* Modal de Metas */}
       <GoalsModal
@@ -936,17 +935,6 @@ export default function App() {
           showToast('Metas guardadas');
         }}
       />
-
-      {/* Pantalla Completa de Bienvenida / Registro Cloud */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        initialMode={authModalMode}
-        onClose={() => setIsAuthModalOpen(false)}
-        onAuthSuccess={() => {
-          showToast('Sesión iniciada con éxito');
-        }}
-      />
-
     </div>
   );
 }
