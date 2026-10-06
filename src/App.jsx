@@ -572,8 +572,8 @@ export default function App() {
           <div className="w-10 h-10 rounded-2xl bg-black flex items-center justify-center text-white shadow-md">
             <Zap className="w-5 h-5 text-white fill-white" />
           </div>
-          <span className="font-display font-extrabold tracking-tight text-zinc-900 uppercase text-sm">
-            MYPOWERUP
+          <span className="font-display font-extrabold tracking-tight text-zinc-900 uppercase text-sm select-none">
+            MYPOWER<span className="text-emerald-500">UP</span>
           </span>
         </div>
       </div>

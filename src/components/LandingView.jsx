@@ -57,7 +57,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
             <span className="text-emerald-400 font-sans text-[10px]">{item.mealsCount} comidas</span>
           </div>
           <div className="space-y-0.5 pt-1">
-            <p className="text-amber-400 font-bold">
+            <p className="text-emerald-400 font-bold">
               Calorías: <span className="text-white">{item.calories.toLocaleString()} kcal</span>
             </p>
             <p className="text-cyan-400 font-bold">
@@ -86,8 +86,8 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
           <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white shadow-sm">
             <Zap className="w-4 h-4 text-white fill-white" />
           </div>
-          <span className="text-xl sm:text-2xl font-black font-display tracking-tight text-zinc-900 uppercase">
-            MYPOWERUP
+          <span className="text-xl sm:text-2xl font-black font-display tracking-tight text-zinc-900 uppercase select-none">
+            MYPOWER<span className="text-emerald-500">UP</span>
           </span>
         </div>
 
@@ -142,14 +142,14 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
       <section className="relative w-full pt-12 pb-16 sm:pt-16 sm:pb-20 px-4 sm:px-8 overflow-hidden bg-white">
         
         {/* Glow decorativo suave */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-amber-50/70 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-emerald-50/60 rounded-full blur-3xl pointer-events-none -z-10" />
 
         <div className="max-w-5xl mx-auto space-y-12 text-center">
 
           {/* Encabezado */}
           <div className="space-y-4 max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-100 text-zinc-800 text-xs font-mono font-bold tracking-wide">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" />
               <span>REGISTRO DE GYM & NUTRICIÓN CON INTELIGENCIA ARTIFICIAL</span>
             </div>
 
@@ -192,7 +192,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
             {/* Barra de Título y Selector de Métrica */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 border-b border-zinc-200 pb-4">
               <div className="space-y-1">
-                <span className="text-xs font-mono font-bold text-amber-600 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="text-xs font-mono font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
                   <Activity className="w-3.5 h-3.5" />
                   EJEMPLO REAL: EVOLUCIÓN NUTRICIONAL
                 </span>
@@ -208,7 +208,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
                   onClick={() => setActiveNutritionMetric('calories')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                     activeNutritionMetric === 'calories'
-                      ? 'bg-amber-500 text-black shadow-xs'
+                      ? 'bg-emerald-500 text-black shadow-xs'
                       : 'bg-zinc-100 text-zinc-600 hover:text-black'
                   }`}
                 >
@@ -232,7 +232,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
             <div className="flex flex-wrap items-baseline justify-between gap-6 font-mono text-sm py-2">
               <div>
                 <span className="text-[11px] text-zinc-400 uppercase tracking-wider block">Promedio Calorías</span>
-                <span className="text-2xl sm:text-3xl font-black text-amber-600 font-display">
+                <span className="text-2xl sm:text-3xl font-black text-emerald-600 font-display">
                   2.414 <span className="text-xs text-zinc-400 font-normal font-mono">kcal/día</span>
                 </span>
               </div>
@@ -265,11 +265,11 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
                 <AreaChart data={SAMPLE_WEEK_NUTRITION} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="landingAreaCal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25}/>
-                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.28}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="landingAreaProt" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.25}/>
+                      <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.28}/>
                       <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
@@ -280,15 +280,15 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
                   
                   {activeNutritionMetric === 'calories' ? (
                     <>
-                      <ReferenceLine y={2400} stroke="#F59E0B" strokeDasharray="4 4" label={{ value: 'Meta: 2.400 kcal', fill: '#B45309', fontSize: 11, position: 'insideTopRight' }} />
+                      <ReferenceLine y={2400} stroke="#10B981" strokeDasharray="4 4" label={{ value: 'Meta: 2.400 kcal', fill: '#059669', fontSize: 11, position: 'insideTopRight' }} />
                       <Area
                         type="monotone"
                         dataKey="calories"
                         name="Calorías"
-                        stroke="#F59E0B"
+                        stroke="#10B981"
                         strokeWidth={2.5}
                         fill="url(#landingAreaCal)"
-                        dot={{ r: 4, fill: '#F59E0B', stroke: '#FFFFFF', strokeWidth: 2 }}
+                        dot={{ r: 4, fill: '#10B981', stroke: '#FFFFFF', strokeWidth: 2 }}
                         activeDot={{ r: 6, fill: '#000000' }}
                       />
                     </>
