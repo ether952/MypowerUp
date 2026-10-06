@@ -80,7 +80,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
       {/* 1. NAVBAR SUPERIOR                                                        */}
       {/* ========================================================================= */}
       <header className="w-full border-b border-zinc-200 bg-white/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        
+
         {/* Logo */}
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white shadow-sm">
@@ -90,32 +90,6 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
             MYPOWER<span className="text-emerald-500">UP</span>
           </span>
         </div>
-
-        {/* Links de Navegación */}
-        <nav className="hidden md:flex items-center gap-8 font-mono text-xs font-bold text-zinc-600">
-          <button
-            type="button"
-            onClick={() => scrollToSection('nutrition-demo')}
-            className="hover:text-black transition-colors cursor-pointer"
-          >
-            Nutrición Semanal
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToSection('features')}
-            className="hover:text-black transition-colors cursor-pointer"
-          >
-            Funcionalidades
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToSection('how-it-works')}
-            className="hover:text-black transition-colors cursor-pointer"
-          >
-            Cómo Funciona
-          </button>
-        </nav>
-
         {/* Botones de Auth */}
         <div className="flex items-center gap-3 font-mono text-xs">
           <button
@@ -140,7 +114,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
       {/* 2. HERO SECTION & PROGRESIÓN NUTRICIONAL INTEGRADA                        */}
       {/* ========================================================================= */}
       <section className="relative w-full pt-12 pb-16 sm:pt-16 sm:pb-20 px-4 sm:px-8 overflow-hidden bg-white">
-        
+
         {/* Glow decorativo suave */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-emerald-50/60 rounded-full blur-3xl pointer-events-none -z-10" />
 
@@ -188,7 +162,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
           {/* GRÁFICO NUTRICIONAL SEMANAL FLUIDO (SIN ENCAPSULAR EN CUADRITOS)      */}
           {/* ===================================================================== */}
           <div id="nutrition-demo" className="pt-4 max-w-4xl mx-auto text-left space-y-6">
-            
+
             {/* Barra de Título y Selector de Métrica */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 border-b border-zinc-200 pb-4">
               <div className="space-y-1">
@@ -206,22 +180,20 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
                 <button
                   type="button"
                   onClick={() => setActiveNutritionMetric('calories')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                    activeNutritionMetric === 'calories'
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${activeNutritionMetric === 'calories'
                       ? 'bg-emerald-500 text-black shadow-xs'
                       : 'bg-zinc-100 text-zinc-600 hover:text-black'
-                  }`}
+                    }`}
                 >
                   Calorías (Kcal)
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveNutritionMetric('protein')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                    activeNutritionMetric === 'protein'
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${activeNutritionMetric === 'protein'
                       ? 'bg-cyan-500 text-white shadow-xs'
                       : 'bg-zinc-100 text-zinc-600 hover:text-black'
-                  }`}
+                    }`}
                 >
                   Proteínas (g)
                 </button>
@@ -265,19 +237,19 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
                 <AreaChart data={SAMPLE_WEEK_NUTRITION} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="landingAreaCal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.28}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.28} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="landingAreaProt" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.28}/>
-                      <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.28} />
+                      <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="2 2" stroke="#F4F4F5" vertical={false} />
                   <XAxis dataKey="day" stroke="#71717A" fontSize={12} tickLine={false} axisLine={{ stroke: '#E4E4E7' }} />
                   <YAxis stroke="#71717A" fontSize={11} tickLine={false} axisLine={false} domain={activeNutritionMetric === 'calories' ? [2000, 2700] : [120, 180]} />
                   <Tooltip content={<CustomNutritionTooltip />} />
-                  
+
                   {activeNutritionMetric === 'calories' ? (
                     <>
                       <ReferenceLine y={2400} stroke="#10B981" strokeDasharray="4 4" label={{ value: 'Meta: 2.400 kcal', fill: '#059669', fontSize: 11, position: 'insideTopRight' }} />
@@ -335,7 +307,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
       {/* ========================================================================= */}
       <section id="features" className="w-full py-16 sm:py-24 px-4 sm:px-8 border-t border-zinc-200 bg-[#FAFAFA]">
         <div className="max-w-5xl mx-auto space-y-12">
-          
+
           <div className="text-center space-y-2 max-w-2xl mx-auto">
             <span className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-widest">
               // POTENCIA SIN COMPLICACIONES
@@ -409,7 +381,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
       {/* ========================================================================= */}
       <section id="how-it-works" className="w-full py-16 sm:py-20 px-4 sm:px-8 bg-white border-t border-zinc-200">
         <div className="max-w-5xl mx-auto space-y-10">
-          
+
           <div className="text-center space-y-2 max-w-xl mx-auto">
             <span className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-widest">
               // FLUJO SENCILLO
@@ -420,7 +392,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 font-mono text-xs">
-            
+
             <div className="space-y-2.5">
               <span className="text-2xl font-black text-zinc-900 font-display">01.</span>
               <h4 className="text-sm font-bold text-zinc-900 uppercase">
