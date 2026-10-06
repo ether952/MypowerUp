@@ -753,7 +753,7 @@ function estimateSingleItem(cleanPart = '') {
 
   // 2. Extraer unidades específicas si existen
   let units = null;
-  const unitMatch = cleanPart.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(?:huevos?|claras?|bananas?|manzanas?|naranjas?|platanos?|scoops?|fetas?|rodajas?|rebanadas?|cucharadas?|cdas?|porciones?|empanadas?|medialunas?|unidades?|u|vasos?|tazas?|latas?|potes?|platos?|filets?)\b/);
+  const unitMatch = cleanPart.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(?:huevos?|claras?|bananas?|manzanas?|naranjas?|platanos?|scoops?|fetas?|rodajas?|rebanadas?|cucharadas?|cdas?|porciones?|porcio|porc|empanadas?|medialunas?|unidades?|unds?|und|u|vasos?|tazas?|latas?|potes?|platos?|filets?)\b/);
   if (unitMatch) {
     units = parseFloat(unitMatch[1].replace(',', '.'));
   } else {

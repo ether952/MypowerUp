@@ -3,13 +3,13 @@ import { estimateNutrition } from '../utils/nutritionDb.js';
 // Cache en memoria para respuestas de IA de alimentos ya consultados
 const nutritionCache = new Map();
 
-// Modelos Gemini en orden de prioridad
+// Modelos Gemini estables y soportados en orden de prioridad
 const GEMINI_MODELS = [
-  'gemini-2.5-flash',
   'gemini-2.0-flash',
   'gemini-1.5-flash',
+  'gemini-2.0-flash-lite',
   'gemini-1.5-flash-8b',
-  'gemini-2.0-flash-lite'
+  'gemini-1.5-pro'
 ];
 
 /**
@@ -71,30 +71,39 @@ export async function estimateNutritionWithAI(foodText) {
   }
 
   const prompt = `Actúa como un nutricionista y experto en macronutrientes.
-Analiza la siguiente comida, plato o alimento ingresado por el usuario:
+Analiza la siguiente comida, alimento o plato ingresado por el usuario:
 "${cleanText}"
 
-Calcula una estimación realista y precisa de:
-1. Calorías totales (kcal, número entero).
-2. Proteínas totales (g, número entero o con 1 decimal).
-3. Tipo de comida sugerido ("desayuno", "almuerzo", "merienda", "cena", "snack" o "suplementacion").
-4. Breve resumen de lo detectado (máx 6 palabras).
+REGLAS DE CÁLCULO Y ESTIMACIÓN:
+1. Cantidades y Multiplicadores:
+   - Interpreta con máxima exactitud números, unidades, porciones y medidas (ejemplos: "2 und de...", "2 unidades", "3 rebanadas", "1 porción", "200g", "1 taza", "medio plato").
+   - Si se indican 2 o más unidades (ej: "2 huevos", "2 porciones de budin"), calcula la suma total correspondiente al número indicado.
+   - Si no se especifica cantidad, asume 1 porción estándar individual habitual.
+2. Comprensión de modismos, errores de tipeo (typos) y platos:
+   - Tolera errores de tipeo comunes (ej: "porcio" = porción, "budin de cafe" = budín dulce con sabor a café que contiene harina, azúcar, grasa/manteca y huevo).
+3. Exactitud en calorías y proteínas:
+   - NUNCA devuelvas 0 calorías ni 0g de proteína si el alimento contiene masa o nutrientes calóricos reales.
+4. Tipo de comida sugerido:
+   - Debe ser uno de: "desayuno", "almuerzo", "merienda", "cena", "snack" o "suplementacion".
 
-Ten en cuenta los ingredientes, tamaños de porción estándar, guarniciones y agregados habituales (aceites, salsas, pan, etc.).
-Responde OBLIGATORIAMENTE en formato JSON exacto con la siguiente estructura:
+Responde OBLIGATORIAMENTE con un objeto JSON plano sin texto adicional con esta estructura:
 {
-  "calories": 1150,
-  "protein": 55,
-  "suggestedMealType": "almuerzo",
-  "summary": "Hamburguesa doble con bacon y papas"
+  "calories": 280,
+  "protein": 5.2,
+  "suggestedMealType": "merienda",
+  "summary": "1 porción de budín de café"
 }`;
 
   for (const modelName of GEMINI_MODELS) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
     try {
       const cleanModel = modelName.replace(/^models\//, '');
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${apiKey}`;
       const response = await fetch(endpoint, {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -111,8 +120,10 @@ Responde OBLIGATORIAMENTE en formato JSON exacto con la siguiente estructura:
         })
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        // Si el modelo da 503 o 404, intentar con el siguiente modelo de la lista
+        // Si el modelo falla por rate-limit (429) o no disponible (503/404), intentar con el siguiente modelo
         continue;
       }
 
@@ -133,16 +144,17 @@ Responde OBLIGATORIAMENTE en formato JSON exacto con la siguiente estructura:
         source: 'ai'
       };
 
-      // Guardar en cache para evitar reconsultas innecesarias
+      // Guardar en cache para evitar reconsultas idénticas
       nutritionCache.set(cacheKey, result);
       return result;
     } catch (err) {
-      console.warn(`Error consultando ${modelName}:`, err);
+      clearTimeout(timeoutId);
+      console.warn(`Intento con modelo ${modelName} no completado:`, err.message || err);
       // Continuar con el siguiente modelo
     }
   }
 
-  // Si todos los modelos de IA fallaron, fallback local transparente
+  // Si todos los modelos de IA fallaron, fallback local
   const local = estimateNutrition(cleanText);
   return {
     calories: local.calories || 0,
@@ -151,3 +163,4 @@ Responde OBLIGATORIAMENTE en formato JSON exacto con la siguiente estructura:
     source: 'local'
   };
 }
+

@@ -339,11 +339,11 @@ export default function DailyView({
     const clean = textToEstimate.trim();
     const query = clean.toLowerCase();
 
-    // 1. Si ya existe en la memoria aprendida del usuario, reutilizar y no gastar tokens
+    // 1. Si ya existe en la memoria aprendida con valores válidos (>0), reutilizar
     const exactRemembered = rememberedFoods[query] || Object.values(rememberedFoods).find(
       item => item.name.toLowerCase() === query
     );
-    if (exactRemembered) {
+    if (exactRemembered && (Number(exactRemembered.calories) > 0 || Number(exactRemembered.protein) > 0)) {
       if (exactRemembered.calories !== undefined) setCalories(String(exactRemembered.calories));
       if (exactRemembered.protein !== undefined) setProtein(String(exactRemembered.protein));
       if (exactRemembered.mealType) setMealType(exactRemembered.mealType);
@@ -394,23 +394,22 @@ export default function DailyView({
     const clean = val.trim();
     const query = clean.toLowerCase();
 
-    // 1. Verificar si coincide exactamente con la memoria aprendida
+    // 1. Verificar si coincide exactamente con la memoria aprendida y tiene datos válidos
     const exactRemembered = rememberedFoods[query] || Object.values(rememberedFoods).find(
       item => item.name.toLowerCase() === query
     );
 
-    if (exactRemembered) {
-      // Si ya está en la memoria, autorrellenar al instante sin gastar tokens
+    if (exactRemembered && (Number(exactRemembered.calories) > 0 || Number(exactRemembered.protein) > 0)) {
       if (exactRemembered.calories !== undefined) setCalories(String(exactRemembered.calories));
       if (exactRemembered.protein !== undefined) setProtein(String(exactRemembered.protein));
       if (exactRemembered.mealType) setMealType(exactRemembered.mealType);
       setIsEstimatingAI(false);
     } else {
-      // Disparar estimación inteligente tras una pausa de tipeo (450ms)
+      // Disparar estimación inteligente tras una pausa de tipeo (400ms)
       if (clean.length >= 2) {
         aiDebounceTimerRef.current = setTimeout(() => {
           triggerAiEstimation(clean);
-        }, 450);
+        }, 400);
       }
     }
 
@@ -566,23 +565,25 @@ export default function DailyView({
 
     onAddFood(foodPayload);
 
-    // Guardar en memoria inteligente aprendida
-    const key = foodName.trim().toLowerCase();
-    const updated = {
-      ...rememberedFoods,
-      [key]: {
-        name: foodName.trim(),
-        calories: finalCalories,
-        protein: finalProtein,
-        mealType: finalMealType,
-        lastUsed: Date.now()
+    // Guardar en memoria inteligente aprendida (solo si contiene valores reales > 0)
+    if (finalCalories > 0 || finalProtein > 0) {
+      const key = foodName.trim().toLowerCase();
+      const updated = {
+        ...rememberedFoods,
+        [key]: {
+          name: foodName.trim(),
+          calories: finalCalories,
+          protein: finalProtein,
+          mealType: finalMealType,
+          lastUsed: Date.now()
+        }
+      };
+      if (onUpdateRememberedFoods) {
+        onUpdateRememberedFoods(updated);
+      } else {
+        setLocalRememberedFoods(updated);
+        localStorage.setItem('mypowerup_remembered_foods', JSON.stringify(updated));
       }
-    };
-    if (onUpdateRememberedFoods) {
-      onUpdateRememberedFoods(updated);
-    } else {
-      setLocalRememberedFoods(updated);
-      localStorage.setItem('mypowerup_remembered_foods', JSON.stringify(updated));
     }
 
     setFoodName('');
