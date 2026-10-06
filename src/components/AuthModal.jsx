@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Zap, X, ArrowLeft, Mail, Lock, User as UserIcon } from 'lucide-react';
+import { Zap, ArrowLeft, Mail, Lock, User as UserIcon, X } from 'lucide-react';
 import {
   loginWithEmail,
   registerWithEmail,
   loginWithGoogle,
   resetPassword
 } from '../lib/firebase';
+import Footer from './Footer';
 
 export default function AuthModal({
   isOpen,
@@ -16,6 +17,7 @@ export default function AuthModal({
   if (!isOpen) return null;
 
   const [isLogin, setIsLogin] = useState(initialMode === 'login');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -24,11 +26,17 @@ export default function AuthModal({
   const [message, setMessage] = useState(null);
   const [isResetMode, setIsResetMode] = useState(false);
 
+  // Al abrirse con modo 'login' o 'register', abrir automáticamente el drawer si se especificó, o dejar listo
   useEffect(() => {
     setIsLogin(initialMode === 'login');
     setError(null);
     setMessage(null);
     setIsResetMode(false);
+    // Abrir el cajón lateral con una pequeña pausa para permitir que la animación CSS se ejecute suavemente
+    const timer = setTimeout(() => {
+      setIsDrawerOpen(true);
+    }, 50);
+    return () => clearTimeout(timer);
   }, [initialMode, isOpen]);
 
   const parseFirebaseError = (err) => {
@@ -88,25 +96,159 @@ export default function AuthModal({
     }
   };
 
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    // Esperar a que termine la animación de deslizamiento antes de cerrar la pantalla
+    setTimeout(() => {
+      onClose();
+    }, 350);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden select-none">
-      
-      {/* 1. Fondo semitransparente con desenfoque suave */}
+    <div className="fixed inset-0 z-50 bg-[#FAFAFA] text-zinc-900 overflow-y-auto overflow-x-hidden animate-fade-in select-none flex flex-col">
+
+      {/* 1. BARRA SUPERIOR (HEADER) */}
+      <header className="w-full border-b border-zinc-200 bg-white/90 backdrop-blur-md sticky top-0 z-30 px-6 sm:px-12 py-4 flex items-center justify-between shrink-0">
+        
+        {/* Logo de la web */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white shadow-sm">
+            <Zap className="w-4 h-4 text-white fill-white" />
+          </div>
+          <span className="text-xl sm:text-2xl font-extrabold font-display tracking-tight text-zinc-900 uppercase">
+            MYPOWER<span className="text-emerald-500">UP</span>
+          </span>
+        </div>
+
+        {/* Botones de acción Header */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs font-mono font-bold text-zinc-500 hover:text-black uppercase transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Inicio</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsLogin(true);
+              setIsDrawerOpen(true);
+            }}
+            className="px-4 py-2 bg-black hover:bg-zinc-800 text-white font-mono text-xs font-bold uppercase rounded-xl shadow-sm transition-all cursor-pointer"
+          >
+            Iniciar Sesión
+          </button>
+        </div>
+      </header>
+
+      {/* 2. VISTA PRINCIPAL MINIMALISTA DE BIENVENIDA */}
+      <section className="min-h-[calc(100vh-73px)] w-full flex-1 flex flex-col justify-center items-center px-4 sm:px-8 py-10 relative z-10">
+        
+        <div className="w-full max-w-3xl mx-auto text-center space-y-6 sm:space-y-8 animate-fade-in-up">
+
+          {/* Encabezado Marca */}
+          <div className="space-y-2">
+            <span className="text-[11px] font-mono tracking-widest text-zinc-500 uppercase block font-bold">
+              // PLATAFORMA DE RENDIMIENTO
+            </span>
+            <h1 className="text-4xl sm:text-6xl font-extrabold uppercase tracking-tight text-zinc-900 font-display">
+              MYPOWER<span className="text-emerald-500">UP</span>
+            </h1>
+          </div>
+
+          {/* Mensaje de Bienvenida Centrado */}
+          <div className="space-y-2.5 max-w-xl mx-auto">
+            <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 tracking-tight font-display">
+              Bienvenido a tu registro integral.
+            </h2>
+            <p className="text-zinc-600 text-xs sm:text-sm font-sans leading-relaxed">
+              Mypowerup centraliza tus cargas de gimnasio, macros con IA y evolución del peso corporal con sincronización automática en la nube.
+            </p>
+          </div>
+
+          {/* Cuadrícula de 3 Bloques Equilibrados */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left font-mono text-xs">
+            <div className="p-5 rounded-2xl bg-white border border-zinc-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-zinc-900 font-extrabold block text-xs uppercase tracking-wider">
+                  01 // GYM & CARGAS
+                </span>
+                <p className="text-zinc-600 text-xs font-sans mt-1.5 leading-snug">
+                  Series, repeticiones, tonelaje total y 1RM en vivo.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-zinc-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-zinc-900 font-extrabold block text-xs uppercase tracking-wider">
+                  02 // NUTRICIÓN IA
+                </span>
+                <p className="text-zinc-600 text-xs font-sans mt-1.5 leading-snug">
+                  Estimación automática de calorías y proteínas.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-zinc-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-zinc-900 font-extrabold block text-xs uppercase tracking-wider">
+                  03 // PESO CORPORAL
+                </span>
+                <p className="text-zinc-600 text-xs font-sans mt-1.5 leading-snug">
+                  Gráfica evolutiva y modo oculto de privacidad.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Acción Principal */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 font-mono text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setIsLogin(false);
+                setIsDrawerOpen(true);
+              }}
+              className="w-full sm:w-auto px-8 py-3.5 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-md transition-all cursor-pointer text-sm"
+            >
+              Crear Cuenta
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* 3. FOOTER COMPLETO */}
+      <Footer onOpenAuth={() => { setIsLogin(true); setIsDrawerOpen(true); }} />
+
+      {/* ========================================================================= */}
+      {/* 4. CAJÓN LATERAL DESLIZABLE (DRAWER) CON TRANSICIÓN SUAVE                 */}
+      {/* ========================================================================= */}
       <div
-        onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
+        onClick={handleCloseDrawer}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-500 ease-in-out ${
+          isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
       />
 
-      {/* 2. PANEL LATERAL DESPLEGABLE DESDE LA DERECHA (DRAWER) */}
-      <div className="fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-white border-l border-zinc-200 z-50 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto shadow-2xl transform transition-transform duration-500 ease-out text-zinc-900 animate-slide-in-right">
-        
+      <div
+        className={`fixed top-0 right-0 bottom-0 w-full sm:w-[430px] bg-white border-l border-zinc-200 z-50 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto shadow-2xl transition-transform duration-500 ease-out text-zinc-900 ${
+          isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+        style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+      >
         <div className="space-y-5">
 
-          {/* Barra Superior del Panel */}
+          {/* Cabecera del Panel */}
           <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCloseDrawer}
               className="text-zinc-500 hover:text-black font-mono text-xs transition-colors cursor-pointer flex items-center gap-1.5 font-bold"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -115,24 +257,14 @@ export default function AuthModal({
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCloseDrawer}
               className="w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-500 hover:text-black flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Logo */}
-          <div className="flex items-center gap-2.5 pt-1">
-            <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white shadow-sm">
-              <Zap className="w-4 h-4 text-white fill-white" />
-            </div>
-            <span className="text-xl font-black font-display tracking-tight text-zinc-900 uppercase">
-              MYPOWER<span className="text-emerald-500">UP</span>
-            </span>
-          </div>
-
-          {/* Selector de Pestañas (Iniciar Sesión vs Crear Cuenta) */}
+          {/* Selector de Pestañas */}
           {!isResetMode && (
             <div className="grid grid-cols-2 p-1 bg-zinc-100 rounded-xl border border-zinc-200 font-mono text-xs">
               <button
@@ -161,9 +293,9 @@ export default function AuthModal({
             </div>
           )}
 
-          {/* Título de Sección */}
+          {/* Título */}
           <div>
-            <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tight font-display">
+            <h3 className="text-xl font-extrabold text-zinc-900 uppercase tracking-tight font-display">
               {isResetMode
                 ? 'Recuperar Contraseña'
                 : isLogin
@@ -174,7 +306,7 @@ export default function AuthModal({
               {isResetMode
                 ? 'Ingresa tu email para restablecer la contraseña.'
                 : isLogin
-                  ? 'Ingresa tus credenciales para sincronizar tu progreso.'
+                  ? 'Ingresa tus credenciales para sincronizar.'
                   : 'Regístrate para respaldar tu progreso en la nube.'}
             </p>
           </div>
@@ -332,7 +464,7 @@ export default function AuthModal({
 
         {/* Footer del Cajón */}
         <div className="pt-4 border-t border-zinc-200 text-center text-[10px] font-mono text-zinc-400">
-          <span>MyPowerUp • Cloud Sync</span>
+          <span>MyPowerUp • Sincronización en la Nube</span>
         </div>
 
       </div>
