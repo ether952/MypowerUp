@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Download,
   Upload,
@@ -97,19 +98,36 @@ function mergeDaysData(localData = {}, cloudData = {}) {
 }
 
 export default function App() {
-  const [selectedDate, setSelectedDate] = useState(() => getLocalDateString());
-  const [activeTab, setActiveTab] = useState('daily');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentPath = location.pathname.toLowerCase();
 
-  // === ESTADO DE AUTENTICACIÓN Y VISTAS PÚBLICAS ===
+  const [selectedDate, setSelectedDate] = useState(() => getLocalDateString());
+
+  // Determinar pestaña activa según la ruta en la barra de direcciones
+  const activeTab = currentPath.startsWith('/historial') || currentPath.startsWith('/graficos')
+    ? 'history'
+    : currentPath.startsWith('/mypowerup') || currentPath.startsWith('/myup')
+    ? 'mypowerup'
+    : 'daily';
+
+  // === ESTADO DE AUTENTICACIÓN Y NUBE ===
   const [user, setUser] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(!isFirebaseConfigured);
-  const [publicView, setPublicView] = useState('landing'); // 'landing' | 'register'
-  const [isLoginDrawerOpen, setIsLoginDrawerOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState(isFirebaseConfigured ? 'syncing' : 'local'); // 'local' | 'syncing' | 'synced' | 'error'
   const isInitialLoadRef = useRef(true);
   const isRemoteUpdateRef = useRef(false);
   const saveTimeoutRef = useRef(null);
   const lastLocalUpdateTimestampRef = useRef(Date.now());
+
+  // Redirigir a /diario si el usuario autenticado entra a la landing, login o registro
+  useEffect(() => {
+    if (user && isAuthReady) {
+      if (currentPath === '/' || currentPath === '/login' || currentPath === '/registro') {
+        navigate('/diario', { replace: true });
+      }
+    }
+  }, [user, isAuthReady, currentPath, navigate]);
 
   // Escuchar cambios de sesión de Firebase
   useEffect(() => {
@@ -490,6 +508,7 @@ export default function App() {
       await logoutUser();
       setUser(null);
       setIsActionsOpen(false);
+      navigate('/', { replace: true });
       showToast('Sesión cerrada');
     } catch (e) {
       showToast('Error al cerrar sesión');
@@ -561,7 +580,7 @@ export default function App() {
 
   const handleSelectDateFromHistory = (dateStr) => {
     setSelectedDate(dateStr);
-    setActiveTab('daily');
+    navigate('/diario');
   };
 
   // 1. Pantalla de carga inicial mientras Firebase verifica la sesión existente
@@ -580,8 +599,11 @@ export default function App() {
     );
   }
 
-  // 2. Si el usuario NO está autenticado, alternar entre Landing Page y Registro Minimalista
+  // 2. Si el usuario NO está autenticado, sincronizar la vista con la URL del navegador
   if (!user) {
+    const isRegister = currentPath === '/registro';
+    const isLogin = currentPath === '/login';
+
     return (
       <>
         {/* Toast HUD */}
@@ -591,31 +613,29 @@ export default function App() {
           </div>
         )}
 
-        {publicView === 'register' ? (
+        {isRegister ? (
           <RegisterView
-            onBackToLanding={() => setPublicView('landing')}
-            onOpenLogin={() => setIsLoginDrawerOpen(true)}
+            onBackToLanding={() => navigate('/')}
+            onOpenLogin={() => navigate('/login')}
             onAuthSuccess={() => {
+              navigate('/diario');
               showToast('Cuenta creada con éxito');
             }}
           />
         ) : (
           <LandingView
-            onOpenLogin={() => setIsLoginDrawerOpen(true)}
-            onOpenRegister={() => setPublicView('register')}
+            onOpenLogin={() => navigate('/login')}
+            onOpenRegister={() => navigate('/registro')}
           />
         )}
 
         {/* Drawer de Iniciar Sesión con animación suave desde el lateral */}
         <LoginDrawer
-          isOpen={isLoginDrawerOpen}
-          onClose={() => setIsLoginDrawerOpen(false)}
-          onSwitchToRegister={() => {
-            setIsLoginDrawerOpen(false);
-            setPublicView('register');
-          }}
+          isOpen={isLogin}
+          onClose={() => navigate('/')}
+          onSwitchToRegister={() => navigate('/registro')}
           onAuthSuccess={() => {
-            setIsLoginDrawerOpen(false);
+            navigate('/diario');
             showToast('Sesión iniciada con éxito');
           }}
         />
@@ -646,10 +666,10 @@ export default function App() {
               </h1>
             </div>
 
-            {/* Navegación de Pestañas */}
+            {/* Navegación de Pestañas con URLs reales */}
             <nav className="flex items-center gap-1 sm:gap-1.5 font-mono text-xs">
               <button
-                onClick={() => setActiveTab('daily')}
+                onClick={() => navigate('/diario')}
                 className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${
                   activeTab === 'daily'
                     ? 'bg-white text-zinc-950 shadow-sm'
@@ -660,9 +680,9 @@ export default function App() {
               </button>
 
               <button
-                onClick={() => setActiveTab('history')}
+                onClick={() => navigate('/historial')}
                 className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${
-                  activeTab === 'history' || activeTab === 'charts'
+                  activeTab === 'history'
                     ? 'bg-white text-zinc-950 shadow-sm'
                     : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
                 }`}
@@ -671,7 +691,7 @@ export default function App() {
               </button>
 
               <button
-                onClick={() => setActiveTab('mypowerup')}
+                onClick={() => navigate('/mypowerup')}
                 className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
                   activeTab === 'mypowerup'
                     ? 'bg-white text-zinc-950 shadow-sm'
