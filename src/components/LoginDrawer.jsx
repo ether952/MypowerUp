@@ -84,14 +84,14 @@ export default function LoginDrawer({
       {/* Backdrop con desvanecimiento suave */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 bg-black/50 backdrop-blur-xs z-50 transition-opacity duration-400 ease-out ${
+        className={`fixed inset-0 bg-black/60 backdrop-blur-xs z-50 transition-opacity duration-400 ease-out ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       />
 
-      {/* Drawer deslizante suave desde la derecha */}
+      {/* Drawer deslizante oscuro desde la derecha */}
       <div
-        className={`fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-white border-l border-zinc-200 z-50 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto shadow-2xl transition-transform duration-500 text-zinc-900 ${
+        className={`fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-[#0E0E12] border-l border-[#222226] z-50 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto shadow-2xl transition-transform duration-500 text-white selection:bg-emerald-500 selection:text-black ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
@@ -99,12 +99,12 @@ export default function LoginDrawer({
         <div className="space-y-6">
 
           {/* Cabecera del Drawer */}
-          <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-black flex items-center justify-center text-white">
-                <Zap className="w-3.5 h-3.5 text-white fill-white" />
+              <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center text-black">
+                <Zap className="w-3.5 h-3.5 text-black fill-black" />
               </div>
-              <span className="font-extrabold font-display tracking-tight text-zinc-900 uppercase text-sm">
+              <span className="font-extrabold font-display tracking-tight text-white uppercase text-sm">
                 MYPOWER<span className="text-emerald-500">UP</span>
               </span>
             </div>
@@ -112,7 +112,7 @@ export default function LoginDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-500 hover:text-black flex items-center justify-center transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               title="Cerrar"
             >
               <X className="w-4 h-4" />
@@ -120,11 +120,11 @@ export default function LoginDrawer({
           </div>
 
           {/* Título & Subtítulo */}
-          <div>
-            <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight font-display">
+          <div className="space-y-1 text-left">
+            <h3 className="text-2xl font-black text-white uppercase tracking-tight font-display">
               {isResetMode ? 'Recuperar Clave' : 'Iniciar Sesión'}
             </h3>
-            <p className="text-xs font-mono text-zinc-500 mt-1">
+            <p className="text-xs font-mono text-zinc-400">
               {isResetMode
                 ? 'Ingresa tu email para recibir el enlace de recuperación.'
                 : 'Ingresa a tu cuenta para sincronizar tus datos en la nube.'}
@@ -133,53 +133,55 @@ export default function LoginDrawer({
 
           {/* Mensajes de Alerta */}
           {error && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono">
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">
               {error}
             </div>
           )}
 
           {message && (
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono">
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
               {message}
             </div>
           )}
 
-          {/* Formulario de Login */}
-          <form onSubmit={handleLoginSubmit} className="space-y-4 font-mono text-xs">
+          {/* Formulario Abierto sin encapsular */}
+          <form onSubmit={handleLoginSubmit} className="space-y-5 font-mono text-xs">
 
-            <div className="space-y-1 text-left">
-              <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
+            {/* Campo Correo */}
+            <div className="space-y-1.5 text-left group">
+              <label className="block text-[11px] text-zinc-400 group-focus-within:text-emerald-400 uppercase tracking-wider font-bold transition-colors">
                 Correo Electrónico
               </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+              <div className="relative flex items-center border-b border-zinc-800 group-focus-within:border-emerald-500 pb-1.5 transition-colors">
+                <Mail className="w-4 h-4 text-zinc-500 group-focus-within:text-emerald-400 mr-2.5 shrink-0 transition-colors" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
-                  className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-xs"
+                  className="w-full bg-transparent focus:outline-none text-white text-sm font-sans placeholder:text-zinc-600"
                 />
               </div>
             </div>
 
+            {/* Campo Contraseña */}
             {!isResetMode && (
-              <div className="space-y-1 text-left">
+              <div className="space-y-1.5 text-left group">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
+                  <label className="block text-[11px] text-zinc-400 group-focus-within:text-emerald-400 uppercase tracking-wider font-bold transition-colors">
                     Contraseña
                   </label>
                   <button
                     type="button"
                     onClick={() => { setIsResetMode(true); setError(null); setMessage(null); }}
-                    className="text-[10px] text-zinc-600 hover:text-black underline cursor-pointer"
+                    className="text-[10px] text-zinc-400 hover:text-emerald-400 underline cursor-pointer"
                   >
                     ¿Olvidaste?
                   </button>
                 </div>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+                <div className="relative flex items-center border-b border-zinc-800 group-focus-within:border-emerald-500 pb-1.5 transition-colors">
+                  <Lock className="w-4 h-4 text-zinc-500 group-focus-within:text-emerald-400 mr-2.5 shrink-0 transition-colors" />
                   <input
                     type="password"
                     required
@@ -187,16 +189,17 @@ export default function LoginDrawer({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-xs"
+                    className="w-full bg-transparent focus:outline-none text-white text-sm font-sans placeholder:text-zinc-600"
                   />
                 </div>
               </div>
             )}
 
+            {/* Botón Ingresar */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-md transition-all text-xs tracking-wider disabled:opacity-50 cursor-pointer"
+              className="w-full py-3.5 mt-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-extrabold uppercase rounded-xl shadow-lg shadow-emerald-500/20 transition-all text-xs tracking-wider disabled:opacity-50 cursor-pointer"
             >
               {loading
                 ? 'Procesando...'
@@ -209,7 +212,7 @@ export default function LoginDrawer({
               <button
                 type="button"
                 onClick={() => { setIsResetMode(false); setError(null); setMessage(null); }}
-                className="w-full text-center py-1 text-zinc-500 hover:text-black text-xs transition-colors cursor-pointer flex items-center justify-center gap-1 font-bold"
+                className="w-full text-center py-1 text-zinc-400 hover:text-white text-xs transition-colors cursor-pointer flex items-center justify-center gap-1 font-bold"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Volver a Iniciar Sesión</span>
@@ -221,19 +224,19 @@ export default function LoginDrawer({
           {/* Separador y Google */}
           {!isResetMode && (
             <>
-              <div className="flex items-center gap-2 my-2">
-                <div className="h-px flex-1 bg-zinc-200" />
-                <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
+              <div className="flex items-center gap-3 my-2">
+                <div className="h-px flex-1 bg-zinc-800" />
+                <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">
                   o ingresa con
                 </span>
-                <div className="h-px flex-1 bg-zinc-200" />
+                <div className="h-px flex-1 bg-zinc-800" />
               </div>
 
               <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full py-3 px-3 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 font-mono text-xs font-bold border border-zinc-200 rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 shadow-xs"
+                className="w-full py-3 px-3 bg-[#16161A] hover:bg-[#202026] text-white font-mono text-xs font-bold border border-zinc-800 rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 shadow-sm"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -264,9 +267,9 @@ export default function LoginDrawer({
                     onClose();
                     if (onSwitchToRegister) onSwitchToRegister();
                   }}
-                  className="text-xs font-mono text-zinc-600 hover:text-black transition-colors cursor-pointer"
+                  className="text-xs font-mono text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 >
-                  ¿No tienes cuenta? <span className="font-bold underline text-black">Crear Cuenta</span>
+                  ¿No tienes cuenta? <span className="font-bold text-emerald-400 hover:underline">Crear Cuenta</span>
                 </button>
               </div>
             </>
@@ -275,7 +278,7 @@ export default function LoginDrawer({
         </div>
 
         {/* Footer del Drawer */}
-        <div className="pt-4 border-t border-zinc-200 text-center text-[10px] font-mono text-zinc-400">
+        <div className="pt-4 border-t border-zinc-800 text-center text-[10px] font-mono text-zinc-500">
           <span>MyPowerUp • Sincronización en Tiempo Real</span>
         </div>
 
