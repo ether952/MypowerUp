@@ -89,35 +89,50 @@ export default function AuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in select-none">
+    <div className="fixed inset-0 z-50 overflow-hidden select-none">
       
-      {/* Fondo clickeable para cerrar */}
-      <div className="fixed inset-0" onClick={onClose} />
+      {/* 1. Fondo semitransparente con desenfoque suave */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
+      />
 
-      {/* Tarjeta Modal Principal */}
-      <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-3xl shadow-2xl p-6 sm:p-8 z-10 text-zinc-900 animate-scale-up">
+      {/* 2. PANEL LATERAL DESPLEGABLE DESDE LA DERECHA (DRAWER) */}
+      <div className="fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-white border-l border-zinc-200 z-50 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto shadow-2xl transform transition-transform duration-500 ease-out text-zinc-900 animate-slide-in-right">
         
-        {/* Botón de Cierre */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-500 hover:text-black flex items-center justify-center transition-colors cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        <div className="space-y-5">
 
-        {/* Encabezado con Logo */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2.5">
+          {/* Barra Superior del Panel */}
+          <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-zinc-500 hover:text-black font-mono text-xs transition-colors cursor-pointer flex items-center gap-1.5 font-bold"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Volver</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-500 hover:text-black flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Logo */}
+          <div className="flex items-center gap-2.5 pt-1">
             <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white shadow-sm">
               <Zap className="w-4 h-4 text-white fill-white" />
             </div>
-            <span className="text-xl font-black font-display tracking-tight text-zinc-900 uppercase select-none">
+            <span className="text-xl font-black font-display tracking-tight text-zinc-900 uppercase">
               MYPOWER<span className="text-emerald-500">UP</span>
             </span>
           </div>
 
-          {/* Selector de Pestañas: Login vs Registro */}
+          {/* Selector de Pestañas (Iniciar Sesión vs Crear Cuenta) */}
           {!isResetMode && (
             <div className="grid grid-cols-2 p-1 bg-zinc-100 rounded-xl border border-zinc-200 font-mono text-xs">
               <button
@@ -146,172 +161,179 @@ export default function AuthModal({
             </div>
           )}
 
+          {/* Título de Sección */}
           <div>
-            <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight font-display">
+            <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tight font-display">
               {isResetMode
                 ? 'Recuperar Contraseña'
                 : isLogin
-                  ? 'Bienvenido de vuelta'
-                  : 'Crea tu Cuenta'}
+                  ? 'Ingresa a tu Cuenta'
+                  : 'Crear Cuenta'}
             </h3>
-            <p className="text-xs font-sans text-zinc-500 mt-1">
+            <p className="text-xs font-mono text-zinc-500 mt-0.5">
               {isResetMode
-                ? 'Te enviaremos un correo para restablecer tu contraseña.'
+                ? 'Ingresa tu email para restablecer la contraseña.'
                 : isLogin
                   ? 'Ingresa tus credenciales para sincronizar tu progreso.'
-                  : 'Regístrate para guardar tus entrenamientos y nutrición en la nube.'}
+                  : 'Regístrate para respaldar tu progreso en la nube.'}
             </p>
           </div>
-        </div>
 
-        {/* Mensajes de Estado / Error */}
-        {error && (
-          <div className="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono">
-            {error}
-          </div>
-        )}
+          {/* Alertas */}
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono">
+              {error}
+            </div>
+          )}
 
-        {message && (
-          <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono">
-            {message}
-          </div>
-        )}
+          {message && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono">
+              {message}
+            </div>
+          )}
 
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="mt-5 space-y-3.5 font-mono text-xs">
+          {/* Formulario */}
+          <form onSubmit={handleSubmit} className="space-y-3.5 font-mono text-xs">
 
-          {!isLogin && !isResetMode && (
+            {!isLogin && !isResetMode && (
+              <div className="space-y-1 text-left">
+                <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
+                  Nombre o Apodo
+                </label>
+                <div className="relative">
+                  <UserIcon className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Ej. Alex"
+                    className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-sm"
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1 text-left">
               <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
-                Nombre o Apodo
+                Correo Electrónico
               </label>
               <div className="relative">
-                <UserIcon className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
                 <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Ej. Alex"
-                  className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-sm"
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-1 text-left">
-            <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
-              Correo Electrónico
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-sm"
-              />
-            </div>
-          </div>
-
-          {!isResetMode && (
-            <div className="space-y-1 text-left">
-              <div className="flex justify-between items-center">
-                <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
-                  Contraseña
-                </label>
-                {isLogin && (
-                  <button
-                    type="button"
-                    onClick={() => { setIsResetMode(true); setError(null); setMessage(null); }}
-                    className="text-[10px] text-zinc-600 hover:text-black underline cursor-pointer"
-                  >
-                    ¿Olvidaste?
-                  </button>
-                )}
-              </div>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
-                <input
-                  type="password"
+                  type="email"
                   required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
                   className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-sm"
                 />
               </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 mt-2 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-md transition-all text-xs tracking-wider disabled:opacity-50 cursor-pointer"
-          >
-            {loading
-              ? 'Procesando...'
-              : isResetMode
-                ? 'Enviar Enlace de Recuperación'
-                : isLogin
-                  ? 'Ingresar a mi Cuenta'
-                  : 'Crear Mi Cuenta Gratis'}
-          </button>
-
-          {isResetMode && (
-            <button
-              type="button"
-              onClick={() => { setIsResetMode(false); setError(null); setMessage(null); }}
-              className="w-full text-center py-1 text-zinc-500 hover:text-black text-xs transition-colors cursor-pointer flex items-center justify-center gap-1 font-bold"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Volver a Iniciar Sesión</span>
-            </button>
-          )}
-
-        </form>
-
-        {/* Separador y Google Login */}
-        {!isResetMode && (
-          <>
-            <div className="flex items-center gap-2 my-4">
-              <div className="h-px flex-1 bg-zinc-200" />
-              <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
-                o continúa con
-              </span>
-              <div className="h-px flex-1 bg-zinc-200" />
-            </div>
+            {!isResetMode && (
+              <div className="space-y-1 text-left">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
+                    Contraseña
+                  </label>
+                  {isLogin && (
+                    <button
+                      type="button"
+                      onClick={() => { setIsResetMode(true); setError(null); setMessage(null); }}
+                      className="text-[10px] text-zinc-600 hover:text-black underline cursor-pointer"
+                    >
+                      ¿Olvidaste?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-sm"
+                  />
+                </div>
+              </div>
+            )}
 
             <button
-              type="button"
-              onClick={handleGoogleLogin}
+              type="submit"
               disabled={loading}
-              className="w-full py-3 px-3 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 font-mono text-xs font-bold border border-zinc-200 rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 shadow-sm"
+              className="w-full py-3.5 mt-1 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-md transition-all text-xs tracking-wider disabled:opacity-50 cursor-pointer"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path
-                  fill="#EA4335"
-                  d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
-                />
-                <path
-                  fill="#4285F4"
-                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2c0 2.9.7 5.5 1.9 7.9l3.7-2.9z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"
-                />
-              </svg>
-              <span>Continuar con Google</span>
+              {loading
+                ? 'Procesando...'
+                : isResetMode
+                  ? 'Enviar Email de Recuperación'
+                  : isLogin
+                    ? 'Ingresar'
+                    : 'Crear Mi Cuenta'}
             </button>
-          </>
-        )}
+
+            {isResetMode && (
+              <button
+                type="button"
+                onClick={() => { setIsResetMode(false); setError(null); setMessage(null); }}
+                className="w-full text-center py-1 text-zinc-500 hover:text-black text-xs transition-colors cursor-pointer flex items-center justify-center gap-1 font-bold"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Volver al login</span>
+              </button>
+            )}
+
+          </form>
+
+          {/* Separador y Google */}
+          {!isResetMode && (
+            <>
+              <div className="flex items-center gap-2 my-3">
+                <div className="h-px flex-1 bg-zinc-200" />
+                <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
+                  o continúa con
+                </span>
+                <div className="h-px flex-1 bg-zinc-200" />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full py-3 px-3 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 font-mono text-xs font-bold border border-zinc-200 rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#EA4335"
+                    d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2c0 2.9.7 5.5 1.9 7.9l3.7-2.9z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"
+                  />
+                </svg>
+                <span>Continuar con Google</span>
+              </button>
+            </>
+          )}
+
+        </div>
+
+        {/* Footer del Cajón */}
+        <div className="pt-4 border-t border-zinc-200 text-center text-[10px] font-mono text-zinc-400">
+          <span>MyPowerUp • Cloud Sync</span>
+        </div>
 
       </div>
 
