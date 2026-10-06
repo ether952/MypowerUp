@@ -1,0 +1,285 @@
+import React, { useState, useEffect } from 'react';
+import { Mail, Lock, X, ArrowLeft, Zap } from 'lucide-react';
+import {
+  loginWithEmail,
+  loginWithGoogle,
+  resetPassword
+} from '../lib/firebase';
+
+export default function LoginDrawer({
+  isOpen,
+  onClose,
+  onSwitchToRegister,
+  onAuthSuccess
+}) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [isResetMode, setIsResetMode] = useState(false);
+
+  // Reset errors and fields when drawer state changes
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+      setMessage(null);
+      setIsResetMode(false);
+    }
+  }, [isOpen]);
+
+  const parseFirebaseError = (err) => {
+    const code = err.code || err.message || '';
+    if (code.includes('user-not-found')) return 'No existe una cuenta con este correo.';
+    if (code.includes('wrong-password') || code.includes('invalid-credential')) return 'Contraseña o correo incorrectos.';
+    if (code.includes('weak-password')) return 'La contraseña debe tener al menos 6 caracteres.';
+    if (code.includes('popup-closed-by-user')) return 'Ventana cerrada por el usuario.';
+    if (code.includes('network-request-failed')) return 'Error de conexión a internet.';
+    return err.message || 'Ocurrió un error. Revisa tus datos.';
+  };
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    setLoading(true);
+
+    try {
+      if (isResetMode) {
+        if (!email) throw new Error('Ingresa tu correo');
+        await resetPassword(email);
+        setMessage('Correo de recuperación enviado con éxito.');
+        setLoading(false);
+        return;
+      }
+
+      await loginWithEmail(email, password);
+      if (onAuthSuccess) onAuthSuccess();
+      onClose();
+    } catch (err) {
+      setError(parseFirebaseError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setMessage(null);
+    setLoading(true);
+
+    try {
+      await loginWithGoogle();
+      if (onAuthSuccess) onAuthSuccess();
+      onClose();
+    } catch (err) {
+      setError(parseFirebaseError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Backdrop con desvanecimiento suave */}
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 bg-black/50 backdrop-blur-xs z-50 transition-opacity duration-400 ease-out ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      />
+
+      {/* Drawer deslizante suave desde la derecha */}
+      <div
+        className={`fixed top-0 right-0 bottom-0 w-full sm:w-[420px] bg-white border-l border-zinc-200 z-50 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto shadow-2xl transition-transform duration-500 text-zinc-900 ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+        style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+      >
+        <div className="space-y-6">
+
+          {/* Cabecera del Drawer */}
+          <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-black flex items-center justify-center text-white">
+                <Zap className="w-3.5 h-3.5 text-white fill-white" />
+              </div>
+              <span className="font-extrabold font-display tracking-tight text-zinc-900 uppercase text-sm">
+                MYPOWER<span className="text-emerald-500">UP</span>
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-500 hover:text-black flex items-center justify-center transition-colors cursor-pointer"
+              title="Cerrar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Título & Subtítulo */}
+          <div>
+            <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight font-display">
+              {isResetMode ? 'Recuperar Clave' : 'Iniciar Sesión'}
+            </h3>
+            <p className="text-xs font-mono text-zinc-500 mt-1">
+              {isResetMode
+                ? 'Ingresa tu email para recibir el enlace de recuperación.'
+                : 'Ingresa a tu cuenta para sincronizar tus datos en la nube.'}
+            </p>
+          </div>
+
+          {/* Mensajes de Alerta */}
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono">
+              {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono">
+              {message}
+            </div>
+          )}
+
+          {/* Formulario de Login */}
+          <form onSubmit={handleLoginSubmit} className="space-y-4 font-mono text-xs">
+
+            <div className="space-y-1 text-left">
+              <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
+                Correo Electrónico
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-xs"
+                />
+              </div>
+            </div>
+
+            {!isResetMode && (
+              <div className="space-y-1 text-left">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[10px] text-zinc-700 uppercase tracking-wider font-bold">
+                    Contraseña
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => { setIsResetMode(true); setError(null); setMessage(null); }}
+                    className="text-[10px] text-zinc-600 hover:text-black underline cursor-pointer"
+                  >
+                    ¿Olvidaste?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-white border border-zinc-300 focus:border-black focus:outline-none pl-9 pr-3 py-2.5 rounded-xl text-zinc-900 text-xs font-sans placeholder:text-zinc-400 shadow-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-md transition-all text-xs tracking-wider disabled:opacity-50 cursor-pointer"
+            >
+              {loading
+                ? 'Procesando...'
+                : isResetMode
+                  ? 'Enviar Enlace'
+                  : 'Ingresar'}
+            </button>
+
+            {isResetMode && (
+              <button
+                type="button"
+                onClick={() => { setIsResetMode(false); setError(null); setMessage(null); }}
+                className="w-full text-center py-1 text-zinc-500 hover:text-black text-xs transition-colors cursor-pointer flex items-center justify-center gap-1 font-bold"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Volver a Iniciar Sesión</span>
+              </button>
+            )}
+
+          </form>
+
+          {/* Separador y Google */}
+          {!isResetMode && (
+            <>
+              <div className="flex items-center gap-2 my-2">
+                <div className="h-px flex-1 bg-zinc-200" />
+                <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
+                  o ingresa con
+                </span>
+                <div className="h-px flex-1 bg-zinc-200" />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full py-3 px-3 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 font-mono text-xs font-bold border border-zinc-200 rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 shadow-xs"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#EA4335"
+                    d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2c0 2.9.7 5.5 1.9 7.9l3.7-2.9z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"
+                  />
+                </svg>
+                <span>Continuar con Google</span>
+              </button>
+
+              {/* Botón para cambiar a Crear Cuenta */}
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onSwitchToRegister) onSwitchToRegister();
+                  }}
+                  className="text-xs font-mono text-zinc-600 hover:text-black transition-colors cursor-pointer"
+                >
+                  ¿No tienes cuenta? <span className="font-bold underline text-black">Crear Cuenta</span>
+                </button>
+              </div>
+            </>
+          )}
+
+        </div>
+
+        {/* Footer del Drawer */}
+        <div className="pt-4 border-t border-zinc-200 text-center text-[10px] font-mono text-zinc-400">
+          <span>MyPowerUp • Sincronización en Tiempo Real</span>
+        </div>
+
+      </div>
+    </>
+  );
+}

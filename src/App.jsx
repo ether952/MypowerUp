@@ -22,8 +22,9 @@ import ChartsView from './components/ChartsView';
 import HistoryView from './components/HistoryView';
 import MyPowerUpView from './components/MyPowerUpView';
 import GoalsModal from './components/GoalsModal';
-import AuthModal from './components/AuthModal';
 import LandingView from './components/LandingView';
+import RegisterView from './components/RegisterView';
+import LoginDrawer from './components/LoginDrawer';
 import HeaderLoginDropdown from './components/HeaderLoginDropdown';
 import Footer from './components/Footer';
 import {
@@ -99,12 +100,11 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(() => getLocalDateString());
   const [activeTab, setActiveTab] = useState('daily');
 
-  // === ESTADO DE AUTENTICACIÓN Y NUBE ===
+  // === ESTADO DE AUTENTICACIÓN Y VISTAS PÚBLICAS ===
   const [user, setUser] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(!isFirebaseConfigured);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState('register'); // 'register' | 'login'
-  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
+  const [publicView, setPublicView] = useState('landing'); // 'landing' | 'register'
+  const [isLoginDrawerOpen, setIsLoginDrawerOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState(isFirebaseConfigured ? 'syncing' : 'local'); // 'local' | 'syncing' | 'synced' | 'error'
   const isInitialLoadRef = useRef(true);
   const isRemoteUpdateRef = useRef(false);
@@ -580,7 +580,7 @@ export default function App() {
     );
   }
 
-  // 2. Si el usuario NO está autenticado, mostrar la Landing Page pública
+  // 2. Si el usuario NO está autenticado, alternar entre Landing Page y Registro Minimalista
   if (!user) {
     return (
       <>
@@ -591,23 +591,31 @@ export default function App() {
           </div>
         )}
 
-        <LandingView
-          onOpenLogin={() => {
-            setAuthModalMode('login');
-            setIsAuthModalOpen(true);
-          }}
-          onOpenRegister={() => {
-            setAuthModalMode('register');
-            setIsAuthModalOpen(true);
-          }}
-        />
+        {publicView === 'register' ? (
+          <RegisterView
+            onBackToLanding={() => setPublicView('landing')}
+            onOpenLogin={() => setIsLoginDrawerOpen(true)}
+            onAuthSuccess={() => {
+              showToast('Cuenta creada con éxito');
+            }}
+          />
+        ) : (
+          <LandingView
+            onOpenLogin={() => setIsLoginDrawerOpen(true)}
+            onOpenRegister={() => setPublicView('register')}
+          />
+        )}
 
-        {/* Modal de Autenticación */}
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          initialMode={authModalMode}
-          onClose={() => setIsAuthModalOpen(false)}
+        {/* Drawer de Iniciar Sesión con animación suave desde el lateral */}
+        <LoginDrawer
+          isOpen={isLoginDrawerOpen}
+          onClose={() => setIsLoginDrawerOpen(false)}
+          onSwitchToRegister={() => {
+            setIsLoginDrawerOpen(false);
+            setPublicView('register');
+          }}
           onAuthSuccess={() => {
+            setIsLoginDrawerOpen(false);
             showToast('Sesión iniciada con éxito');
           }}
         />
