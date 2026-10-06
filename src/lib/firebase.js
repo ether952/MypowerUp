@@ -109,8 +109,12 @@ export const saveUserCloudData = async (userId, payload) => {
   if (!db || !userId) return;
   try {
     const docRef = doc(db, 'users', userId);
+    // Sanitize any undefined values to avoid Firestore "Unsupported field value: undefined" errors
+    const sanitizedPayload = JSON.parse(
+      JSON.stringify(payload, (key, value) => (value === undefined ? null : value))
+    );
     await setDoc(docRef, {
-      ...payload,
+      ...sanitizedPayload,
       updatedAt: new Date().toISOString()
     }, { merge: true });
   } catch (error) {
@@ -125,6 +129,8 @@ export const subscribeToUserCloudData = (userId, onDataUpdate, onError) => {
   return onSnapshot(docRef, (docSnap) => {
     if (docSnap.exists()) {
       onDataUpdate(docSnap.data(), docSnap.metadata.hasPendingWrites);
+    } else {
+      onDataUpdate(null, false);
     }
   }, (err) => {
     if (onError) onError(err);

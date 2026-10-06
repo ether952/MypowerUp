@@ -22,7 +22,6 @@ import HistoryView from './components/HistoryView';
 import MyPowerUpView from './components/MyPowerUpView';
 import GoalsModal from './components/GoalsModal';
 import AuthModal from './components/AuthModal';
-import GeminiApiKeyModal from './components/GeminiApiKeyModal';
 import HeaderLoginDropdown from './components/HeaderLoginDropdown';
 import Footer from './components/Footer';
 import {
@@ -45,6 +44,55 @@ import {
   isFirebaseConfigured
 } from './lib/firebase';
 
+/**
+ * Fusiona de forma inteligente los datos locales con los datos remotos de la nube.
+ * Evita que un documento vacío o desactualizado de Firestore borre registros locales.
+ */
+function mergeDaysData(localData = {}, cloudData = {}) {
+  if (!cloudData || Object.keys(cloudData).length === 0) {
+    return localData || {};
+  }
+  if (!localData || Object.keys(localData).length === 0) {
+    return cloudData || {};
+  }
+
+  const merged = { ...cloudData };
+
+  for (const date of Object.keys(localData)) {
+    if (!merged[date]) {
+      merged[date] = localData[date];
+      continue;
+    }
+
+    const localDay = localData[date] || {};
+    const cloudDay = merged[date] || {};
+
+    // Alimentos: preservar los que no estén en la nube
+    const cloudFoodIds = new Set((cloudDay.foods || []).map((f) => String(f.id || f.name)));
+    const missingFoods = (localDay.foods || []).filter((f) => !cloudFoodIds.has(String(f.id || f.name)));
+    const mergedFoods = [...(cloudDay.foods || []), ...missingFoods];
+
+    // Entrenamientos: preservar los que no estén en la nube
+    const cloudWorkoutIds = new Set((cloudDay.workouts || []).map((w) => String(w.id || w.name)));
+    const missingWorkouts = (localDay.workouts || []).filter((w) => !cloudWorkoutIds.has(String(w.id || w.name)));
+    const mergedWorkouts = [...(cloudDay.workouts || []), ...missingWorkouts];
+
+    // Cardios: preservar los que no estén en la nube
+    const cloudCardioIds = new Set((cloudDay.cardios || []).map((c) => String(c.id || `${c.type}_${c.distance}`)));
+    const missingCardios = (localDay.cardios || []).filter((c) => !cloudCardioIds.has(String(c.id || `${c.type}_${c.distance}`)));
+    const mergedCardios = [...(cloudDay.cardios || []), ...missingCardios];
+
+    merged[date] = {
+      foods: mergedFoods,
+      workouts: mergedWorkouts,
+      cardios: mergedCardios,
+      weight: localDay.weight || cloudDay.weight || ''
+    };
+  }
+
+  return merged;
+}
+
 export default function App() {
   const [selectedDate, setSelectedDate] = useState(() => getLocalDateString());
   const [activeTab, setActiveTab] = useState('daily');
@@ -56,6 +104,7 @@ export default function App() {
   const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState(isFirebaseConfigured ? 'syncing' : 'local'); // 'local' | 'syncing' | 'synced' | 'error'
   const isInitialLoadRef = useRef(true);
+  const isRemoteUpdateRef = useRef(false);
   const saveTimeoutRef = useRef(null);
   const lastLocalUpdateTimestampRef = useRef(Date.now());
 
@@ -63,32 +112,10 @@ export default function App() {
   useEffect(() => {
     if (!isFirebaseConfigured) return;
 
-    const unsubscribe = subscribeToAuthChanges(async (currentUser) => {
+    const unsubscribe = subscribeToAuthChanges((currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         setSyncStatus('syncing');
-        try {
-          const cloudData = await getUserCloudData(currentUser.uid);
-          if (cloudData) {
-            if (cloudData.data) setData(cloudData.data);
-            if (cloudData.goals) setGoals(cloudData.goals);
-            if (cloudData.rememberedWorkouts) setRememberedWorkouts(cloudData.rememberedWorkouts);
-            if (cloudData.rememberedFoods) setRememberedFoods(cloudData.rememberedFoods);
-            if (cloudData.challengeCalibration !== undefined) {
-              setChallengeCalibration(cloudData.challengeCalibration);
-              if (cloudData.challengeCalibration) {
-                saveStoredChallengeCalibration(cloudData.challengeCalibration);
-              }
-            }
-            if (cloudData.updatedAt) {
-              lastLocalUpdateTimestampRef.current = new Date(cloudData.updatedAt).getTime();
-            }
-          }
-          setSyncStatus('synced');
-        } catch (error) {
-          console.error('Error al cargar datos de Firebase:', error);
-          setSyncStatus('error');
-        }
       } else {
         setSyncStatus('local');
       }
@@ -102,14 +129,35 @@ export default function App() {
     if (!user || !isFirebaseConfigured) return;
 
     const unsubscribe = subscribeToUserCloudData(user.uid, (cloudDoc, hasPendingWrites) => {
-      if (!cloudDoc || hasPendingWrites) return;
+      if (hasPendingWrites) return;
+
+      if (!cloudDoc) {
+        // El documento en la nube aún no existe para este usuario
+        if (isInitialLoadRef.current) {
+          isInitialLoadRef.current = false;
+          flushCloudSave();
+        }
+        setSyncStatus('synced');
+        return;
+      }
 
       if (isInitialLoadRef.current) {
         isInitialLoadRef.current = false;
-        if (cloudDoc.data) setData(cloudDoc.data);
+        isRemoteUpdateRef.current = true;
+        setData((prevLocalData) => {
+          const merged = mergeDaysData(prevLocalData, cloudDoc.data);
+          try {
+            localStorage.setItem('mypowerup_data', JSON.stringify(merged));
+          } catch (e) {}
+          return merged;
+        });
         if (cloudDoc.goals) setGoals(cloudDoc.goals);
-        if (cloudDoc.rememberedWorkouts) setRememberedWorkouts(cloudDoc.rememberedWorkouts);
-        if (cloudDoc.rememberedFoods) setRememberedFoods(cloudDoc.rememberedFoods);
+        if (cloudDoc.rememberedWorkouts) {
+          setRememberedWorkouts((prev) => ({ ...cloudDoc.rememberedWorkouts, ...(prev || {}) }));
+        }
+        if (cloudDoc.rememberedFoods) {
+          setRememberedFoods((prev) => ({ ...cloudDoc.rememberedFoods, ...(prev || {}) }));
+        }
         if (cloudDoc.challengeCalibration !== undefined) {
           setChallengeCalibration(cloudDoc.challengeCalibration);
           if (cloudDoc.challengeCalibration) {
@@ -123,13 +171,24 @@ export default function App() {
         return;
       }
 
-      // Solo aplicar si la actualización de la nube es más reciente que nuestra última modificación local
+      // Sincronización en tiempo real entre múltiples dispositivos abiertos
       const remoteTime = cloudDoc.updatedAt ? new Date(cloudDoc.updatedAt).getTime() : 0;
       if (remoteTime > lastLocalUpdateTimestampRef.current) {
-        if (cloudDoc.data) setData(cloudDoc.data);
+        isRemoteUpdateRef.current = true;
+        setData((prevLocalData) => {
+          const merged = mergeDaysData(prevLocalData, cloudDoc.data);
+          try {
+            localStorage.setItem('mypowerup_data', JSON.stringify(merged));
+          } catch (e) {}
+          return merged;
+        });
         if (cloudDoc.goals) setGoals(cloudDoc.goals);
-        if (cloudDoc.rememberedWorkouts) setRememberedWorkouts(cloudDoc.rememberedWorkouts);
-        if (cloudDoc.rememberedFoods) setRememberedFoods(cloudDoc.rememberedFoods);
+        if (cloudDoc.rememberedWorkouts) {
+          setRememberedWorkouts((prev) => ({ ...cloudDoc.rememberedWorkouts, ...(prev || {}) }));
+        }
+        if (cloudDoc.rememberedFoods) {
+          setRememberedFoods((prev) => ({ ...cloudDoc.rememberedFoods, ...(prev || {}) }));
+        }
         if (cloudDoc.challengeCalibration !== undefined) {
           setChallengeCalibration(cloudDoc.challengeCalibration);
           if (cloudDoc.challengeCalibration) {
@@ -186,9 +245,8 @@ export default function App() {
     return getStoredChallengeCalibration();
   });
 
-  // Modal de metas, menú de acciones y configuración de IA
+  // Modal de metas, menú de acciones
   const [isGoalsOpen, setIsGoalsOpen] = useState(false);
-  const [isGeminiModalOpen, setIsGeminiModalOpen] = useState(false);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isWeightVisible, setIsWeightVisible] = useState(false);
   const [toast, setToast] = useState('');
@@ -207,33 +265,59 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Guardar en LocalStorage y Cloud con debounce
+  // Función para guardar datos inmediatamente en Firebase
+  const flushCloudSave = async () => {
+    if (!user || !isFirebaseConfigured) return;
+    try {
+      const nowISO = new Date().toISOString();
+      lastLocalUpdateTimestampRef.current = new Date(nowISO).getTime();
+      await saveUserCloudData(user.uid, {
+        data,
+        goals,
+        rememberedWorkouts,
+        rememberedFoods,
+        challengeCalibration,
+        updatedAt: nowISO
+      });
+      setSyncStatus('synced');
+    } catch (error) {
+      console.error('Error guardando en la nube:', error);
+      setSyncStatus('error');
+    }
+  };
+
+  // Guardar en LocalStorage y Cloud con debounce rápido (300ms)
   useEffect(() => {
-    localStorage.setItem('mypowerup_data', JSON.stringify(data));
+    try {
+      localStorage.setItem('mypowerup_data', JSON.stringify(data));
+    } catch (e) {}
+
+    // Si el cambio proviene de una actualización remota en vivo de Firestore, no re-enviar
+    if (isRemoteUpdateRef.current) {
+      isRemoteUpdateRef.current = false;
+      return;
+    }
 
     if (user && isFirebaseConfigured) {
       setSyncStatus('syncing');
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
-      saveTimeoutRef.current = setTimeout(async () => {
-        try {
-          const nowISO = new Date().toISOString();
-          lastLocalUpdateTimestampRef.current = new Date(nowISO).getTime();
-          await saveUserCloudData(user.uid, {
-            data,
-            goals,
-            rememberedWorkouts,
-            rememberedFoods,
-            challengeCalibration,
-            updatedAt: nowISO
-          });
-          setSyncStatus('synced');
-        } catch (error) {
-          console.error('Error guardando en la nube:', error);
-          setSyncStatus('error');
-        }
-      }, 1000);
+      saveTimeoutRef.current = setTimeout(() => {
+        flushCloudSave();
+      }, 300);
     }
+  }, [data, user, goals, rememberedWorkouts, rememberedFoods, challengeCalibration]);
+
+  // Garantizar que no se pierdan datos si el usuario recarga la página
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        flushCloudSave();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [data, user, goals, rememberedWorkouts, rememberedFoods, challengeCalibration]);
 
   useEffect(() => {
@@ -583,14 +667,6 @@ export default function App() {
                       </button>
 
                       <button
-                        onClick={() => { setIsGeminiModalOpen(true); setIsActionsOpen(false); }}
-                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
-                      >
-                        <Sparkles className="w-4 h-4 text-amber-400" />
-                        <span>Configurar IA Gemini</span>
-                      </button>
-
-                      <button
                         onClick={() => { handleExportData(); setIsActionsOpen(false); }}
                         className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
                       >
@@ -793,13 +869,6 @@ export default function App() {
           setGoals(newGoals);
           showToast('Metas guardadas');
         }}
-      />
-
-      {/* Modal de Configuración de IA Gemini */}
-      <GeminiApiKeyModal
-        isOpen={isGeminiModalOpen}
-        onClose={() => setIsGeminiModalOpen(false)}
-        onToast={showToast}
       />
 
       {/* Pantalla Completa de Bienvenida / Registro Cloud */}
