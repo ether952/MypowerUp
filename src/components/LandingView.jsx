@@ -36,7 +36,7 @@ const SAMPLE_WEEK_NUTRITION = [
   { day: 'Dom', calories: 2400, protein: 154, mealsCount: 4, highlight: 'Asado magro, ensalada, café con leche' },
 ];
 
-export default function LandingView({ onOpenLogin, onOpenRegister }) {
+export default function LandingView({ onOpenLogin, onOpenRegister, user, onGoToApp }) {
   const [activeNutritionMetric, setActiveNutritionMetric] = useState('calories'); // 'calories' | 'protein'
 
   const scrollToSection = (id) => {
@@ -90,23 +90,36 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
             MYPOWER<span className="text-emerald-500">UP</span>
           </span>
         </div>
-        {/* Botones de Auth */}
+        {/* Botones de Auth o Acceso a App si está logueado */}
         <div className="flex items-center gap-3 font-mono text-xs">
-          <button
-            type="button"
-            onClick={onOpenLogin}
-            className="px-3.5 py-2 text-zinc-700 hover:text-black font-bold uppercase transition-colors cursor-pointer"
-          >
-            Iniciar Sesión
-          </button>
-          <button
-            type="button"
-            onClick={onOpenRegister}
-            className="px-4 py-2 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <span>Crear Cuenta</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={onGoToApp}
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Ir a mi Panel</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="px-3.5 py-2 text-zinc-700 hover:text-black font-bold uppercase transition-colors cursor-pointer"
+              >
+                Iniciar Sesión
+              </button>
+              <button
+                type="button"
+                onClick={onOpenRegister}
+                className="px-4 py-2 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <span>Crear Cuenta</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -140,21 +153,34 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
 
             {/* CTAs */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5 font-mono text-xs">
-              <button
-                type="button"
-                onClick={onOpenRegister}
-                className="w-full sm:w-auto px-8 py-4 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 text-sm tracking-wide"
-              >
-                <span>Comenzar Ahora Gratis</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={onOpenLogin}
-                className="w-full sm:w-auto px-6 py-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold uppercase rounded-xl transition-all cursor-pointer"
-              >
-                Ya tengo cuenta
-              </button>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={onGoToApp}
+                  className="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold uppercase rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 text-sm tracking-wide"
+                >
+                  <span>Ir a Mi Panel de Registro</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={onOpenRegister}
+                    className="w-full sm:w-auto px-8 py-4 bg-black hover:bg-zinc-800 text-white font-bold uppercase rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 text-sm tracking-wide"
+                  >
+                    <span>Comenzar Ahora Gratis</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onOpenLogin}
+                    className="w-full sm:w-auto px-6 py-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold uppercase rounded-xl transition-all cursor-pointer"
+                  >
+                    Ya tengo cuenta
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

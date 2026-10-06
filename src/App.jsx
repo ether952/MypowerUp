@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   AlertCircle,
   Settings,
-  Zap
+  Zap,
+  Home
 } from 'lucide-react';
 
 import DailyView from './components/DailyView';
@@ -120,10 +121,10 @@ export default function App() {
   const saveTimeoutRef = useRef(null);
   const lastLocalUpdateTimestampRef = useRef(Date.now());
 
-  // Redirigir a /diario si el usuario autenticado entra a la landing, login o registro
+  // Redirigir a /diario si el usuario autenticado entra a login o registro
   useEffect(() => {
     if (user && isAuthReady) {
-      if (currentPath === '/' || currentPath === '/login' || currentPath === '/registro') {
+      if (currentPath === '/login' || currentPath === '/registro') {
         navigate('/diario', { replace: true });
       }
     }
@@ -599,10 +600,23 @@ export default function App() {
     );
   }
 
-  // 2. Si el usuario NO está autenticado, sincronizar la vista con la URL del navegador
-  if (!user) {
-    const isRegister = currentPath === '/registro';
-    const isLogin = currentPath === '/login';
+  // 2. Si el usuario NO está autenticado, o si un usuario autenticado visita la landing (/inicio o /)
+  if (!user || currentPath === '/inicio' || currentPath === '/') {
+    const isRegister = !user && currentPath === '/registro';
+    const isLogin = !user && currentPath === '/login';
+
+    if (isRegister) {
+      return (
+        <RegisterView
+          onBackToLanding={() => navigate('/')}
+          onOpenLogin={() => navigate('/login')}
+          onAuthSuccess={() => {
+            navigate('/diario');
+            showToast('Cuenta creada con éxito');
+          }}
+        />
+      );
+    }
 
     return (
       <>
@@ -613,32 +627,25 @@ export default function App() {
           </div>
         )}
 
-        {isRegister ? (
-          <RegisterView
-            onBackToLanding={() => navigate('/')}
-            onOpenLogin={() => navigate('/login')}
+        <LandingView
+          user={user}
+          onGoToApp={() => navigate('/diario')}
+          onOpenLogin={() => navigate('/login')}
+          onOpenRegister={() => navigate('/registro')}
+        />
+
+        {/* Drawer de Iniciar Sesión con animación suave desde el lateral (solo no autenticados) */}
+        {!user && (
+          <LoginDrawer
+            isOpen={isLogin}
+            onClose={() => navigate('/')}
+            onSwitchToRegister={() => navigate('/registro')}
             onAuthSuccess={() => {
               navigate('/diario');
-              showToast('Cuenta creada con éxito');
+              showToast('Sesión iniciada con éxito');
             }}
           />
-        ) : (
-          <LandingView
-            onOpenLogin={() => navigate('/login')}
-            onOpenRegister={() => navigate('/registro')}
-          />
         )}
-
-        {/* Drawer de Iniciar Sesión con animación suave desde el lateral */}
-        <LoginDrawer
-          isOpen={isLogin}
-          onClose={() => navigate('/')}
-          onSwitchToRegister={() => navigate('/registro')}
-          onAuthSuccess={() => {
-            navigate('/diario');
-            showToast('Sesión iniciada con éxito');
-          }}
-        />
       </>
     );
   }
@@ -744,6 +751,17 @@ export default function App() {
                   <div className="absolute right-0 mt-2 w-56 bg-[#18181B] border border-[#2E2E34] rounded-2xl shadow-2xl py-1.5 z-50 font-mono text-xs divide-y divide-[#2E2E34] animate-fade-in-up">
                     {/* Opciones de Configuración */}
                     <div className="py-1">
+                      <button
+                        onClick={() => {
+                          navigate('/inicio');
+                          setIsActionsOpen(false);
+                        }}
+                        className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer font-semibold"
+                      >
+                        <Home className="w-4 h-4 text-emerald-400" />
+                        <span>Volver a Inicio</span>
+                      </button>
+
                       <button
                         onClick={() => { setIsGoalsOpen(true); setIsActionsOpen(false); }}
                         className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
