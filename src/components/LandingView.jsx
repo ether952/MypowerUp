@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Zap,
   Dumbbell,
@@ -13,16 +13,71 @@ import {
   ChevronRight,
   Layers,
   Activity,
-  Award
+  Award,
+  Calendar,
+  PieChart as PieIcon,
+  Target
 } from 'lucide-react';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine
+} from 'recharts';
 import Footer from './Footer';
 
+// Datos de ejemplo realistas para la semana completa
+const SAMPLE_WEEK_NUTRITION = [
+  { day: 'Lun 29', shortDay: 'Lun', calories: 2360, protein: 155, mealsCount: 4, highlight: 'Pechuga con arroz, batido whey, avena' },
+  { day: 'Mar 30', shortDay: 'Mar', calories: 2420, protein: 162, mealsCount: 4, highlight: 'Milanesa con puré, huevos, yogur griego' },
+  { day: 'Mié 01', shortDay: 'Mié', calories: 2390, protein: 150, mealsCount: 5, highlight: 'Budín de café, carne magra, tostadas' },
+  { day: 'Jue 02', shortDay: 'Jue', calories: 2480, protein: 168, mealsCount: 4, highlight: 'Wok de pollo y arroz, queso, proteína' },
+  { day: 'Vie 03', shortDay: 'Vie', calories: 2310, protein: 148, mealsCount: 4, highlight: 'Atún con fideos, claras, frutos secos' },
+  { day: 'Sáb 04', shortDay: 'Sáb', calories: 2540, protein: 158, mealsCount: 5, highlight: 'Hamburguesa casera, batido, frutas' },
+  { day: 'Dom 05', shortDay: 'Dom', calories: 2400, protein: 154, mealsCount: 4, highlight: 'Asado magro, ensalada, café con leche' },
+];
+
 export default function LandingView({ onOpenLogin, onOpenRegister }) {
+  const [activeNutritionMetric, setActiveNutritionMetric] = useState('calories'); // 'calories' | 'protein'
+
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  // Tooltip personalizado para el gráfico de ejemplo
+  const CustomNutritionTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-zinc-900 text-white p-3 rounded-xl border border-zinc-700 shadow-2xl font-mono text-xs space-y-1 z-50">
+          <p className="font-bold text-zinc-300 border-b border-zinc-800 pb-1 flex justify-between gap-4">
+            <span>{data.day}</span>
+            <span className="text-[10px] text-emerald-400 font-sans">{data.mealsCount} comidas</span>
+          </p>
+          <div className="pt-1 space-y-0.5">
+            <p className="text-amber-400 font-bold">
+              Calorías: <span className="text-white">{data.calories.toLocaleString()} kcal</span>
+            </p>
+            <p className="text-cyan-400 font-bold">
+              Proteína: <span className="text-white">{data.protein} g</span>
+            </p>
+          </div>
+          <p className="text-[10px] text-zinc-400 font-sans pt-1 border-t border-zinc-800/80 italic max-w-[200px]">
+            {data.highlight}
+          </p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -91,10 +146,10 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
       {/* ========================================================================= */}
       {/* 2. HERO SECTION                                                           */}
       {/* ========================================================================= */}
-      <section className="relative w-full pt-12 pb-16 sm:pt-20 sm:pb-24 px-4 sm:px-8 overflow-hidden border-b border-zinc-200 bg-white">
+      <section className="relative w-full pt-10 pb-16 sm:pt-16 sm:pb-24 px-4 sm:px-8 overflow-hidden border-b border-zinc-200 bg-white">
         {/* Glows decorativos de fondo */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-100/60 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-100/60 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-100/50 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-100/50 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center space-y-8 relative z-10">
 
@@ -105,20 +160,20 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
           </div>
 
           {/* Título Principal */}
-          <div className="space-y-4 max-w-4xl mx-auto">
+          <div className="space-y-3 max-w-4xl mx-auto">
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold uppercase tracking-tight text-zinc-900 font-display leading-[1.08]">
               DOMINA TUS CARGAS. <br className="hidden sm:inline" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-950 via-zinc-800 to-zinc-600">
                 TRANSFORMA TU FÍSICO.
               </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-zinc-600 font-sans max-w-2xl mx-auto leading-relaxed">
-              Registra series y repeticiones con una torre interactiva de cargas, calcula macros al instante con Inteligencia Artificial y sincroniza tu progreso en tiempo real.
+            <p className="text-base sm:text-lg text-zinc-600 font-sans max-w-2xl mx-auto leading-relaxed">
+              Registra series y repeticiones con una torre interactiva de cargas, calcula macros al instante con Inteligencia Artificial y analiza tu evolución con gráficos semanales reales.
             </p>
           </div>
 
           {/* Botones de Acción (CTA) */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5 font-mono text-xs">
+          <div className="pt-1 flex flex-col sm:flex-row items-center justify-center gap-3.5 font-mono text-xs">
             <button
               type="button"
               onClick={onOpenRegister}
@@ -129,15 +184,15 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('features')}
+              onClick={() => scrollToSection('nutrition-demo')}
               className="w-full sm:w-auto px-6 py-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-bold uppercase border border-zinc-200 rounded-xl transition-all cursor-pointer"
             >
-              Ver Demostración
+              Ver Gráfico Nutricional
             </button>
           </div>
 
           {/* Puntos destacados de confianza */}
-          <div className="pt-6 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-zinc-500 font-mono text-[11px] font-bold">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-zinc-500 font-mono text-[11px] font-bold">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Sincronización en la Nube
             </span>
@@ -149,56 +204,147 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
             </span>
           </div>
 
-          {/* Previsualización visual simulada */}
-          <div className="pt-8 max-w-4xl mx-auto">
-            <div className="p-3 sm:p-4 bg-zinc-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-zinc-800 text-white">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-3 px-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-rose-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+          {/* ========================================================================= */}
+          {/* EJEMPLO REAL DE LA APP: GRÁFICO NUTRICIONAL DE UNA SEMANA COMPLETA       */}
+          {/* ========================================================================= */}
+          <div id="nutrition-demo" className="pt-6 max-w-4xl mx-auto text-left">
+            <div className="bg-white border border-zinc-200 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xl space-y-6">
+              
+              {/* Encabezado del Módulo Nutricional */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-100 pb-5">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-extrabold text-amber-600 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                      SEGUIMIENTO NUTRICIONAL EN VIVO
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-mono font-bold border border-emerald-200">
+                      7 DÍAS COMPLETOS
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-zinc-900 uppercase tracking-tight font-display">
+                    PROGRESIÓN SEMANAL DE CALORÍAS & PROTEÍNAS
+                  </h3>
                 </div>
-                <span className="text-[11px] font-mono text-zinc-400">MYPOWERUP APP DASHBOARD</span>
-                <div className="w-12" />
+
+                {/* Selector de Métrica */}
+                <div className="flex items-center gap-1.5 bg-zinc-100 p-1 rounded-xl border border-zinc-200 font-mono text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setActiveNutritionMetric('calories')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer uppercase ${
+                      activeNutritionMetric === 'calories'
+                        ? 'bg-amber-500 text-black shadow-xs'
+                        : 'text-zinc-600 hover:text-black'
+                    }`}
+                  >
+                    Calorías (Kcal)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveNutritionMetric('protein')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer uppercase ${
+                      activeNutritionMetric === 'protein'
+                        ? 'bg-cyan-500 text-white shadow-xs'
+                        : 'text-zinc-600 hover:text-black'
+                    }`}
+                  >
+                    Proteína (g)
+                  </button>
+                </div>
               </div>
 
-              {/* Grid representativa de módulos */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 sm:p-4 text-left font-mono text-xs">
-                
-                {/* Tarjeta Gym */}
-                <div className="bg-zinc-800/80 border border-zinc-700/80 p-4 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider">Gym & Cargas</span>
-                    <Dumbbell className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div className="text-xl font-black font-display text-white">PRESS DE BANCA</div>
-                  <div className="text-xs text-zinc-300">4 series × 80 kg (10 reps)</div>
-                  <div className="text-[10px] text-emerald-400 font-bold font-mono">1RM Est.: 106.7 kg</div>
+              {/* Medidores de Resumen Semanal */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
+                <div className="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl space-y-0.5">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider block font-bold">Promedio Calorías</span>
+                  <span className="text-xl font-black text-amber-600 font-display">2.414 <span className="text-xs text-zinc-500 font-normal">kcal</span></span>
                 </div>
-
-                {/* Tarjeta Nutrición */}
-                <div className="bg-zinc-800/80 border border-zinc-700/80 p-4 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider">Nutrición IA</span>
-                    <Sparkles className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  <div className="text-xl font-black font-display text-white">2.450 KCAL</div>
-                  <div className="text-xs text-zinc-300">Proteína: 165g / 150g meta</div>
-                  <div className="text-[10px] text-cyan-400 font-bold font-mono">"Budín de café" detectado</div>
+                <div className="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl space-y-0.5">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider block font-bold">Promedio Proteína</span>
+                  <span className="text-xl font-black text-cyan-600 font-display">157 <span className="text-xs text-zinc-500 font-normal">g</span></span>
                 </div>
-
-                {/* Tarjeta Cardio & Metas */}
-                <div className="bg-zinc-800/80 border border-zinc-700/80 p-4 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider">Cardio & Metas</span>
-                    <Flame className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <div className="text-xl font-black font-display text-white">RUNNING 5.2 KM</div>
-                  <div className="text-xs text-zinc-300">Tiempo: 28 min • 380 kcal</div>
-                  <div className="text-[10px] text-amber-400 font-bold font-mono">Objetivo diario cumplido</div>
+                <div className="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl space-y-0.5">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider block font-bold">Meta Diaria</span>
+                  <span className="text-xl font-black text-zinc-900 font-display">2.400 <span className="text-xs text-zinc-500 font-normal">kcal</span></span>
                 </div>
-
+                <div className="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl space-y-0.5">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider block font-bold">Cumplimiento</span>
+                  <span className="text-xl font-black text-emerald-600 font-display">100% <span className="text-xs text-zinc-500 font-normal">(7/7)</span></span>
+                </div>
               </div>
+
+              {/* Gráfico Recharts Interactivo */}
+              <div className="h-64 sm:h-72 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={SAMPLE_WEEK_NUTRITION} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="landingAreaCal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="landingAreaProt" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="2 2" stroke="#E4E4E7" vertical={false} />
+                    <XAxis dataKey="shortDay" stroke="#71717A" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#71717A" fontSize={11} tickLine={false} domain={activeNutritionMetric === 'calories' ? [2000, 2700] : [120, 180]} />
+                    <Tooltip content={<CustomNutritionTooltip />} />
+                    
+                    {activeNutritionMetric === 'calories' ? (
+                      <>
+                        <ReferenceLine y={2400} stroke="#F59E0B" strokeDasharray="3 3" label={{ value: 'Meta: 2.400 kcal', fill: '#B45309', fontSize: 10, position: 'insideTopRight' }} />
+                        <Area
+                          type="monotone"
+                          dataKey="calories"
+                          name="Calorías"
+                          stroke="#F59E0B"
+                          strokeWidth={2.5}
+                          fill="url(#landingAreaCal)"
+                          dot={{ r: 4, fill: '#F59E0B', stroke: '#FFFFFF', strokeWidth: 2 }}
+                          activeDot={{ r: 6, fill: '#000000' }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <ReferenceLine y={150} stroke="#06B6D4" strokeDasharray="3 3" label={{ value: 'Meta: 150g P', fill: '#0E7490', fontSize: 10, position: 'insideTopRight' }} />
+                        <Area
+                          type="monotone"
+                          dataKey="protein"
+                          name="Proteína"
+                          stroke="#06B6D4"
+                          strokeWidth={2.5}
+                          fill="url(#landingAreaProt)"
+                          dot={{ r: 4, fill: '#06B6D4', stroke: '#FFFFFF', strokeWidth: 2 }}
+                          activeDot={{ r: 6, fill: '#000000' }}
+                        />
+                      </>
+                    )}
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Explicación breve y concisa de cómo funciona en la app */}
+              <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="space-y-1">
+                  <p className="font-bold text-zinc-900 font-sans">
+                    💡 ¿Cómo recopila la app estos datos?
+                  </p>
+                  <p className="text-zinc-600 font-sans leading-relaxed">
+                    Escribes tus comidas en lenguaje natural (ej: <em>"1 porción de budín de café con leche"</em>) y la <strong>Inteligencia Artificial</strong> calcula los macronutrientes al instante, sumándolos a tu balance diario y graficando tu evolución semanal automáticamente.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onOpenRegister}
+                  className="shrink-0 px-4 py-2 bg-black hover:bg-zinc-800 text-white font-mono font-bold rounded-xl uppercase text-[11px] transition-all cursor-pointer shadow-sm"
+                >
+                  Probar en Vivo
+                </button>
+              </div>
+
             </div>
           </div>
 
@@ -235,7 +381,7 @@ export default function LandingView({ onOpenLogin, onOpenRegister }) {
                   Selector Visual con Torre de Placas
                 </h3>
                 <p className="text-zinc-600 text-xs sm:text-sm leading-relaxed font-sans">
-                  Elige ejercicios con selector visual interactivo, ajusta los kilos con la barra continua o clic directo en las placas y configura series con peso independiente.
+                  Elige ejercicios con selector visual interactivo, ajusta los kilos con la barra continua y configura series con repeticiones y peso independiente.
                 </p>
               </div>
               <div className="pt-2 text-xs font-mono font-bold text-zinc-800 flex items-center gap-1.5">
