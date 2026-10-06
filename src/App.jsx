@@ -13,7 +13,8 @@ import {
   User as UserIcon,
   ShieldCheck,
   AlertCircle,
-  Settings
+  Settings,
+  Zap
 } from 'lucide-react';
 
 import DailyView from './components/DailyView';
@@ -22,6 +23,7 @@ import HistoryView from './components/HistoryView';
 import MyPowerUpView from './components/MyPowerUpView';
 import GoalsModal from './components/GoalsModal';
 import AuthModal from './components/AuthModal';
+import LandingView from './components/LandingView';
 import HeaderLoginDropdown from './components/HeaderLoginDropdown';
 import Footer from './components/Footer';
 import {
@@ -99,6 +101,7 @@ export default function App() {
 
   // === ESTADO DE AUTENTICACIÓN Y NUBE ===
   const [user, setUser] = useState(null);
+  const [isAuthReady, setIsAuthReady] = useState(!isFirebaseConfigured);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('register'); // 'register' | 'login'
   const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
@@ -110,10 +113,14 @@ export default function App() {
 
   // Escuchar cambios de sesión de Firebase
   useEffect(() => {
-    if (!isFirebaseConfigured) return;
+    if (!isFirebaseConfigured) {
+      setIsAuthReady(true);
+      return;
+    }
 
     const unsubscribe = subscribeToAuthChanges((currentUser) => {
       setUser(currentUser);
+      setIsAuthReady(true);
       if (currentUser) {
         setSyncStatus('syncing');
       } else {
@@ -557,6 +564,57 @@ export default function App() {
     setActiveTab('daily');
   };
 
+  // 1. Pantalla de carga inicial mientras Firebase verifica la sesión existente
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen w-full bg-[#FAFAFA] flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3 animate-pulse">
+          <div className="w-10 h-10 rounded-2xl bg-black flex items-center justify-center text-white shadow-md">
+            <Zap className="w-5 h-5 text-white fill-white" />
+          </div>
+          <span className="font-display font-extrabold tracking-tight text-zinc-900 uppercase text-sm">
+            MYPOWERUP
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Si el usuario NO está autenticado, mostrar la Landing Page pública
+  if (!user) {
+    return (
+      <>
+        {/* Toast HUD */}
+        {toast && (
+          <div className="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-xl bg-zinc-900 text-white font-mono text-xs font-semibold tracking-wider shadow-2xl backdrop-blur-md animate-fade-in-up border border-zinc-800">
+            <span>{toast}</span>
+          </div>
+        )}
+
+        <LandingView
+          onOpenLogin={() => {
+            setAuthModalMode('login');
+            setIsAuthModalOpen(true);
+          }}
+          onOpenRegister={() => {
+            setAuthModalMode('register');
+            setIsAuthModalOpen(true);
+          }}
+        />
+
+        {/* Modal de Autenticación */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          initialMode={authModalMode}
+          onClose={() => setIsAuthModalOpen(false)}
+          onAuthSuccess={() => {
+            showToast('Sesión iniciada con éxito');
+          }}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-zinc-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white relative">
 
@@ -876,7 +934,7 @@ export default function App() {
         isOpen={isAuthModalOpen}
         initialMode={authModalMode}
         onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={() => {
+        onAuthSuccess={() => {
           showToast('Sesión iniciada con éxito');
         }}
       />

@@ -1179,21 +1179,7 @@ export default function DailyView({
               )}
             </div>
           </ScrollReveal>
-
         </div>
-
-        {/* Botón para scrolear a comidas */}
-        <div className="flex justify-center pt-4 pb-3">
-          <button
-            type="button"
-            onClick={scrollToFood}
-            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-zinc-500 hover:text-black transition-colors cursor-pointer font-semibold"
-          >
-            <span>SCROLL PARA NUTRICIÓN & SUPLEMENTOS</span>
-            <ArrowDown className="w-3.5 h-3.5 text-zinc-900 group-hover:translate-y-1 transition-transform animate-bounce" />
-          </button>
-        </div>
-
       </section>
 
 
@@ -1632,21 +1618,7 @@ export default function DailyView({
               )}
             </div>
           </ScrollReveal>
-
         </div>
-
-        {/* Botón para scrolear a cardio */}
-        <div className="flex justify-center pt-4 pb-3">
-          <button
-            type="button"
-            onClick={() => cardioSectionRef.current?.scrollIntoView({ behavior: 'smooth' })}
-            className="group flex flex-col items-center gap-1.5 text-xs font-mono tracking-widest text-zinc-500 hover:text-black transition-colors cursor-pointer font-semibold"
-          >
-            <span>SCROLL PARA CARDIO & DESPLAZAMIENTOS</span>
-            <ArrowDown className="w-3.5 h-3.5 text-zinc-900 group-hover:translate-y-1 transition-transform animate-bounce" />
-          </button>
-        </div>
-
       </section>
 
       {/* ========================================================================= */}
