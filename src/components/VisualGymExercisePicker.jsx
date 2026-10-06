@@ -1044,20 +1044,6 @@ export default function VisualGymExercisePicker({
                   onChange={(e) => handleWeightChange(parseFloat(e.target.value))}
                   className="w-full h-2.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-black"
                 />
-
-                {/* Botones de incremento rápido */}
-                <div className="grid grid-cols-4 gap-1.5 pt-0.5">
-                  {[-5, -2.5, +2.5, +5].map((delta) => (
-                    <button
-                      key={delta}
-                      type="button"
-                      onClick={() => handleWeightChange(currentWeight + delta)}
-                      className="py-1 px-1 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-lg font-mono text-[11px] font-extrabold text-black transition-colors cursor-pointer text-center"
-                    >
-                      {delta > 0 ? `+${delta}` : delta}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               {/* SELECTOR DE REPETICIONES */}
@@ -1092,23 +1078,6 @@ export default function VisualGymExercisePicker({
                   >
                     +
                   </button>
-                </div>
-
-                {/* Botones de Reps sugeridas */}
-                <div className="flex items-center justify-between gap-1 pt-0.5">
-                  {[6, 8, 10, 12, 15, 20].map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => handleRepsChange(r)}
-                      className={`flex-1 py-1 rounded-md text-[10px] font-mono font-extrabold transition-all cursor-pointer ${currentReps === r
-                        ? 'bg-black text-white shadow-xs'
-                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200'
-                        }`}
-                    >
-                      {r}
-                    </button>
-                  ))}
                 </div>
               </div>
 
