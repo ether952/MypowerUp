@@ -657,6 +657,53 @@ export const NUTRITIONAL_DATABASE = [
     defaultMealType: 'desayuno',
     aliases: ['medialuna', 'medialunas', 'factura', 'facturas', 'croissant']
   },
+  {
+    id: 'budin_porcion',
+    category: 'Platos',
+    name: 'Budín / Budín de café / vainilla (1 porción)',
+    calories: 270,
+    protein: 4.8,
+    baseGrams: 80,
+    unitType: 'unit',
+    unitName: 'porción',
+    unitWeight: 80,
+    servingNote: '1 porción (~80g, 270 kcal, 4.8g P)',
+    defaultMealType: 'merienda',
+    aliases: [
+      'budin', 'budín', 'budin de cafe', 'budin de café', 'porcion de budin',
+      'porcio de budin', 'porcio de budin de cafe', 'porción de budín de café',
+      'budin marmolado', 'budin de vainilla', 'budin de chocolate', 'budin de limon',
+      'budin dulce', 'rebanada de budin', 'rodaja de budin'
+    ]
+  },
+  {
+    id: 'alfajor',
+    category: 'Platos',
+    name: 'Alfajor (dulce de leche)',
+    calories: 330,
+    protein: 5.5,
+    baseGrams: 70,
+    unitType: 'unit',
+    unitName: 'alfajor',
+    unitWeight: 70,
+    servingNote: '1 unidad (~70g, 330 kcal)',
+    defaultMealType: 'merienda',
+    aliases: ['alfajor', 'alfajor de chocolate', 'alfajor de dulce de leche', 'alfajor triple', 'alfajores']
+  },
+  {
+    id: 'torta_bizcochuelo',
+    category: 'Platos',
+    name: 'Torta / Bizcochuelo (1 porción)',
+    calories: 290,
+    protein: 5.0,
+    baseGrams: 90,
+    unitType: 'unit',
+    unitName: 'porción',
+    unitWeight: 90,
+    servingNote: '1 porción (~90g, 290 kcal)',
+    defaultMealType: 'merienda',
+    aliases: ['torta', 'bizcochuelo', 'porcion de torta', 'porción de torta', 'rebanada de torta', 'pastel']
+  },
 
   // =========================================================================
   // 7. SUPLEMENTOS & BATIDOS

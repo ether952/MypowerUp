@@ -35,6 +35,27 @@ export function setGeminiApiKey(key) {
   }
 }
 
+function parseJsonSafely(text) {
+  if (!text || typeof text !== 'string') return null;
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      try {
+        return JSON.parse(cleaned.slice(firstBrace, lastBrace + 1));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
 /**
  * Consulta a la IA de Gemini para estimar calorías y proteínas en base a un texto natural de comida o plato.
  * Si falla o no hay key, recurre a la base de datos local (fallback).
@@ -60,7 +81,7 @@ export async function estimateNutritionWithAI(foodText) {
   const apiKey = getGeminiApiKey();
 
   if (!apiKey) {
-    // Si no hay API key configurada, usar el estimador local
+    console.warn('[MyPowerUp AI] No se detectó VITE_GEMINI_API_KEY. Usando base de datos local.');
     const local = estimateNutrition(cleanText);
     return {
       calories: local.calories || 0,
@@ -114,7 +135,6 @@ Responde OBLIGATORIAMENTE con un objeto JSON plano sin texto adicional con esta 
             }
           ],
           generationConfig: {
-            responseMimeType: 'application/json',
             temperature: 0.1
           }
         })
@@ -123,7 +143,8 @@ Responde OBLIGATORIAMENTE con un objeto JSON plano sin texto adicional con esta 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        // Si el modelo falla por rate-limit (429) o no disponible (503/404), intentar con el siguiente modelo
+        const errorDetail = await response.text().catch(() => '');
+        console.warn(`[MyPowerUp AI] Modelo ${modelName} respondió con status ${response.status}:`, errorDetail);
         continue;
       }
 
@@ -132,7 +153,12 @@ Responde OBLIGATORIAMENTE con un objeto JSON plano sin texto adicional con esta 
 
       if (!rawText) continue;
 
-      const parsed = JSON.parse(rawText);
+      const parsed = parseJsonSafely(rawText);
+      if (!parsed) {
+        console.warn(`[MyPowerUp AI] No se pudo parsear JSON de respuesta:`, rawText);
+        continue;
+      }
+
       const calories = Math.max(0, Math.round(Number(parsed.calories) || 0));
       const protein = Math.max(0, Math.round((Number(parsed.protein) || 0) * 10) / 10);
 
@@ -144,16 +170,19 @@ Responde OBLIGATORIAMENTE con un objeto JSON plano sin texto adicional con esta 
         source: 'ai'
       };
 
+      console.log(`[MyPowerUp AI] ✅ Estimado con éxito (${modelName}):`, result);
+
       // Guardar en cache para evitar reconsultas idénticas
       nutritionCache.set(cacheKey, result);
       return result;
     } catch (err) {
       clearTimeout(timeoutId);
-      console.warn(`Intento con modelo ${modelName} no completado:`, err.message || err);
+      console.warn(`[MyPowerUp AI] Error consultando ${modelName}:`, err.message || err);
       // Continuar con el siguiente modelo
     }
   }
 
+  console.warn('[MyPowerUp AI] Todos los modelos de IA fallaron. Usando estimador local.');
   // Si todos los modelos de IA fallaron, fallback local
   const local = estimateNutrition(cleanText);
   return {
