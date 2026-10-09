@@ -59,7 +59,7 @@ export default function RegisterView({
 
       {/* 1. HEADER CON DISTRIBUCIÓN ALINEADA AL SPLIT */}
       <header className="w-full grid grid-cols-1 lg:grid-cols-12 border-b border-zinc-200 z-30 sticky top-0 backdrop-blur-md">
-        
+
         {/* Lado izquierdo del Header (Fondo Blanco) */}
         <div className="lg:col-span-6 bg-white px-6 sm:px-12 py-4 flex items-center justify-between border-r border-zinc-200">
           <div className="flex items-center gap-2.5 select-none">
@@ -88,14 +88,6 @@ export default function RegisterView({
           <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider font-bold">
             // REGISTRO DE USUARIO
           </span>
-
-          <button
-            type="button"
-            onClick={onOpenLogin}
-            className="px-4 py-1.5 bg-white hover:bg-zinc-200 text-black font-mono text-xs font-bold uppercase rounded-xl transition-all cursor-pointer"
-          >
-            Iniciar Sesión
-          </button>
         </div>
       </header>
 
@@ -110,10 +102,6 @@ export default function RegisterView({
 
             {/* Encabezado Marca */}
             <div className="space-y-2">
-              <span className="text-xs font-mono tracking-widest text-emerald-600 uppercase font-bold block flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                // PLATAFORMA DE RENDIMIENTO
-              </span>
               <h1 className="text-4xl sm:text-6xl font-extrabold uppercase tracking-tight text-zinc-900 font-display leading-tight">
                 MYPOWER<span className="text-emerald-500">UP</span>
               </h1>
@@ -133,7 +121,7 @@ export default function RegisterView({
             <div className="space-y-4 pt-2 font-mono text-xs">
               <div className="border-l-2 border-emerald-500 pl-4 py-1">
                 <span className="text-zinc-900 font-extrabold block text-xs uppercase tracking-wider">
-                  01 // GYM & CARGAS
+                  GYM & CARGAS
                 </span>
                 <p className="text-zinc-600 text-xs font-sans mt-0.5 leading-snug">
                   Series, repeticiones, tonelaje total y 1RM en vivo.
@@ -142,7 +130,7 @@ export default function RegisterView({
 
               <div className="border-l-2 border-emerald-500 pl-4 py-1">
                 <span className="text-zinc-900 font-extrabold block text-xs uppercase tracking-wider">
-                  02 // NUTRICIÓN IA
+                  NUTRICIÓN IA
                 </span>
                 <p className="text-zinc-600 text-xs font-sans mt-0.5 leading-snug">
                   Estimación automática de calorías y proteínas en segundos.
@@ -151,26 +139,13 @@ export default function RegisterView({
 
               <div className="border-l-2 border-emerald-500 pl-4 py-1">
                 <span className="text-zinc-900 font-extrabold block text-xs uppercase tracking-wider">
-                  03 // PESO CORPORAL
+                  PESO CORPORAL
                 </span>
                 <p className="text-zinc-600 text-xs font-sans mt-0.5 leading-snug">
                   Gráfica evolutiva y modo oculto de privacidad.
                 </p>
               </div>
             </div>
-
-            {/* Beneficios */}
-            <div className="pt-2 flex flex-wrap items-center gap-5 text-xs font-mono text-zinc-600">
-              <span className="flex items-center gap-1.5 text-zinc-800 font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Sincronización en tiempo real
-              </span>
-              <span className="flex items-center gap-1.5 text-zinc-800 font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Acceso en cualquier dispositivo
-              </span>
-            </div>
-
           </div>
         </div>
 
@@ -179,7 +154,7 @@ export default function RegisterView({
         {/* ========================================================================= */}
         <div className="lg:col-span-6 bg-[#0A0A0D] text-white px-6 sm:px-12 lg:px-16 py-10 sm:py-16 flex flex-col justify-center">
           <div className="w-full max-w-md mx-auto lg:mx-0 animate-fade-in-up space-y-6">
-            
+
             {/* Encabezado Formulario */}
             <div className="space-y-1 text-left border-b border-zinc-800 pb-4">
               <h3 className="text-3xl font-black text-white uppercase tracking-tight font-display">
@@ -199,7 +174,7 @@ export default function RegisterView({
 
             {/* Formulario Fluido y Abierto (Sin cajas encapsuladas) */}
             <form onSubmit={handleRegister} className="space-y-5 font-mono text-xs">
-              
+
               {/* Campo Nombre */}
               <div className="space-y-1.5 text-left group">
                 <label className="block text-[11px] text-zinc-400 group-focus-within:text-emerald-400 uppercase tracking-wider font-bold transition-colors">

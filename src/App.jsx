@@ -23,6 +23,8 @@ import DailyView from './components/DailyView';
 import ChartsView from './components/ChartsView';
 import HistoryView from './components/HistoryView';
 import MyPowerUpView from './components/MyPowerUpView';
+import CoachRoutinesView from './components/CoachRoutinesView';
+import FloatingCoachWidget from './components/FloatingCoachWidget';
 import GoalsModal from './components/GoalsModal';
 import LandingView from './components/LandingView';
 import RegisterView from './components/RegisterView';
@@ -111,6 +113,8 @@ export default function App() {
     ? 'history'
     : currentPath.startsWith('/mypowerup') || currentPath.startsWith('/myup')
     ? 'mypowerup'
+    : currentPath.startsWith('/rutinas') || currentPath.startsWith('/coach')
+    ? 'routines'
     : 'daily';
 
   // === ESTADO DE AUTENTICACIÓN Y NUBE ===
@@ -275,6 +279,7 @@ export default function App() {
   // Modal de metas, menú de acciones
   const [isGoalsOpen, setIsGoalsOpen] = useState(false);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
   const [isWeightVisible, setIsWeightVisible] = useState(false);
   const [toast, setToast] = useState('');
 
@@ -380,6 +385,16 @@ export default function App() {
 
   // Día activo
   const currentDay = data[selectedDate] || { foods: [], workouts: [], cardios: [] };
+
+  // Nutrición del día activo calculada para el Coach
+  const todayNutrition = (currentDay.foods || []).reduce(
+    (acc, f) => {
+      acc.calories += Number(f.calories) || 0;
+      acc.protein += Number(f.protein) || 0;
+      return acc;
+    },
+    { calories: 0, protein: 0 }
+  );
 
   // Handlers para Alimentos
   const handleAddFood = (food) => {
@@ -502,6 +517,50 @@ export default function App() {
       };
     });
     showToast('Peso corporal actualizado');
+  };
+
+  // Cargar ejercicios de una rutina del Coach directamente en el diario del día actual
+  const handleLoadWorkoutToDaily = (exercises) => {
+    if (!exercises || exercises.length === 0) {
+      showToast('No hay ejercicios para cargar');
+      return;
+    }
+    lastLocalUpdateTimestampRef.current = Date.now();
+    const todayStr = getLocalDateString();
+    
+    const newWorkoutItems = exercises.map((ex) => {
+      const sets = Number(ex.sets) || 3;
+      const reps = Number(ex.reps) || 10;
+      const weight = Number(ex.weight) || 0;
+      const setsDetails = Array.from({ length: sets }, () => ({
+        reps: reps,
+        weight: weight
+      }));
+      return {
+        id: `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        name: ex.name,
+        sets: sets,
+        reps: reps,
+        weight: weight,
+        setsDetails: setsDetails,
+        category: ex.category || 'General',
+        sprite: ex.sprite || null,
+        restSeconds: ex.restSeconds || 90
+      };
+    });
+
+    setData((prevData) => {
+      const day = prevData[todayStr] || { foods: [], workouts: [], cardios: [] };
+      const mergedWorkouts = [...(day.workouts || []), ...newWorkoutItems];
+      return {
+        ...prevData,
+        [todayStr]: { ...day, workouts: mergedWorkouts }
+      };
+    });
+
+    setSelectedDate(todayStr);
+    navigate('/diario');
+    showToast(`¡${exercises.length} ejercicios cargados en tu Diario de hoy!`);
   };
 
   // Autenticación Logout
@@ -705,6 +764,18 @@ export default function App() {
               </button>
 
               <button
+                onClick={() => navigate('/rutinas')}
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'routines'
+                    ? 'bg-white text-zinc-950 shadow-sm'
+                    : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
+                }`}
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${activeTab === 'routines' ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                <span>COACH & RUTINAS</span>
+              </button>
+
+              <button
                 onClick={() => navigate('/mypowerup')}
                 className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
                   activeTab === 'mypowerup'
@@ -774,7 +845,7 @@ export default function App() {
                         className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
                       >
                         <Sliders className="w-4 h-4 text-emerald-400" />
-                        <span>Configurar Metas</span>
+                        <span>Editar Perfil & Metas</span>
                       </button>
 
                       <button
@@ -842,7 +913,7 @@ export default function App() {
                         className="w-full px-4 py-2.5 text-left text-[#8A8F98] hover:text-white hover:bg-[#222226] flex items-center gap-2.5 transition-colors cursor-pointer"
                       >
                         <Sliders className="w-4 h-4 text-emerald-400" />
-                        <span>Configurar Metas</span>
+                        <span>Editar Perfil & Metas</span>
                       </button>
 
                       <button
@@ -965,7 +1036,23 @@ export default function App() {
             onUpdateChallengeCalibration={setChallengeCalibration}
           />
         )}
+
+        {activeTab === 'routines' && (
+          <CoachRoutinesView
+            onLoadWorkoutToDaily={handleLoadWorkoutToDaily}
+            todayNutrition={todayNutrition}
+            targetNutrition={goals}
+            showToast={showToast}
+          />
+        )}
       </main>
+
+      {/* Coach Inteligente Flotante (Globito en esquina inferior derecha disponible en toda la web) */}
+      <FloatingCoachWidget
+        todayNutrition={todayNutrition}
+        targetNutrition={goals}
+        onNavigateToRoutines={() => navigate('/rutinas')}
+      />
 
       {/* Footer Global de la Plataforma */}
       <Footer onOpenAuth={() => {}} />
