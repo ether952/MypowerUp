@@ -9,6 +9,7 @@ import {
   Zap,
   Sparkles
 } from 'lucide-react';
+import powerUpLogoImg from '../assets/logo-mypowerup.png';
 
 export default function Footer({ onOpenAuth }) {
   return (
@@ -22,10 +23,12 @@ export default function Footer({ onOpenAuth }) {
           <div className="lg:col-span-2 space-y-5">
             
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-[#2E2E34] flex items-center justify-center shadow-md">
-                <Zap className="w-4 h-4 text-emerald-400 fill-emerald-400" />
-              </div>
+            <div className="flex items-center gap-2.5">
+              <img
+                src={powerUpLogoImg}
+                alt="MyPowerUp Logo"
+                className="h-8 w-auto object-contain shrink-0"
+              />
               <span className="text-2xl font-extrabold font-display tracking-tight text-white uppercase">
                 MYPOWER<span className="text-emerald-500">UP</span>
               </span>

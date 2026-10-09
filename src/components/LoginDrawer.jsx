@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, X, ArrowLeft, Zap } from 'lucide-react';
+import powerUpLogoImg from '../assets/logo-mypowerup.png';
 import {
   loginWithEmail,
   loginWithGoogle,
@@ -100,10 +101,12 @@ export default function LoginDrawer({
 
           {/* Cabecera del Drawer */}
           <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center text-black">
-                <Zap className="w-3.5 h-3.5 text-black fill-black" />
-              </div>
+            <div className="flex items-center gap-2 select-none">
+              <img
+                src={powerUpLogoImg}
+                alt="MyPowerUp Logo"
+                className="h-5 w-auto object-contain shrink-0"
+              />
               <span className="font-extrabold font-display tracking-tight text-white uppercase text-sm">
                 MYPOWER<span className="text-emerald-500">UP</span>
               </span>

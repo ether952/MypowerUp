@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, ArrowLeft, Mail, Lock, User as UserIcon, CheckCircle2, Sparkles } from 'lucide-react';
+import powerUpLogoImg from '../assets/logo-mypowerup.png';
 import { registerWithEmail, loginWithGoogle } from '../lib/firebase';
 import Footer from './Footer';
 
@@ -61,10 +62,12 @@ export default function RegisterView({
         
         {/* Lado izquierdo del Header (Fondo Blanco) */}
         <div className="lg:col-span-6 bg-white px-6 sm:px-12 py-4 flex items-center justify-between border-r border-zinc-200">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white shadow-sm">
-              <Zap className="w-4 h-4 text-white fill-white" />
-            </div>
+          <div className="flex items-center gap-2.5 select-none">
+            <img
+              src={powerUpLogoImg}
+              alt="MyPowerUp Logo"
+              className="h-8 w-auto object-contain shrink-0"
+            />
             <span className="text-xl sm:text-2xl font-black font-display tracking-tight text-zinc-900 uppercase">
               MYPOWER<span className="text-emerald-500">UP</span>
             </span>

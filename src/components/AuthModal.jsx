@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, ArrowLeft, Mail, Lock, User as UserIcon, X } from 'lucide-react';
+import powerUpLogoImg from '../assets/logo-mypowerup.png';
 import {
   loginWithEmail,
   registerWithEmail,
@@ -111,10 +112,12 @@ export default function AuthModal({
       <header className="w-full border-b border-zinc-200 bg-white/90 backdrop-blur-md sticky top-0 z-30 px-6 sm:px-12 py-4 flex items-center justify-between shrink-0">
         
         {/* Logo de la web */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white shadow-sm">
-            <Zap className="w-4 h-4 text-white fill-white" />
-          </div>
+        <div className="flex items-center gap-2.5 select-none">
+          <img
+            src={powerUpLogoImg}
+            alt="MyPowerUp Logo"
+            className="h-8 w-auto object-contain shrink-0"
+          />
           <span className="text-xl sm:text-2xl font-extrabold font-display tracking-tight text-zinc-900 uppercase">
             MYPOWER<span className="text-emerald-500">UP</span>
           </span>

@@ -29,6 +29,7 @@ import RegisterView from './components/RegisterView';
 import LoginDrawer from './components/LoginDrawer';
 import HeaderLoginDropdown from './components/HeaderLoginDropdown';
 import Footer from './components/Footer';
+import powerUpLogoImg from './assets/logo-mypowerup.png';
 import {
   getLocalDateString,
   formatDisplayDate,
@@ -632,6 +633,7 @@ export default function App() {
           onGoToApp={() => navigate('/diario')}
           onOpenLogin={() => navigate('/login')}
           onOpenRegister={() => navigate('/registro')}
+          onLogout={handleLogout}
         />
 
         {/* Drawer de Iniciar Sesión con animación suave desde el lateral (solo no autenticados) */}
@@ -667,8 +669,13 @@ export default function App() {
           {/* GRUPO IZQUIERDO: Marca & Pestañas de Navegación */}
           <div className="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8">
             {/* Nombre Marca */}
-            <div className="flex items-center">
-              <h1 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase font-display select-none">
+            <div className="flex items-center gap-2 cursor-pointer select-none group" onClick={() => navigate('/diario')}>
+              <img
+                src={powerUpLogoImg}
+                alt="MyPowerUp Logo"
+                className="h-6 sm:h-7 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-200"
+              />
+              <h1 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase font-display">
                 MYPOWER<span className="text-emerald-500 drop-shadow-xs">UP</span>
               </h1>
             </div>
