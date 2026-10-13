@@ -263,6 +263,62 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
   }, []);
 
   /**
+   * Agregar una serie extra al ejercicio actual
+   */
+  const addTotalSet = useCallback(() => {
+    triggerHaptic([40]);
+    setTotalSets((prev) => Math.min(20, prev + 1));
+  }, []);
+
+  /**
+   * Quitar una serie del ejercicio actual
+   */
+  const removeTotalSet = useCallback(() => {
+    triggerHaptic([40]);
+    setTotalSets((prev) => Math.max(currentSetIndex + 1, prev - 1));
+  }, [currentSetIndex]);
+
+  /**
+   * Saltar al siguiente ejercicio de la cola
+   */
+  const skipToNextExercise = useCallback(() => {
+    const curr = stateRef.current;
+    if (curr.currentExerciseIndex + 1 < curr.workoutQueue.length) {
+      triggerHaptic([50]);
+      const nextIdx = curr.currentExerciseIndex + 1;
+      const nextEx = curr.workoutQueue[nextIdx];
+      setCurrentExerciseIndex(nextIdx);
+      setCurrentSetIndex(0);
+      setTotalSets(nextEx.sets || 4);
+      setCurrentWeight(Number(nextEx.weight) || 20);
+      setCurrentReps(Number(nextEx.reps) || 10);
+      setCompletedSets([]);
+      setIsResting(false);
+      setRestSecondsLeft(0);
+    }
+  }, []);
+
+  /**
+   * Volver al ejercicio anterior de la cola
+   */
+  const goToPreviousExercise = useCallback(() => {
+    const curr = stateRef.current;
+    if (curr.currentExerciseIndex > 0) {
+      triggerHaptic([50]);
+      const prevIdx = curr.currentExerciseIndex - 1;
+      const prevEx = curr.workoutQueue[prevIdx];
+      setCurrentExerciseIndex(prevIdx);
+      setCurrentSetIndex(0);
+      setTotalSets(prevEx.sets || 4);
+      setCurrentWeight(Number(prevEx.weight) || 20);
+      setCurrentReps(Number(prevEx.reps) || 10);
+      setCompletedSets([]);
+      setIsResting(false);
+      setRestSecondsLeft(0);
+    }
+  }, []);
+
+  /**
    * Iniciar un entrenamiento (ejercicio único o lista completa de rutina)
    */
   const startWorkout = useCallback((exerciseOrQueue, startIndex = 0) => {
@@ -469,6 +525,10 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
         cycleReps,
         adjustWeight,
         adjustReps,
+        addTotalSet,
+        removeTotalSet,
+        skipToNextExercise,
+        goToPreviousExercise,
         skipRest,
         setCurrentWeight,
         setCurrentReps
