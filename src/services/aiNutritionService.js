@@ -16,9 +16,22 @@ const GEMINI_MODELS = [
  * Obtiene la API Key de Gemini desde variables de entorno o localStorage.
  */
 export function getGeminiApiKey() {
+  let buildKey = '';
+  try {
+    if (typeof __APP_GEMINI_KEY__ !== 'undefined' && __APP_GEMINI_KEY__) {
+      buildKey = __APP_GEMINI_KEY__;
+    }
+  } catch (_) {}
+
   return (
+    buildKey ||
     import.meta.env.VITE_GEMINI_API_KEY ||
     import.meta.env.GEMINI_API_KEY ||
+    import.meta.env.GEMINI_KEY ||
+    import.meta.env.key ||
+    import.meta.env.KEY ||
+    import.meta.env.GOOGLE_API_KEY ||
+    import.meta.env.GOOGLE_GEMINI_API_KEY ||
     (typeof window !== 'undefined' ? localStorage.getItem('mypowerup_gemini_api_key') : '') ||
     ''
   ).trim();

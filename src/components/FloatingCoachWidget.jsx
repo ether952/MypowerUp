@@ -35,10 +35,6 @@ export default function FloatingCoachWidget({
     }
   ]);
 
-  const [showKeyConfig, setShowKeyConfig] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState(() => getGeminiApiKey());
-  const hasActiveKey = Boolean(getGeminiApiKey());
-
   const messagesEndRef = useRef(null);
 
   // Auto-scroll al final de mensajes
@@ -149,19 +145,6 @@ export default function FloatingCoachWidget({
             </div>
 
             <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setShowKeyConfig(!showKeyConfig)}
-                title="Configurar Google Gemini API Key"
-                className={`p-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-mono ${
-                  hasActiveKey
-                    ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-                }`}
-              >
-                <KeyRound className="w-3.5 h-3.5" />
-              </button>
-
               {onNavigateToRoutines && (
                 <button
                   type="button"
@@ -185,45 +168,6 @@ export default function FloatingCoachWidget({
               </button>
             </div>
           </div>
-
-          {/* Panel Desplegable de Configuración de API Key de Gemini */}
-          {showKeyConfig && (
-            <div className="p-3 bg-zinc-900 border-b border-zinc-800 space-y-2 animate-in fade-in duration-200">
-              <div className="flex items-center justify-between text-[11px] font-mono">
-                <span className="text-zinc-200 font-bold flex items-center gap-1.5">
-                  <KeyRound className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Clave Gemini AI: {hasActiveKey ? '🟢 Conectada' : '⚪ Modo Offline'}</span>
-                </span>
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-400 hover:underline text-[10px]"
-                >
-                  Obtener gratis ↗
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="password"
-                  value={tempApiKey}
-                  onChange={(e) => setTempApiKey(e.target.value)}
-                  placeholder="Pega tu clave AIzaSy... (Opcional)"
-                  className="flex-1 bg-black border border-zinc-700 focus:border-emerald-500 rounded-xl px-2.5 py-1.5 text-xs text-white outline-none font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGeminiApiKey(tempApiKey);
-                    setShowKeyConfig(false);
-                  }}
-                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs rounded-xl cursor-pointer"
-                >
-                  Guardar
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Mini HUD de Estado Rápido del Usuario */}
           <div className="px-4 py-2 bg-[#18181B]/60 border-b border-[#2E2E34] font-mono text-[10px] text-zinc-400 flex items-center justify-between shrink-0">
