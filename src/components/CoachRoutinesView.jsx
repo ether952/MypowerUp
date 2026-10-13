@@ -41,12 +41,13 @@ import {
 } from '../utils/routineTemplates';
 import { askAiCoach } from '../services/aiCoachService';
 import { GYM_EXERCISES_SPRITES } from './VisualGymExercisePicker';
+import { useActiveWorkout } from '../context/ActiveWorkoutContext';
 import powerUpLogoImg from '../assets/logo-mypowerup.png';
 
 /**
  * Componente Thumbnail robusto para GIFs de ejercicios con auto-resolución y fallback elegante
  */
-function ExerciseThumbnail({
+export function ExerciseThumbnail({
   src,
   alt,
   className = "w-12 h-12 rounded-xl object-cover bg-zinc-950 border border-zinc-200 shrink-0",
@@ -81,6 +82,8 @@ export default function CoachRoutinesView({
   targetNutrition = { calories: 2400, protein: 150 },
   showToast = () => { }
 }) {
+  const { startWorkout } = useActiveWorkout();
+
   // Estado del perfil del usuario
   const [profile, setProfile] = useState(getSavedCoachProfile());
 
@@ -345,63 +348,6 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
       {/* ========================================================================= */}
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-12">
 
-        {/* ----------------------------------------------------------------------- */}
-        {/* SECCIÓN A: ¿QUÉ ME TOCA ENTRENAR HOY?                                   */}
-        {/* ----------------------------------------------------------------------- */}
-        <div className="space-y-4">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-gradient-to-br from-zinc-50 to-white border border-zinc-200/90 rounded-3xl p-6 sm:p-8 shadow-xs">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-zinc-900 bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200 uppercase flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                  {todayInfo.todayName.toUpperCase()}
-                </span>
-                {!todayInfo.isRestDay ? (
-                  <span className="text-xs font-mono font-bold text-white-950 bg-white-400 px-3 py-1 rounded-full uppercase shadow-xs">
-
-                  </span>
-                ) : (
-                  <span className="text-xs font-mono font-bold text-zinc-600 bg-zinc-100 px-3 py-1 rounded-full uppercase border border-zinc-200">
-                    💤 DÍA DE DESCANSO / RECUPERACIÓN
-                  </span>
-                )}
-              </div>
-
-              {!todayInfo.isRestDay && todayInfo.scheduledWorkout ? (
-                <>
-                  <h2 className="text-2xl sm:text-3xl font-black text-zinc-950 uppercase tracking-tight font-display">
-                    {todayInfo.scheduledWorkout.title}
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-zinc-600">
-                    <span>Enfoque: <strong className="text-zinc-900">{todayInfo.scheduledWorkout.targetMuscles}</strong></span>
-                    <span>•</span>
-                    <span>Ejercicios programados: <strong className="text-emerald-600 font-bold">{todayInfo.scheduledWorkout.exercises.length}</strong></span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h2 className="text-2xl sm:text-3xl font-black text-zinc-950 uppercase tracking-tight font-display">
-                    Recuperación Activa & Nutrición
-                  </h2>
-                  <p className="text-xs text-zinc-600 max-w-xl leading-relaxed">
-                    Hoy no tienes sesión pesada de pesas programada. Aprovecha para caminar, asegurar tus {targetNutrition.protein || 150}g de proteína y descansar para reparar fibras musculares.
-                  </p>
-                </>
-              )}
-            </div>
-
-            {!todayInfo.isRestDay && todayInfo.scheduledWorkout && onLoadWorkoutToDaily && (
-              <button
-                type="button"
-                onClick={() => onLoadWorkoutToDaily(todayInfo.scheduledWorkout.exercises)}
-                className="w-full md:w-auto px-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold uppercase rounded-2xl transition-all cursor-pointer flex items-center justify-center gap-2.5 text-sm tracking-wide shadow-md hover:scale-[1.02] active:scale-95 shrink-0"
-              >
-                <Zap className="w-5 h-5 fill-black" />
-                <span>Cargar entrenamiento</span>
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* ----------------------------------------------------------------------- */}
         {/* SECCIÓN B: ESTRUCTURA DEL PROGRAMA & EDITOR DE RUTINAS                  */}
@@ -472,16 +418,32 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                 </h4>
               </div>
 
-              {onLoadWorkoutToDaily && (
-                <button
-                  type="button"
-                  onClick={() => onLoadWorkoutToDaily(activeRoutine.schedule[selectedDayIdx].exercises)}
-                  className="px-3.5 py-2 bg-zinc-100 hover:bg-emerald-500 hover:text-black text-zinc-800 font-mono text-xs font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-zinc-200 shadow-xs"
-                >
-                  <Play className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Cargar Esta Sesión en Diario</span>
-                </button>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                {activeRoutine.schedule[selectedDayIdx]?.exercises?.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      startWorkout(activeRoutine.schedule[selectedDayIdx].exercises);
+                      showToast('¡Entrenamiento iniciado! Bloquea el celular para controlar desde la pantalla de bloqueo.');
+                    }}
+                    className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 text-xs tracking-wide shadow-md hover:scale-105 active:scale-95"
+                    title="Iniciar la rutina completa con soporte para pantalla de bloqueo"
+                  >
+                    <Play className="w-4 h-4 fill-black" />
+                    <span>Iniciar Rutina en Vivo</span>
+                  </button>
+                )}
+
+                {onLoadWorkoutToDaily && (
+                  <button
+                    type="button"
+                    onClick={() => onLoadWorkoutToDaily(activeRoutine.schedule[selectedDayIdx].exercises)}
+                    className="px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-mono text-xs font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-zinc-200 shadow-2xs"
+                  >
+                    <span>Cargar en Diario</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -547,8 +509,22 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                       )}
                     </div>
 
-                    {/* Botones de Acción (Subir, Bajar, Editar, Eliminar) */}
-                    <div className="flex items-center gap-1">
+                    {/* Botones de Acción (Play, Subir, Bajar, Editar, Eliminar) */}
+                    <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
+                      {/* Botón PLAY: Inicia este ejercicio inmediatamente en pantalla de bloqueo */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          startWorkout(activeRoutine.schedule[selectedDayIdx].exercises, exIdx);
+                          showToast(`¡Iniciado ${ex.name}! Bloquea la pantalla para controlarlo.`);
+                        }}
+                        className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-90"
+                        title="Entrenar este ejercicio en pantalla de bloqueo y barra flotante"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-black" />
+                        <span>Play</span>
+                      </button>
+
                       {/* Subir orden */}
                       <button
                         type="button"

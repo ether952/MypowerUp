@@ -27,6 +27,8 @@ import HistoryView from './components/HistoryView';
 import MyPowerUpView from './components/MyPowerUpView';
 import CoachRoutinesView from './components/CoachRoutinesView';
 import FloatingCoachWidget from './components/FloatingCoachWidget';
+import ActiveWorkoutHud from './components/ActiveWorkoutHud';
+import { ActiveWorkoutProvider } from './context/ActiveWorkoutContext';
 import GoalsModal from './components/GoalsModal';
 import LandingView from './components/LandingView';
 import RegisterView from './components/RegisterView';
@@ -114,10 +116,10 @@ export default function App() {
   const activeTab = currentPath.startsWith('/historial') || currentPath.startsWith('/graficos')
     ? 'history'
     : currentPath.startsWith('/mypowerup') || currentPath.startsWith('/myup')
-    ? 'mypowerup'
-    : currentPath.startsWith('/rutinas') || currentPath.startsWith('/coach')
-    ? 'routines'
-    : 'daily';
+      ? 'mypowerup'
+      : currentPath.startsWith('/rutinas') || currentPath.startsWith('/coach')
+        ? 'routines'
+        : 'daily';
 
   // === ESTADO DE AUTENTICACIÓN Y NUBE ===
   const [user, setUser] = useState(null);
@@ -181,7 +183,7 @@ export default function App() {
           const merged = mergeDaysData(prevLocalData, cloudDoc.data);
           try {
             localStorage.setItem('mypowerup_data', JSON.stringify(merged));
-          } catch (e) {}
+          } catch (e) { }
           return merged;
         });
         if (cloudDoc.goals) setGoals(cloudDoc.goals);
@@ -212,7 +214,7 @@ export default function App() {
           const merged = mergeDaysData(prevLocalData, cloudDoc.data);
           try {
             localStorage.setItem('mypowerup_data', JSON.stringify(merged));
-          } catch (e) {}
+          } catch (e) { }
           return merged;
         });
         if (cloudDoc.goals) setGoals(cloudDoc.goals);
@@ -324,7 +326,7 @@ export default function App() {
   useEffect(() => {
     try {
       localStorage.setItem('mypowerup_data', JSON.stringify(data));
-    } catch (e) {}
+    } catch (e) { }
 
     // Si el cambio proviene de una actualización remota en vivo de Firestore, no re-enviar
     if (isRemoteUpdateRef.current) {
@@ -454,6 +456,52 @@ export default function App() {
     showToast('Ejercicio registrado');
   };
 
+  // Handler para series registradas en tiempo real desde Pantalla de Bloqueo / Modo En Vivo
+  const handleLogActiveWorkoutSet = ({ exercise, setNumber, weight, reps, totalSets }) => {
+    lastLocalUpdateTimestampRef.current = Date.now();
+    const todayStr = getLocalDateString();
+    setData((prevData) => {
+      const day = prevData[todayStr] || { foods: [], workouts: [], cardios: [] };
+      const existingIndex = (day.workouts || []).findIndex(
+        (w) => w.name?.toLowerCase() === exercise.name?.toLowerCase()
+      );
+
+      let updatedWorkouts = [...(day.workouts || [])];
+      const newSetObj = { reps: Number(reps), weight: Number(weight) };
+
+      if (existingIndex >= 0) {
+        const existing = updatedWorkouts[existingIndex];
+        const prevDetailed = Array.isArray(existing.detailedSets) ? existing.detailedSets : [];
+        const updatedDetailed = [...prevDetailed, newSetObj];
+        updatedWorkouts[existingIndex] = {
+          ...existing,
+          sets: updatedDetailed.length,
+          weight: Number(weight),
+          reps: Number(reps),
+          detailedSets: updatedDetailed,
+        };
+      } else {
+        const newId = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        updatedWorkouts.push({
+          id: newId,
+          name: exercise.name,
+          category: exercise.category || 'Fuerza',
+          weight: Number(weight),
+          reps: Number(reps),
+          sets: 1,
+          detailedSets: [newSetObj],
+          gifUrl: exercise.gifUrl || '',
+        });
+      }
+
+      return {
+        ...prevData,
+        [todayStr]: { ...day, workouts: updatedWorkouts },
+      };
+    });
+    showToast(`Serie ${setNumber} registrada (${weight}kg × ${reps} reps)`);
+  };
+
   const handleUpdateWorkout = (workoutId, updatedWorkout, targetDate = selectedDate) => {
     lastLocalUpdateTimestampRef.current = Date.now();
     setData((prevData) => {
@@ -529,7 +577,7 @@ export default function App() {
     }
     lastLocalUpdateTimestampRef.current = Date.now();
     const todayStr = getLocalDateString();
-    
+
     const newWorkoutItems = exercises.map((ex) => {
       const sets = Number(ex.sets) || 3;
       const reps = Number(ex.reps) || 10;
@@ -714,7 +762,8 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-zinc-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white relative pb-16 md:pb-0">
+    <ActiveWorkoutProvider onLogSet={handleLogActiveWorkoutSet}>
+      <div className="min-h-screen bg-[#F8F9FA] text-zinc-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white relative pb-16 md:pb-0">
 
       {/* Toast HUD Minimalist */}
       {toast && (
@@ -745,45 +794,40 @@ export default function App() {
             <nav className="hidden md:flex items-center gap-1 sm:gap-1.5 font-mono text-xs">
               <button
                 onClick={() => navigate('/diario')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${
-                  activeTab === 'daily'
-                    ? 'bg-white text-zinc-950 shadow-sm'
-                    : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
-                }`}
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${activeTab === 'daily'
+                  ? 'bg-white text-zinc-950 shadow-sm'
+                  : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
+                  }`}
               >
                 REGISTRO
               </button>
 
               <button
                 onClick={() => navigate('/historial')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${
-                  activeTab === 'history'
-                    ? 'bg-white text-zinc-950 shadow-sm'
-                    : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
-                }`}
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${activeTab === 'history'
+                  ? 'bg-white text-zinc-950 shadow-sm'
+                  : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
+                  }`}
               >
                 HISTORIAL & GRÁFICOS
               </button>
 
               <button
                 onClick={() => navigate('/rutinas')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
-                  activeTab === 'routines'
-                    ? 'bg-white text-zinc-950 shadow-sm'
-                    : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
-                }`}
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${activeTab === 'routines'
+                  ? 'bg-white text-zinc-950 shadow-sm'
+                  : 'text-[#8A8F98] hover:text-white hover:bg-[#222226]'
+                  }`}
               >
-                <Sparkles className={`w-3.5 h-3.5 ${activeTab === 'routines' ? 'text-emerald-600' : 'text-emerald-400'}`} />
-                <span>COACH & RUTINAS</span>
+                <span>COACH</span>
               </button>
 
               <button
                 onClick={() => navigate('/mypowerup')}
-                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
-                  activeTab === 'mypowerup'
-                    ? 'bg-white text-zinc-950 shadow-sm'
-                    : 'text-[#8A8F98] hover:text-white border border-[#2E2E34] bg-[#18181B] hover:bg-[#222226]'
-                }`}
+                className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase flex items-center gap-1.5 cursor-pointer ${activeTab === 'mypowerup'
+                  ? 'bg-white text-zinc-950 shadow-sm'
+                  : 'text-[#8A8F98] hover:text-white border border-[#2E2E34] bg-[#18181B] hover:bg-[#222226]'
+                  }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${activeTab === 'mypowerup' ? 'bg-emerald-500' : 'bg-zinc-500'} animate-pulse`}></span>
                 <span>MY<span className="text-emerald-500 font-extrabold">UP</span></span>
@@ -1057,7 +1101,7 @@ export default function App() {
       />
 
       {/* Footer Global de la Plataforma */}
-      <Footer onOpenAuth={() => {}} />
+      <Footer onOpenAuth={() => { }} />
 
       {/* BARRA DE NAVEGACIÓN INFERIOR MOBILE (Estilo Instagram / Twitter / Apps Nativas) */}
       <nav
@@ -1069,22 +1113,19 @@ export default function App() {
           <button
             type="button"
             onClick={() => navigate('/diario')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${
-              activeTab === 'daily'
-                ? 'text-white'
-                : 'text-[#8A8F98] hover:text-zinc-300'
-            }`}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'daily'
+              ? 'text-white'
+              : 'text-[#8A8F98] hover:text-zinc-300'
+              }`}
           >
-            <div className={`p-1.5 rounded-xl transition-all ${
-              activeTab === 'daily'
-                ? 'bg-emerald-500/15 text-emerald-400'
-                : 'text-[#8A8F98] group-hover:text-zinc-200'
-            }`}>
+            <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'daily'
+              ? 'bg-emerald-500/15 text-emerald-400'
+              : 'text-[#8A8F98] group-hover:text-zinc-200'
+              }`}>
               <Calendar className="w-5 h-5 transition-transform" />
             </div>
-            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${
-              activeTab === 'daily' ? 'font-bold text-emerald-400' : 'font-medium'
-            }`}>
+            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${activeTab === 'daily' ? 'font-bold text-emerald-400' : 'font-medium'
+              }`}>
               Diario
             </span>
           </button>
@@ -1093,22 +1134,19 @@ export default function App() {
           <button
             type="button"
             onClick={() => navigate('/historial')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${
-              activeTab === 'history'
-                ? 'text-white'
-                : 'text-[#8A8F98] hover:text-zinc-300'
-            }`}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'history'
+              ? 'text-white'
+              : 'text-[#8A8F98] hover:text-zinc-300'
+              }`}
           >
-            <div className={`p-1.5 rounded-xl transition-all ${
-              activeTab === 'history'
-                ? 'bg-emerald-500/15 text-emerald-400'
-                : 'text-[#8A8F98] group-hover:text-zinc-200'
-            }`}>
+            <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'history'
+              ? 'bg-emerald-500/15 text-emerald-400'
+              : 'text-[#8A8F98] group-hover:text-zinc-200'
+              }`}>
               <BarChart3 className="w-5 h-5 transition-transform" />
             </div>
-            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${
-              activeTab === 'history' ? 'font-bold text-emerald-400' : 'font-medium'
-            }`}>
+            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${activeTab === 'history' ? 'font-bold text-emerald-400' : 'font-medium'
+              }`}>
               Gráficos
             </span>
           </button>
@@ -1117,23 +1155,20 @@ export default function App() {
           <button
             type="button"
             onClick={() => navigate('/rutinas')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${
-              activeTab === 'routines'
-                ? 'text-white'
-                : 'text-[#8A8F98] hover:text-zinc-300'
-            }`}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'routines'
+              ? 'text-white'
+              : 'text-[#8A8F98] hover:text-zinc-300'
+              }`}
           >
-            <div className={`p-1.5 rounded-xl transition-all relative ${
-              activeTab === 'routines'
-                ? 'bg-emerald-500/15 text-emerald-400'
-                : 'text-[#8A8F98] group-hover:text-zinc-200'
-            }`}>
+            <div className={`p-1.5 rounded-xl transition-all relative ${activeTab === 'routines'
+              ? 'bg-emerald-500/15 text-emerald-400'
+              : 'text-[#8A8F98] group-hover:text-zinc-200'
+              }`}>
               <Sparkles className="w-5 h-5 transition-transform" />
               <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
             </div>
-            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${
-              activeTab === 'routines' ? 'font-bold text-emerald-400' : 'font-medium'
-            }`}>
+            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${activeTab === 'routines' ? 'font-bold text-emerald-400' : 'font-medium'
+              }`}>
               Coach
             </span>
           </button>
@@ -1142,22 +1177,19 @@ export default function App() {
           <button
             type="button"
             onClick={() => navigate('/mypowerup')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${
-              activeTab === 'mypowerup'
-                ? 'text-white'
-                : 'text-[#8A8F98] hover:text-zinc-300'
-            }`}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'mypowerup'
+              ? 'text-white'
+              : 'text-[#8A8F98] hover:text-zinc-300'
+              }`}
           >
-            <div className={`p-1.5 rounded-xl transition-all ${
-              activeTab === 'mypowerup'
-                ? 'bg-emerald-500/15 text-emerald-400'
-                : 'text-[#8A8F98] group-hover:text-zinc-200'
-            }`}>
+            <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'mypowerup'
+              ? 'bg-emerald-500/15 text-emerald-400'
+              : 'text-[#8A8F98] group-hover:text-zinc-200'
+              }`}>
               <Zap className="w-5 h-5 transition-transform fill-current" />
             </div>
-            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${
-              activeTab === 'mypowerup' ? 'font-bold text-emerald-400' : 'font-medium'
-            }`}>
+            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${activeTab === 'mypowerup' ? 'font-bold text-emerald-400' : 'font-medium'
+              }`}>
               MyUp
             </span>
           </button>
@@ -1174,6 +1206,10 @@ export default function App() {
           showToast('Metas guardadas');
         }}
       />
+
+      {/* HUD Flotante del Entrenamiento Activo (Pantalla de Bloqueo & Mini-player móvil) */}
+      <ActiveWorkoutHud />
     </div>
+  </ActiveWorkoutProvider>
   );
 }

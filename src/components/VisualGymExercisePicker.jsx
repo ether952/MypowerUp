@@ -9,10 +9,10 @@ import {
   Layers,
   Sliders,
   X,
-  Flame,
-  Activity,
-  Layers3
+  Layers3,
+  Play
 } from 'lucide-react';
+import { useActiveWorkout } from '../context/ActiveWorkoutContext';
 import spriteSheetImg from '../assets/gym-exercises-spritesheet.png';
 
 // Colección de 48 Ejercicios y Máquinas de Gimnasio con Animaciones 3D Musculares Verificadas (48/48 HTTP 200 OK)
@@ -545,6 +545,7 @@ export default function VisualGymExercisePicker({
   rememberedWorkouts = {},
   onUpdateRememberedWorkouts
 }) {
+  const { startWorkout } = useActiveWorkout();
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [selectedExercise, setSelectedExercise] = useState(GYM_EXERCISES_SPRITES[0]);
   const [activeSetIndex, setActiveSetIndex] = useState(0);
@@ -1081,8 +1082,29 @@ export default function VisualGymExercisePicker({
                 </div>
               </div>
 
-              {/* BOTÓN DE REGISTRAR EJERCICIO */}
-              <div className="pt-2 border-t border-zinc-100">
+              {/* BOTONES DE ACCIÓN: MODO EN VIVO VS GUARDADO DIRECTO */}
+              <div className="pt-2 border-t border-zinc-100 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    startWorkout({
+                      id: selectedExercise.id,
+                      name: selectedExercise.name,
+                      category: selectedExercise.category,
+                      gifUrl: selectedExercise.gifUrl,
+                      weight: currentWeight,
+                      reps: currentReps,
+                      sets: seriesList.length || 4,
+                      restSeconds: 90
+                    });
+                  }}
+                  className="w-full py-3 px-4 font-mono text-xs font-black uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black transition-all cursor-pointer active:scale-[0.98] hover:scale-[1.01]"
+                  title="Inicia este ejercicio con controles en la pantalla de bloqueo y barra flotante"
+                >
+                  <Play className="w-4 h-4 fill-black" />
+                  <span>▶ Iniciar Ahora (Modo Bloqueo)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleSaveCompleteWorkout}
@@ -1101,7 +1123,7 @@ export default function VisualGymExercisePicker({
                   ) : (
                     <>
                       <Check className="w-4 h-4 stroke-[3] text-emerald-400" />
-                      <span>Registrar Ejercicio ({seriesList.length} {seriesList.length === 1 ? 'Serie' : 'Series'})</span>
+                      <span>Registrar en Diario ({seriesList.length} {seriesList.length === 1 ? 'Serie' : 'Series'})</span>
                     </>
                   )}
                 </button>
