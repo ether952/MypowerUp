@@ -5,7 +5,10 @@ import {
   playChime,
   triggerHaptic,
   requestScreenWakeLock,
-  releaseScreenWakeLock
+  releaseScreenWakeLock,
+  registerWorkoutServiceWorker,
+  showOrUpdateNativeNotification,
+  closeNativeNotification
 } from '../services/audioFeedbackService';
 import { resolveExerciseGifUrl } from '../utils/routineTemplates';
 
@@ -42,7 +45,7 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
   const [completedSets, setCompletedSets] = useState([]);
   const [isHudExpanded, setIsHudExpanded] = useState(false);
 
-  // Referencias mutables para que los callbacks de MediaSession siempre tengan los datos más frescos
+  // Referencias mutables para que los callbacks de MediaSession y SW siempre tengan datos frescos
   const stateRef = useRef({
     isActive: false,
     workoutQueue: [],
@@ -89,13 +92,15 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
   const currentExercise = workoutQueue[currentExerciseIndex] || null;
 
   /**
-   * Sincroniza la Pantalla de Bloqueo (Media Session API)
+   * Sincroniza la Pantalla de Bloqueo (Media Session API) Y Notificación Nativa Android
    */
   const syncMediaSession = useCallback(() => {
-    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
     const curr = stateRef.current;
     if (!curr.isActive || !curr.workoutQueue[curr.currentExerciseIndex]) {
-      navigator.mediaSession.playbackState = 'none';
+      if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'none';
+      }
+      closeNativeNotification();
       return;
     }
 
@@ -108,27 +113,42 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
       ? `⏱ DESCANSO: ${curr.restSecondsLeft}s  [⏭ = Listo]`
       : `MyPowerUp Gym • [⏭ = Guardar Serie] [⏮ = Reps]`;
 
-    navigator.mediaSession.playbackState = curr.isPaused ? 'paused' : 'playing';
+    // 1. Media Session API (iOS & Android lock screen music widget)
+    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = curr.isPaused ? 'paused' : 'playing';
 
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title,
-        artist,
-        album,
-        artwork: [
-          { src: resolvedImg, sizes: '512x512', type: 'image/png' },
-          { src: resolvedImg, sizes: '256x256', type: 'image/png' },
-          { src: resolvedImg, sizes: '128x128', type: 'image/png' },
-          { src: window.location.origin + '/logo-mypowerup.png', sizes: '192x192', type: 'image/png' }
-        ]
-      });
-    } catch (e) {
-      console.warn('Error configurando MediaMetadata:', e);
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title,
+          artist,
+          album,
+          artwork: [
+            { src: resolvedImg, sizes: '512x512', type: 'image/png' },
+            { src: resolvedImg, sizes: '256x256', type: 'image/png' },
+            { src: resolvedImg, sizes: '128x128', type: 'image/png' },
+            { src: window.location.origin + '/logo-mypowerup.png', sizes: '192x192', type: 'image/png' }
+          ]
+        });
+      } catch (e) {
+        console.warn('Error configurando MediaMetadata:', e);
+      }
     }
+
+    // 2. Notificación Nativa persistente con botones interactivos (Android)
+    showOrUpdateNativeNotification({
+      exerciseName: ex.name,
+      currentSet: curr.currentSetIndex + 1,
+      totalSets: curr.totalSets,
+      reps: curr.currentReps,
+      weight: curr.currentWeight,
+      isResting: curr.isResting,
+      restSeconds: curr.restSecondsLeft,
+      gifUrl: resolvedImg
+    });
   }, []);
 
   /**
-   * Completar Serie Actual (Mapeado a ⏭ Siguiente Pista en pantalla de bloqueo)
+   * Completar Serie Actual (Mapeado a ⏭ Siguiente Pista en pantalla de bloqueo o acción de notificación)
    */
   const completeCurrentSet = useCallback(() => {
     const curr = stateRef.current;
@@ -190,13 +210,14 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
         setIsActive(false);
         stopBackgroundAudio();
         releaseScreenWakeLock();
+        closeNativeNotification();
         return;
       }
     }
   }, [onLogSet, targetRestSeconds]);
 
   /**
-   * Ciclar / Cambiar Repeticiones (Mapeado a ⏮ Pista Anterior en pantalla de bloqueo)
+   * Ciclar / Cambiar Repeticiones (Mapeado a ⏮ Pista Anterior en pantalla de bloqueo o acción de notificación)
    */
   const cycleReps = useCallback(() => {
     const curr = stateRef.current;
@@ -210,7 +231,6 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     } else if (currentIdx === REP_CYCLE_PRESETS.length - 1) {
       nextReps = REP_CYCLE_PRESETS[0];
     } else {
-      // Si no estaba en la lista, redondear al siguiente par
       nextReps = curr.currentReps + 2;
       if (nextReps > 20) nextReps = 6;
     }
@@ -219,7 +239,7 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
   }, []);
 
   /**
-   * Ajustar peso (+ / - kg) (Mapeado a ⏩ / ⏪ en pantalla de bloqueo)
+   * Ajustar peso (+ / - kg)
    */
   const adjustWeight = useCallback((delta) => {
     const curr = stateRef.current;
@@ -277,11 +297,19 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     triggerHaptic([60, 40, 60]);
     playChime('set_done');
 
-    // Solicitar permiso de notificaciones en Android silenciosamente si está disponible
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().catch(() => {});
+    // Solicitar permiso de notificaciones en Android explícitamente si aún no se solicitó
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then((perm) => {
+          if (perm === 'granted') {
+            syncMediaSession();
+          }
+        }).catch(() => {});
+      } else if (Notification.permission === 'granted') {
+        syncMediaSession();
+      }
     }
-  }, []);
+  }, [syncMediaSession]);
 
   /**
    * Detener / Cancelar sesión
@@ -291,6 +319,7 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     setIsResting(false);
     stopBackgroundAudio();
     releaseScreenWakeLock();
+    closeNativeNotification();
 
     if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
       navigator.mediaSession.playbackState = 'none';
@@ -305,6 +334,33 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     setRestSecondsLeft(0);
     triggerHaptic([40]);
   }, []);
+
+  // Registrar Service Worker al montar y escuchar acciones de notificaciones
+  useEffect(() => {
+    registerWorkoutServiceWorker();
+
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      const handleSwMessage = (event) => {
+        if (event.data?.type === 'MYPOWERUP_WORKOUT_ACTION') {
+          const action = event.data.action;
+          if (action === 'next_set') {
+            completeCurrentSet();
+          } else if (action === 'cycle_reps') {
+            cycleReps();
+          } else if (action === 'add_weight') {
+            adjustWeight(2.5);
+          }
+        }
+      };
+
+      navigator.serviceWorker.addEventListener('message', handleSwMessage);
+      return () => {
+        try {
+          navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+        } catch (_) {}
+      };
+    }
+  }, [completeCurrentSet, cycleReps, adjustWeight]);
 
   // Temporizador de descanso (segundo a segundo)
   useEffect(() => {
@@ -325,7 +381,7 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     return () => clearInterval(interval);
   }, [isActive, isResting, isPaused]);
 
-  // Sincronizar MediaSession cada vez que cambia el estado relevante
+  // Sincronizar MediaSession y Notificación nativa cada vez que cambia el estado relevante
   useEffect(() => {
     syncMediaSession();
   }, [
