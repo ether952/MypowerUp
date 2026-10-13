@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     env.KEY ||
     env.GOOGLE_API_KEY ||
     env.GOOGLE_GEMINI_API_KEY ||
-    '';
+    'AIzaSyA1XInoIfffEd8w51MgFDxSjtRkVZtgaW4';
 
   return {
     plugins: [react()],

@@ -5,12 +5,13 @@ const nutritionCache = new Map();
 
 // Modelos Gemini estables y soportados en orden de prioridad
 const GEMINI_MODELS = [
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-2.0-flash-lite',
-  'gemini-1.5-flash-8b',
-  'gemini-1.5-pro'
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-flash-latest',
+  'gemini-2.5-pro'
 ];
+
+export const BUILTIN_GEMINI_KEY = 'AIzaSyA1XInoIfffEd8w51MgFDxSjtRkVZtgaW4';
 
 /**
  * Obtiene la API Key de Gemini desde variables de entorno o localStorage.
@@ -33,7 +34,7 @@ export function getGeminiApiKey() {
     import.meta.env.GOOGLE_API_KEY ||
     import.meta.env.GOOGLE_GEMINI_API_KEY ||
     (typeof window !== 'undefined' ? localStorage.getItem('mypowerup_gemini_api_key') : '') ||
-    ''
+    BUILTIN_GEMINI_KEY
   ).trim();
 }
 
