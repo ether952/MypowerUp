@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MyPowerUp</string>
+    <string name="title_activity_main">MyPowerUp</string>
+    <string name="package_name">com.mypowerup.app</string>
+    <string name="custom_url_scheme">com.mypowerup.app</string>
+</resources>
