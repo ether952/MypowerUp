@@ -35,11 +35,45 @@ import {
   saveRoutines,
   getActiveRoutineId,
   saveActiveRoutineId,
-  getTodayWorkoutSchedule
+  getTodayWorkoutSchedule,
+  resolveExerciseGifUrl,
+  repairRoutineGifs
 } from '../utils/routineTemplates';
 import { askAiCoach } from '../services/aiCoachService';
 import { GYM_EXERCISES_SPRITES } from './VisualGymExercisePicker';
 import powerUpLogoImg from '../assets/logo-mypowerup.png';
+
+/**
+ * Componente Thumbnail robusto para GIFs de ejercicios con auto-resolución y fallback elegante
+ */
+function ExerciseThumbnail({
+  src,
+  alt,
+  className = "w-12 h-12 rounded-xl object-cover bg-zinc-950 border border-zinc-200 shrink-0",
+  fallbackContainerClass = "w-12 h-12 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0",
+  iconClass = "w-5 h-5 text-emerald-600"
+}) {
+  const [hasError, setHasError] = useState(false);
+  const resolvedUrl = resolveExerciseGifUrl(src) || (typeof src === 'string' ? src : null);
+
+  if (!resolvedUrl || hasError) {
+    return (
+      <div className={fallbackContainerClass}>
+        <Dumbbell className={iconClass} />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={resolvedUrl}
+      alt={alt || 'Ejercicio'}
+      className={className}
+      loading="lazy"
+      onError={() => setHasError(true)}
+    />
+  );
+}
 
 export default function CoachRoutinesView({
   onLoadWorkoutToDaily,
@@ -66,6 +100,29 @@ export default function CoachRoutinesView({
   // Rutinas guardadas y activa
   const [routines, setRoutines] = useState(() => getSavedRoutines(profile));
   const [activeRoutineId, setActiveRoutineId] = useState(() => getActiveRoutineId(routines));
+
+  // Reparar automáticamente rutinas que puedan tener URLs desactualizadas en memoria o localStorage
+  useEffect(() => {
+    setRoutines(prev => {
+      const { repaired, changed } = repairRoutineGifs(prev);
+      if (changed) {
+        saveRoutines(repaired);
+        return repaired;
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleResetToDefaultRoutine = () => {
+    if (window.confirm('¿Deseas restablecer esta rutina a su plantilla recomendada oficial con todas las animaciones y ejercicios actualizados?')) {
+      const key = `days_${profile.daysPerWeek || 4}`;
+      const defaultTemplate = DEFAULT_ROUTINE_TEMPLATES[key] || DEFAULT_ROUTINE_TEMPLATES.days_4;
+      const updated = routines.map(r => r.id === activeRoutine.id ? JSON.parse(JSON.stringify(defaultTemplate)) : r);
+      setRoutines(updated);
+      saveRoutines(updated);
+      showToast('Rutina restablecida con éxito');
+    }
+  };
 
   // Rutina actualmente seleccionada para visualizar/editar
   const activeRoutine = routines.find(r => r.id === activeRoutineId) || routines[0] || DEFAULT_ROUTINE_TEMPLATES.days_4;
@@ -365,6 +422,15 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                onClick={handleResetToDefaultRoutine}
+                title="Restablecer ejercicios y animaciones recomendadas"
+                className="px-3.5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900 rounded-2xl text-xs font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer border border-zinc-200 shadow-2xs"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-zinc-500" />
+                <span className="hidden sm:inline">Restablecer</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setIsAddExerciseModalOpen(true)}
                 className="px-4 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-2xl text-xs font-mono font-bold uppercase transition-all flex items-center gap-2 cursor-pointer shadow-sm"
               >
@@ -447,19 +513,14 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                       {exIdx + 1}
                     </span>
 
-                    {/* Thumbnail GIF 3D si existe */}
-                    {ex.gifUrl ? (
-                      <img
-                        src={ex.gifUrl}
-                        alt={ex.name}
-                        className="w-12 h-12 rounded-xl object-cover bg-zinc-950 border border-zinc-200 shrink-0"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0">
-                        <Dumbbell className="w-5 h-5 text-emerald-600" />
-                      </div>
-                    )}
+                    {/* Thumbnail GIF 3D con auto-resolución y fallback elegante */}
+                    <ExerciseThumbnail
+                      src={ex.gifUrl || ex}
+                      alt={ex.name}
+                      className="w-12 h-12 rounded-xl object-cover bg-zinc-950 border border-zinc-200 shrink-0"
+                      fallbackContainerClass="w-12 h-12 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0"
+                      iconClass="w-5 h-5 text-emerald-600"
+                    />
 
                     {/* Nombre y Categoría */}
                     <div className="truncate">
@@ -712,18 +773,13 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                   className="bg-[#18181B] hover:bg-[#1E1E24] border border-[#2E2E34] rounded-2xl p-3 flex items-center justify-between gap-3 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    {item.gifUrl ? (
-                      <img
-                        src={item.gifUrl}
-                        alt={item.name}
-                        className="w-12 h-12 rounded-xl object-cover bg-black border border-[#2E2E34] shrink-0"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-black border border-[#2E2E34] flex items-center justify-center shrink-0">
-                        <Dumbbell className="w-5 h-5 text-emerald-400" />
-                      </div>
-                    )}
+                    <ExerciseThumbnail
+                      src={item.gifUrl || item}
+                      alt={item.name}
+                      className="w-12 h-12 rounded-xl object-cover bg-black border border-[#2E2E34] shrink-0"
+                      fallbackContainerClass="w-12 h-12 rounded-xl bg-black border border-[#2E2E34] flex items-center justify-center shrink-0"
+                      iconClass="w-5 h-5 text-emerald-400"
+                    />
                     <div className="truncate">
                       <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold block">
                         {item.category}

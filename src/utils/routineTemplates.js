@@ -1,7 +1,76 @@
 import { GYM_EXERCISES_SPRITES } from '../components/VisualGymExercisePicker.jsx';
 
 /**
- * Plantillas de rutinas prediseñadas por frecuencia semanal y objetivo.
+ * URLs de GIFs que han cambiado de ruta o estaban rotos en FitnessProgramer/ExerciseDB,
+ * mapeados a sus equivalentes 100% verificados (HTTP 200 OK).
+ */
+export const KNOWN_BROKEN_GIF_FIXES = {
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Press.gif': 'https://fitnessprogramer.com/wp-content/uploads/2015/11/Leg-Press.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Standing-Calf-Raise.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Standing-Calf-Raise.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Plank.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/plank.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Lying-Triceps-Extension.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Triceps-Extension.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Row.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Rear-Delt-Raise.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Lateral-Raise.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunges.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Leg-Curl.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/08/Seated-Leg-Curl.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Calf-Raise.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Lever-Seated-Calf-Raise.gif',
+  'https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crunch.gif': 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Kneeling-Cable-Crunch.gif',
+};
+
+/**
+ * Resuelve la URL del GIF de un ejercicio verificando fallbacks y mitigando enlaces caídos.
+ */
+export function resolveExerciseGifUrl(ex) {
+  if (!ex) return null;
+  const rawUrl = typeof ex === 'string' ? ex : ex.gifUrl;
+  if (rawUrl && KNOWN_BROKEN_GIF_FIXES[rawUrl]) {
+    return KNOWN_BROKEN_GIF_FIXES[rawUrl];
+  }
+  if (rawUrl) return rawUrl;
+
+  if (typeof ex === 'object') {
+    if (ex.id) {
+      const match = GYM_EXERCISES_SPRITES.find(s => s.id === ex.id);
+      if (match?.gifUrl) return match.gifUrl;
+    }
+    if (ex.name) {
+      const matchName = GYM_EXERCISES_SPRITES.find(s => s.name?.toLowerCase() === ex.name?.toLowerCase());
+      if (matchName?.gifUrl) return matchName.gifUrl;
+    }
+  }
+  return null;
+}
+
+/**
+ * Repara y actualiza rutinas existentes en localStorage para corregir URLs antiguas o rotas.
+ */
+export function repairRoutineGifs(routines) {
+  let changed = false;
+  if (!Array.isArray(routines)) return { repaired: routines, changed: false };
+
+  const repaired = routines.map(routine => {
+    if (!routine || !Array.isArray(routine.schedule)) return routine;
+    const schedule = routine.schedule.map(day => {
+      if (!day || !Array.isArray(day.exercises)) return day;
+      const exercises = day.exercises.map(ex => {
+        if (!ex) return ex;
+        const fixedUrl = resolveExerciseGifUrl(ex);
+        if (fixedUrl && fixedUrl !== ex.gifUrl) {
+          changed = true;
+          return { ...ex, gifUrl: fixedUrl };
+        }
+        return ex;
+      });
+      return { ...day, exercises };
+    });
+    return { ...routine, schedule };
+  });
+
+  return { repaired, changed };
+}
+
+/**
+ * Plantillas de rutinas prediseñadas por frecuencia semanal y objetivo con URLs 100% verificadas.
  */
 export const DEFAULT_ROUTINE_TEMPLATES = {
   // 3 DÍAS: FULL BODY A / B / A
@@ -36,7 +105,7 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
           { id: 'press_inclinado_mancuernas', name: 'Press Inclinado con Mancuernas', category: 'Pecho', sets: 4, reps: 10, weight: 22, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif' },
           { id: 'elevaciones_laterales_mancuernas', name: 'Elevaciones Laterales con Mancuernas', category: 'Hombros', sets: 4, reps: 15, weight: 10, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif' },
           { id: 'curl_femoral_tumbado', name: 'Curl Femoral Tumbado en Máquina', category: 'Piernas', sets: 3, reps: 12, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Curl.gif' },
-          { id: 'crunch_polea_alta', name: 'Crunch Abdominal en Polea Alta', category: 'Abdomen', sets: 3, reps: 15, weight: 30, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crunch.gif' }
+          { id: 'crunch_polea_alta', name: 'Crunch Abdominal en Polea Alta', category: 'Abdomen', sets: 3, reps: 15, weight: 30, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Kneeling-Cable-Crunch.gif' }
         ]
       },
       {
@@ -45,12 +114,12 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
         title: 'Full Body C - Hipertrofia & Bombeo',
         targetMuscles: 'Piernas, Pecho, Espalda, Brazos',
         exercises: [
-          { id: 'prensa_45_piernas', name: 'Prensa Inclinada 45°', category: 'Piernas', sets: 4, reps: 12, weight: 120, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Press.gif' },
+          { id: 'prensa_45_piernas', name: 'Prensa Inclinada 45°', category: 'Piernas', sets: 4, reps: 12, weight: 120, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2015/11/Leg-Press.gif' },
           { id: 'cruces_poleas_pecho', name: 'Cruces en Poleas para Pecho', category: 'Pecho', sets: 3, reps: 12, weight: 15, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crossover.gif' },
           { id: 'jalon_pecho_polea', name: 'Jalón al Pecho en Polea Alta', category: 'Espalda', sets: 4, reps: 10, weight: 50, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif' },
           { id: 'fondos_paralelas', name: 'Fondos en Paralelas (Dips)', category: 'Tríceps', sets: 3, reps: 10, weight: 0, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Chest-Dips.gif' },
           { id: 'curl_martillo_mancuernas', name: 'Curl Martillo con Mancuernas', category: 'Bíceps', sets: 3, reps: 12, weight: 14, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif' },
-          { id: 'elevacion_talones_gemelos', name: 'Elevación de Talones de Pie', category: 'Piernas', sets: 4, reps: 15, weight: 40, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Standing-Calf-Raise.gif' }
+          { id: 'elevacion_talones_gemelos', name: 'Elevación de Talones de Pie', category: 'Piernas', sets: 4, reps: 15, weight: 40, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Standing-Calf-Raise.gif' }
         ]
       }
     ]
@@ -74,7 +143,7 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
           { id: 'press_inclinado_mancuernas', name: 'Press Inclinado con Mancuernas', category: 'Pecho', sets: 3, reps: 10, weight: 24, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif' },
           { id: 'jalon_pecho_polea', name: 'Jalón al Pecho en Polea Alta', category: 'Espalda', sets: 3, reps: 10, weight: 55, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif' },
           { id: 'elevaciones_laterales_mancuernas', name: 'Elevaciones Laterales con Mancuernas', category: 'Hombros', sets: 4, reps: 15, weight: 10, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif' },
-          { id: 'press_frances_barra_z', name: 'Press Francés con Barra Z', category: 'Tríceps', sets: 3, reps: 10, weight: 25, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Lying-Triceps-Extension.gif' },
+          { id: 'press_frances_barra_z', name: 'Press Francés con Barra Z', category: 'Tríceps', sets: 3, reps: 10, weight: 25, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Triceps-Extension.gif' },
           { id: 'curl_biceps_inclinado_mancuernas', name: 'Curl Inclinado con Mancuernas', category: 'Bíceps', sets: 3, reps: 12, weight: 12, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Incline-Dumbbell-Curl.gif' }
         ]
       },
@@ -85,11 +154,11 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
         targetMuscles: 'Cuádriceps, Isquios, Glúteos, Gemelos',
         exercises: [
           { id: 'sentadilla_trasera', name: 'Sentadilla Trasera con Barra', category: 'Piernas', sets: 4, reps: 8, weight: 70, restSec: 120, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/BARBELL-SQUAT.gif' },
-          { id: 'prensa_45_piernas', name: 'Prensa Inclinada 45°', category: 'Piernas', sets: 4, reps: 10, weight: 130, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Press.gif' },
+          { id: 'prensa_45_piernas', name: 'Prensa Inclinada 45°', category: 'Piernas', sets: 4, reps: 10, weight: 130, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2015/11/Leg-Press.gif' },
           { id: 'extensiones_cuadriceps_maquina', name: 'Extensiones de Cuádriceps', category: 'Piernas', sets: 3, reps: 12, weight: 45, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/LEG-EXTENSION.gif' },
           { id: 'curl_femoral_tumbado', name: 'Curl Femoral Tumbado en Máquina', category: 'Piernas', sets: 4, reps: 10, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Curl.gif' },
-          { id: 'elevacion_talones_gemelos', name: 'Elevación de Talones de Pie', category: 'Piernas', sets: 4, reps: 15, weight: 45, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Standing-Calf-Raise.gif' },
-          { id: 'plancha_abdominal_frontal', name: 'Plancha Abdominal Frontal', category: 'Abdomen', sets: 3, reps: 45, weight: 0, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Plank.gif' }
+          { id: 'elevacion_talones_gemelos', name: 'Elevación de Talones de Pie', category: 'Piernas', sets: 4, reps: 15, weight: 45, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Standing-Calf-Raise.gif' },
+          { id: 'plancha_abdominal_frontal', name: 'Plancha Abdominal Frontal', category: 'Abdomen', sets: 3, reps: 45, weight: 0, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/plank.gif' }
         ]
       },
       {
@@ -101,8 +170,8 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
           { id: 'press_militar_barra', name: 'Press Militar de Pie con Barra', category: 'Hombros', sets: 4, reps: 8, weight: 35, restSec: 120, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Shoulder-Press.gif' },
           { id: 'dominadas_pronadas', name: 'Dominadas Pronadas', category: 'Espalda', sets: 4, reps: 8, weight: 0, restSec: 120, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Pull-up.gif' },
           { id: 'press_plano_mancuernas', name: 'Press Plano con Mancuernas', category: 'Pecho', sets: 4, reps: 10, weight: 26, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Press.gif' },
-          { id: 'remo_unilateral_mancuerna', name: 'Remo con Mancuerna Unilateral', category: 'Espalda', sets: 3, reps: 10, weight: 24, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Row.gif' },
-          { id: 'pajaros_posteriores_mancuernas', name: 'Pájaros para Deltoides Posterior', category: 'Hombros', sets: 4, reps: 15, weight: 8, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Rear-Delt-Raise.gif' },
+          { id: 'remo_unilateral_mancuerna', name: 'Remo con Mancuerna Unilateral', category: 'Espalda', sets: 3, reps: 10, weight: 24, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif' },
+          { id: 'pajaros_posteriores_mancuernas', name: 'Pájaros para Deltoides Posterior', category: 'Hombros', sets: 4, reps: 15, weight: 8, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Lateral-Raise.gif' },
           { id: 'extensiones_triceps_polea', name: 'Extensiones de Tríceps en Polea', category: 'Tríceps', sets: 3, reps: 12, weight: 30, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Pushdown.gif' },
           { id: 'curl_martillo_mancuernas', name: 'Curl Martillo con Mancuernas', category: 'Bíceps', sets: 3, reps: 12, weight: 14, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif' }
         ]
@@ -115,10 +184,10 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
         exercises: [
           { id: 'peso_muerto_rumano_barra', name: 'Peso Muerto Rumano', category: 'Piernas', sets: 4, reps: 8, weight: 65, restSec: 120, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Romanian-Deadlift.gif' },
           { id: 'hip_thrust_barra', name: 'Hip Thrust con Barra', category: 'Piernas', sets: 4, reps: 10, weight: 80, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Hip-Thrust.gif' },
-          { id: 'zancadas_caminando_mancuernas', name: 'Zancadas Caminando con Mancuernas', category: 'Piernas', sets: 3, reps: 12, weight: 16, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunges.gif' },
-          { id: 'curl_femoral_sentado', name: 'Curl Femoral Sentado', category: 'Piernas', sets: 3, reps: 12, weight: 40, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Leg-Curl.gif' },
-          { id: 'elevacion_talones_sentado', name: 'Elevación de Talones Sentado', category: 'Piernas', sets: 4, reps: 15, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Calf-Raise.gif' },
-          { id: 'crunch_polea_alta', name: 'Crunch Abdominal en Polea Alta', category: 'Abdomen', sets: 3, reps: 15, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crunch.gif' }
+          { id: 'zancadas_caminando_mancuernas', name: 'Zancadas Caminando con Mancuernas', category: 'Piernas', sets: 3, reps: 12, weight: 16, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif' },
+          { id: 'curl_femoral_sentado', name: 'Curl Femoral Sentado', category: 'Piernas', sets: 3, reps: 12, weight: 40, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/08/Seated-Leg-Curl.gif' },
+          { id: 'elevacion_talones_sentado', name: 'Elevación de Talones Sentado', category: 'Piernas', sets: 4, reps: 15, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Lever-Seated-Calf-Raise.gif' },
+          { id: 'crunch_polea_alta', name: 'Crunch Abdominal en Polea Alta', category: 'Abdomen', sets: 3, reps: 15, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Kneeling-Cable-Crunch.gif' }
         ]
       }
     ]
@@ -154,7 +223,7 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
           { id: 'dominadas_pronadas', name: 'Dominadas Pronadas', category: 'Espalda', sets: 4, reps: 8, weight: 0, restSec: 120, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Pull-up.gif' },
           { id: 'remo_barra_prono', name: 'Remo con Barra', category: 'Espalda', sets: 4, reps: 8, weight: 50, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bent-Over-Row.gif' },
           { id: 'jalon_pecho_polea', name: 'Jalón al Pecho en Polea Alta', category: 'Espalda', sets: 3, reps: 10, weight: 55, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif' },
-          { id: 'pajaros_posteriores_mancuernas', name: 'Pájaros para Deltoides Posterior', category: 'Hombros', sets: 4, reps: 15, weight: 8, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Rear-Delt-Raise.gif' },
+          { id: 'pajaros_posteriores_mancuernas', name: 'Pájaros para Deltoides Posterior', category: 'Hombros', sets: 4, reps: 15, weight: 8, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Lateral-Raise.gif' },
           { id: 'curl_biceps_barra', name: 'Curl de Bíceps con Barra Recta', category: 'Bíceps', sets: 3, reps: 10, weight: 25, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Curl.gif' },
           { id: 'curl_martillo_mancuernas', name: 'Curl Martillo con Mancuernas', category: 'Bíceps', sets: 3, reps: 12, weight: 14, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif' }
         ]
@@ -167,9 +236,9 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
         exercises: [
           { id: 'sentadilla_trasera', name: 'Sentadilla Trasera con Barra', category: 'Piernas', sets: 4, reps: 8, weight: 70, restSec: 120, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/BARBELL-SQUAT.gif' },
           { id: 'peso_muerto_rumano_barra', name: 'Peso Muerto Rumano', category: 'Piernas', sets: 4, reps: 8, weight: 65, restSec: 120, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Romanian-Deadlift.gif' },
-          { id: 'prensa_45_piernas', name: 'Prensa Inclinada 45°', category: 'Piernas', sets: 3, reps: 10, weight: 130, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Press.gif' },
+          { id: 'prensa_45_piernas', name: 'Prensa Inclinada 45°', category: 'Piernas', sets: 3, reps: 10, weight: 130, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2015/11/Leg-Press.gif' },
           { id: 'curl_femoral_tumbado', name: 'Curl Femoral Tumbado en Máquina', category: 'Piernas', sets: 3, reps: 12, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Curl.gif' },
-          { id: 'elevacion_talones_gemelos', name: 'Elevación de Talones de Pie', category: 'Piernas', sets: 4, reps: 15, weight: 45, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Standing-Calf-Raise.gif' }
+          { id: 'elevacion_talones_gemelos', name: 'Elevación de Talones de Pie', category: 'Piernas', sets: 4, reps: 15, weight: 45, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Standing-Calf-Raise.gif' }
         ]
       },
       {
@@ -179,7 +248,7 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
         targetMuscles: 'Pecho, Espalda, Hombros',
         exercises: [
           { id: 'press_plano_mancuernas', name: 'Press Plano con Mancuernas', category: 'Pecho', sets: 4, reps: 10, weight: 26, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Press.gif' },
-          { id: 'remo_unilateral_mancuerna', name: 'Remo con Mancuerna Unilateral', category: 'Espalda', sets: 4, reps: 10, weight: 26, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Row.gif' },
+          { id: 'remo_unilateral_mancuerna', name: 'Remo con Mancuerna Unilateral', category: 'Espalda', sets: 4, reps: 10, weight: 26, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif' },
           { id: 'press_inclinado_barra', name: 'Press Inclinado con Barra', category: 'Pecho', sets: 3, reps: 10, weight: 45, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Barbell-Bench-Press.gif' },
           { id: 'elevaciones_laterales_polea', name: 'Elevaciones Laterales en Polea', category: 'Hombros', sets: 4, reps: 15, weight: 7, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Lateral-Raise.gif' },
           { id: 'fondos_paralelas', name: 'Fondos en Paralelas (Dips)', category: 'Tríceps', sets: 3, reps: 10, weight: 0, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Chest-Dips.gif' }
@@ -192,10 +261,10 @@ export const DEFAULT_ROUTINE_TEMPLATES = {
         targetMuscles: 'Glúteos, Isquios, Abdomen',
         exercises: [
           { id: 'hip_thrust_barra', name: 'Hip Thrust con Barra', category: 'Piernas', sets: 4, reps: 10, weight: 80, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Hip-Thrust.gif' },
-          { id: 'zancadas_caminando_mancuernas', name: 'Zancadas Caminando con Mancuernas', category: 'Piernas', sets: 3, reps: 12, weight: 16, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunges.gif' },
+          { id: 'zancadas_caminando_mancuernas', name: 'Zancadas Caminando con Mancuernas', category: 'Piernas', sets: 3, reps: 12, weight: 16, restSec: 90, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif' },
           { id: 'extensiones_cuadriceps_maquina', name: 'Extensiones de Cuádriceps', category: 'Piernas', sets: 3, reps: 15, weight: 40, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/LEG-EXTENSION.gif' },
-          { id: 'crunch_polea_alta', name: 'Crunch Abdominal en Polea Alta', category: 'Abdomen', sets: 3, reps: 15, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crunch.gif' },
-          { id: 'plancha_abdominal_frontal', name: 'Plancha Abdominal Frontal', category: 'Abdomen', sets: 3, reps: 60, weight: 0, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Plank.gif' }
+          { id: 'crunch_polea_alta', name: 'Crunch Abdominal en Polea Alta', category: 'Abdomen', sets: 3, reps: 15, weight: 35, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Kneeling-Cable-Crunch.gif' },
+          { id: 'plancha_abdominal_frontal', name: 'Plancha Abdominal Frontal', category: 'Abdomen', sets: 3, reps: 60, weight: 0, restSec: 60, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/plank.gif' }
         ]
       }
     ]
@@ -242,13 +311,20 @@ export function saveCoachProfile(profile) {
 
 /**
  * Obtiene las rutinas guardadas del usuario o genera la recomendada por defecto.
+ * Además, repara automáticamente cualquier enlace de GIF roto o desactualizado almacenado previamente.
  */
 export function getSavedRoutines(profile = getSavedCoachProfile()) {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_ROUTINES);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const { repaired, changed } = repairRoutineGifs(parsed);
+        if (changed) {
+          saveRoutines(repaired);
+        }
+        return repaired;
+      }
     }
   } catch (e) {
     console.warn('Error reading custom routines:', e);

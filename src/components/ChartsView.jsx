@@ -1,22 +1,22 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  AreaChart, 
-  Area, 
-  PieChart, 
-  Pie, 
-  Cell, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  ReferenceLine 
+import {
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine
 } from 'recharts';
-import { 
-  Sparkles, 
-  ChevronDown 
+import {
+  Sparkles,
+  ChevronDown
 } from 'lucide-react';
 import { getDaysRangeData, getLocalDateString } from '../utils/helpers';
 import WeightEvolutionChart from './WeightEvolutionChart';
@@ -208,7 +208,7 @@ export default function ChartsView({
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      
+
       {/* Cabecera & Selector de Rango */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-5">
         <div>
@@ -225,11 +225,10 @@ export default function ChartsView({
               key={days}
               type="button"
               onClick={() => setRangeDays(days)}
-              className={`px-3.5 py-1.5 rounded-lg font-bold transition-all uppercase cursor-pointer ${
-                rangeDays === days 
-                  ? 'bg-zinc-900 text-white shadow-xs' 
+              className={`px-3.5 py-1.5 rounded-lg font-bold transition-all uppercase cursor-pointer ${rangeDays === days
+                  ? 'bg-zinc-900 text-white shadow-xs'
                   : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-              }`}
+                }`}
             >
               {days === 7 ? '7 DÍAS' : `${days} DÍAS`}
             </button>
@@ -349,8 +348,8 @@ export default function ChartsView({
                   <AreaChart data={exerciseProgressionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="neonAreaProgression" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="2 2" stroke="#E4E4E7" vertical={false} />
@@ -395,7 +394,7 @@ export default function ChartsView({
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2 bg-zinc-50 border border-zinc-200 rounded-xl p-6 shadow-xs">
-              
+
               {/* Gráfico Donut Light */}
               <div className="lg:col-span-5 h-72 relative flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
@@ -462,7 +461,6 @@ export default function ChartsView({
                             {item.name}
                           </span>
                           <div className="flex items-center gap-2">
-                            <span className="text-zinc-500 text-[11px] font-normal">{item.count} veces</span>
                             <span className="font-bold px-2 py-0.5 rounded-md text-[11px] bg-white text-zinc-900 border border-zinc-200">
                               {item.percentage}%
                             </span>
@@ -492,7 +490,7 @@ export default function ChartsView({
         {/* SECCIÓN: GRÁFICOS DE NUTRICIÓN (CALORÍAS Y PROTEÍNAS)                     */}
         {/* ========================================================================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
-          
+
           {/* Calorías */}
           <div className="space-y-3 bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs">
             <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
@@ -507,8 +505,8 @@ export default function ChartsView({
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="neonAreaCal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25}/>
-                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="2 2" stroke="#E4E4E7" vertical={false} />
@@ -536,8 +534,8 @@ export default function ChartsView({
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="neonAreaProt" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.25}/>
-                      <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="2 2" stroke="#E4E4E7" vertical={false} />

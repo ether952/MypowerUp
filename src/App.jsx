@@ -16,7 +16,9 @@ import {
   AlertCircle,
   Settings,
   Zap,
-  Home
+  Home,
+  Calendar,
+  BarChart3
 } from 'lucide-react';
 
 import DailyView from './components/DailyView';
@@ -712,7 +714,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-zinc-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white relative">
+    <div className="min-h-screen bg-[#F8F9FA] text-zinc-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white relative pb-16 md:pb-0">
 
       {/* Toast HUD Minimalist */}
       {toast && (
@@ -726,7 +728,7 @@ export default function App() {
         <div className="w-full pl-3 sm:pl-6 pr-1 sm:pr-2 py-2 flex items-center justify-between gap-3">
 
           {/* GRUPO IZQUIERDO: Marca & Pestañas de Navegación */}
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8">
+          <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
             {/* Nombre Marca */}
             <div className="flex items-center gap-2 cursor-pointer select-none group" onClick={() => navigate('/diario')}>
               <img
@@ -739,8 +741,8 @@ export default function App() {
               </h1>
             </div>
 
-            {/* Navegación de Pestañas con URLs reales */}
-            <nav className="flex items-center gap-1 sm:gap-1.5 font-mono text-xs">
+            {/* Navegación de Pestañas con URLs reales (SOLO DESKTOP: hidden md:flex) */}
+            <nav className="hidden md:flex items-center gap-1 sm:gap-1.5 font-mono text-xs">
               <button
                 onClick={() => navigate('/diario')}
                 className={`px-3.5 py-1.5 rounded-lg font-bold tracking-wider transition-all uppercase cursor-pointer ${
@@ -1056,6 +1058,111 @@ export default function App() {
 
       {/* Footer Global de la Plataforma */}
       <Footer onOpenAuth={() => {}} />
+
+      {/* BARRA DE NAVEGACIÓN INFERIOR MOBILE (Estilo Instagram / Twitter / Apps Nativas) */}
+      <nav
+        aria-label="Navegación Móvil"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#121214]/95 backdrop-blur-xl border-t border-[#2E2E34] px-2 py-1 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-4px_25px_rgba(0,0,0,0.5)]"
+      >
+        <div className="grid grid-cols-4 items-center max-w-md mx-auto">
+          {/* 1. Diario / Registro */}
+          <button
+            type="button"
+            onClick={() => navigate('/diario')}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${
+              activeTab === 'daily'
+                ? 'text-white'
+                : 'text-[#8A8F98] hover:text-zinc-300'
+            }`}
+          >
+            <div className={`p-1.5 rounded-xl transition-all ${
+              activeTab === 'daily'
+                ? 'bg-emerald-500/15 text-emerald-400'
+                : 'text-[#8A8F98] group-hover:text-zinc-200'
+            }`}>
+              <Calendar className="w-5 h-5 transition-transform" />
+            </div>
+            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${
+              activeTab === 'daily' ? 'font-bold text-emerald-400' : 'font-medium'
+            }`}>
+              Diario
+            </span>
+          </button>
+
+          {/* 2. Historial & Gráficos */}
+          <button
+            type="button"
+            onClick={() => navigate('/historial')}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${
+              activeTab === 'history'
+                ? 'text-white'
+                : 'text-[#8A8F98] hover:text-zinc-300'
+            }`}
+          >
+            <div className={`p-1.5 rounded-xl transition-all ${
+              activeTab === 'history'
+                ? 'bg-emerald-500/15 text-emerald-400'
+                : 'text-[#8A8F98] group-hover:text-zinc-200'
+            }`}>
+              <BarChart3 className="w-5 h-5 transition-transform" />
+            </div>
+            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${
+              activeTab === 'history' ? 'font-bold text-emerald-400' : 'font-medium'
+            }`}>
+              Gráficos
+            </span>
+          </button>
+
+          {/* 3. Coach & Rutinas */}
+          <button
+            type="button"
+            onClick={() => navigate('/rutinas')}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${
+              activeTab === 'routines'
+                ? 'text-white'
+                : 'text-[#8A8F98] hover:text-zinc-300'
+            }`}
+          >
+            <div className={`p-1.5 rounded-xl transition-all relative ${
+              activeTab === 'routines'
+                ? 'bg-emerald-500/15 text-emerald-400'
+                : 'text-[#8A8F98] group-hover:text-zinc-200'
+            }`}>
+              <Sparkles className="w-5 h-5 transition-transform" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            </div>
+            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${
+              activeTab === 'routines' ? 'font-bold text-emerald-400' : 'font-medium'
+            }`}>
+              Coach
+            </span>
+          </button>
+
+          {/* 4. MyPowerUp */}
+          <button
+            type="button"
+            onClick={() => navigate('/mypowerup')}
+            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${
+              activeTab === 'mypowerup'
+                ? 'text-white'
+                : 'text-[#8A8F98] hover:text-zinc-300'
+            }`}
+          >
+            <div className={`p-1.5 rounded-xl transition-all ${
+              activeTab === 'mypowerup'
+                ? 'bg-emerald-500/15 text-emerald-400'
+                : 'text-[#8A8F98] group-hover:text-zinc-200'
+            }`}>
+              <Zap className="w-5 h-5 transition-transform fill-current" />
+            </div>
+            <span className={`text-[10px] font-mono tracking-tight mt-0.5 ${
+              activeTab === 'mypowerup' ? 'font-bold text-emerald-400' : 'font-medium'
+            }`}>
+              MyUp
+            </span>
+          </button>
+        </div>
+      </nav>
 
       {/* Modal de Metas */}
       <GoalsModal

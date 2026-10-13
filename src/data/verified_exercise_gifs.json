@@ -65,7 +65,7 @@
   },
   "prensa_piernas": {
     "name": "Prensa de Piernas 45°",
-    "gifUrl": ""
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2015/11/Leg-Press.gif"
   },
   "sentadilla_rack": {
     "name": "Sentadilla con Barra en Rack",
@@ -73,7 +73,7 @@
   },
   "extension_cuadriceps": {
     "name": "Extensión de Cuádriceps",
-    "gifUrl": ""
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/LEG-EXTENSION.gif"
   },
   "curl_femoral_tumbado": {
     "name": "Curl Femoral Tumbado",
@@ -113,7 +113,7 @@
   },
   "pajaros_posteriores": {
     "name": "Pájaros / Deltoides Posterior",
-    "gifUrl": ""
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Lateral-Raise.gif"
   },
   "press_arnold": {
     "name": "Press Arnold",
@@ -149,7 +149,7 @@
   },
   "press_frances": {
     "name": "Press Francés con Barra (Skullcrushers)",
-    "gifUrl": ""
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Triceps-Extension.gif"
   },
   "fondos_paralelas": {
     "name": "Fondos en Barras Paralelas (Dips)",
@@ -173,7 +173,7 @@
   },
   "plancha_abdominal": {
     "name": "Plancha Abdominal Isométrica",
-    "gifUrl": ""
+    "gifUrl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/plank.gif"
   },
   "cinta_correr": {
     "name": "Cinta de Correr",

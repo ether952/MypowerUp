@@ -91,7 +91,7 @@ export default function FloatingCoachWidget({
           type="button"
           onClick={() => setIsOpen(true)}
           aria-label="Abrir Coach Inteligente"
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 bg-zinc-900 hover:bg-black text-white rounded-full border border-emerald-500/40 shadow-[0_8px_30px_rgb(0,0,0,0.35)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.3)] transition-all duration-300 cursor-pointer group hover:scale-105 active:scale-95 select-none"
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2.5 px-3.5 py-2.5 sm:px-4 sm:py-3 bg-zinc-900 hover:bg-black text-white rounded-full border border-emerald-500/40 shadow-[0_8px_30px_rgb(0,0,0,0.35)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.3)] transition-all duration-300 cursor-pointer group hover:scale-105 active:scale-95 select-none"
         >
           <div className="relative">
             <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center">
@@ -119,7 +119,7 @@ export default function FloatingCoachWidget({
 
       {/* Ventana Flotante / Popover del Coach */}
       {isOpen && (
-        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[420px] max-h-[85vh] h-[580px] bg-[#121214] border border-[#2E2E34] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up font-sans select-none">
+        <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-[420px] max-h-[75vh] sm:max-h-[85vh] h-[580px] bg-[#121214] border border-[#2E2E34] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up font-sans select-none">
           
           {/* Header del Chat */}
           <div className="px-4 py-3.5 bg-[#18181B] border-b border-[#2E2E34] flex items-center justify-between shrink-0">
