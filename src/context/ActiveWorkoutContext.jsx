@@ -11,6 +11,14 @@ import {
   closeNativeNotification
 } from '../services/audioFeedbackService';
 import { resolveExerciseGifUrl } from '../utils/routineTemplates';
+import {
+  updateNativeWorkoutNotification,
+  cancelNativeWorkoutNotification,
+  subscribeToWorkoutActions,
+  triggerNativeVibrate,
+  setLockscreenVisibility
+} from '../services/lockscreenService';
+
 
 const ActiveWorkoutContext = createContext(null);
 
@@ -44,6 +52,11 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
   // Registro de series completadas en la sesión actual
   const [completedSets, setCompletedSets] = useState([]);
   const [isHudExpanded, setIsHudExpanded] = useState(false);
+  const [isLockscreenMode, setIsLockscreenMode] = useState(false);
+
+  // Referencias para el temporizador de descanso basado en timestamp real (NUNCA se congela)
+  const restEndTimeRef = useRef(null);
+  const totalRestDurationRef = useRef(90);
 
   // Referencias mutables para que los callbacks de MediaSession y SW siempre tengan datos frescos
   const stateRef = useRef({
@@ -57,7 +70,8 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     isResting: false,
     restSecondsLeft: 0,
     isPaused: false,
-    completedSets: []
+    completedSets: [],
+    isLockscreenMode: false
   });
 
   // Mantener sincronizado stateRef
@@ -73,7 +87,8 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
       isResting,
       restSecondsLeft,
       isPaused,
-      completedSets
+      completedSets,
+      isLockscreenMode
     };
   }, [
     isActive,
@@ -86,7 +101,8 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     isResting,
     restSecondsLeft,
     isPaused,
-    completedSets
+    completedSets,
+    isLockscreenMode
   ]);
 
   const currentExercise = workoutQueue[currentExerciseIndex] || null;
@@ -134,16 +150,19 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
       }
     }
 
-    // 2. Notificación Nativa persistente con botones interactivos (Android)
-    showOrUpdateNativeNotification({
+    // Asegurarse de cerrar cualquier notificación residual
+    closeNativeNotification();
+
+    // 2. Sincronizar datos con el widget de pantalla de bloqueo y widget de inicio
+    updateNativeWorkoutNotification({
       exerciseName: ex.name,
       currentSet: curr.currentSetIndex + 1,
       totalSets: curr.totalSets,
-      reps: curr.currentReps,
       weight: curr.currentWeight,
+      reps: curr.currentReps,
       isResting: curr.isResting,
       restSeconds: curr.restSecondsLeft,
-      gifUrl: resolvedImg
+      imageUrl: resolvedImg
     });
   }, []);
 
@@ -181,40 +200,48 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     const nextCompletedList = [...curr.completedSets, completedSetData];
     setCompletedSets(nextCompletedList);
 
-    // ¿Quedan más series de este ejercicio?
-    if (completedSetNumber < curr.totalSets) {
-      setCurrentSetIndex(completedSetNumber);
-      // Iniciar descanso
-      const restDuration = ex.restSeconds || targetRestSeconds || 90;
-      setRestSecondsLeft(restDuration);
-      setIsResting(true);
-    } else {
-      // Ejercicio completado: pasar al siguiente en cola o finalizar
-      const nextExIdx = curr.currentExerciseIndex + 1;
-      if (nextExIdx < curr.workoutQueue.length) {
-        const nextEx = curr.workoutQueue[nextExIdx];
-        setCurrentExerciseIndex(nextExIdx);
-        setCurrentSetIndex(0);
-        setTotalSets(nextEx.sets || 4);
-        setCurrentWeight(Number(nextEx.weight) || 20);
-        setCurrentReps(Number(nextEx.reps) || 10);
-        setCompletedSets([]);
-        // Descanso de transición entre ejercicios
-        const restDuration = nextEx.restSeconds || targetRestSeconds || 90;
-        setRestSecondsLeft(restDuration);
-        setIsResting(true);
-      } else {
-        // Rutina / Circuito completo finalizado con éxito
-        triggerHaptic([150, 100, 200, 100, 300]);
-        playChime('workout_complete');
-        setIsActive(false);
-        stopBackgroundAudio();
-        releaseScreenWakeLock();
-        closeNativeNotification();
-        return;
-      }
+    // Avanzar serie actual sin cerrar nunca la sesión
+    const nextSetIndex = completedSetNumber;
+    setCurrentSetIndex(nextSetIndex);
+
+    // Si alcanzó o superó totalSets, incrementamos totalSets para permitir series adicionales
+    if (nextSetIndex >= curr.totalSets) {
+      setTotalSets(nextSetIndex + 1);
     }
+
+    // Iniciar descanso entre series usando timestamp real para evitar congelamiento
+    const restDuration = ex.restSeconds || targetRestSeconds || 90;
+    totalRestDurationRef.current = restDuration;
+    restEndTimeRef.current = Date.now() + restDuration * 1000;
+    setRestSecondsLeft(restDuration);
+    setIsResting(true);
   }, [onLogSet, targetRestSeconds]);
+
+  /**
+   * Modificar tiempo de descanso en curso (+15s / -15s)
+   */
+  const addRestSeconds = useCallback((delta) => {
+    if (!stateRef.current.isResting) return;
+    triggerHaptic([35]);
+    const currentEnd = restEndTimeRef.current || (Date.now() + stateRef.current.restSecondsLeft * 1000);
+    const newEnd = currentEnd + delta * 1000;
+    restEndTimeRef.current = newEnd;
+
+    const remaining = Math.max(0, Math.ceil((newEnd - Date.now()) / 1000));
+    setRestSecondsLeft(remaining);
+
+    if (remaining > totalRestDurationRef.current) {
+      totalRestDurationRef.current = remaining;
+    }
+
+    if (remaining <= 0) {
+      setIsResting(false);
+      restEndTimeRef.current = null;
+      triggerHaptic([350, 150, 350, 150, 500]);
+      triggerNativeVibrate([350, 150, 350, 150, 500]);
+      playChime('rest_end');
+    }
+  }, []);
 
   /**
    * Ciclar / Cambiar Repeticiones (Mapeado a ⏮ Pista Anterior en pantalla de bloqueo o acción de notificación)
@@ -239,7 +266,7 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
   }, []);
 
   /**
-   * Ajustar peso (+ / - kg)
+   * Ajustar peso (+ / - kg) con soporte para cualquier incremento (0.5kg, 1kg, 2.5kg, etc.)
    */
   const adjustWeight = useCallback((delta) => {
     const curr = stateRef.current;
@@ -248,6 +275,20 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     triggerHaptic([35]);
     const nextVal = Math.max(0, Math.min(400, Math.round((curr.currentWeight + delta) * 10) / 10));
     setCurrentWeight(nextVal);
+  }, []);
+
+  /**
+   * Asignar peso exacto directamente (ej: 8kg para laterales con mancuerna)
+   */
+  const setWeightDirectly = useCallback((newWeight) => {
+    const curr = stateRef.current;
+    if (!curr.isActive) return;
+
+    const val = Math.max(0, Math.min(500, Math.round(Number(newWeight) * 10) / 10));
+    if (!isNaN(val)) {
+      triggerHaptic([30]);
+      setCurrentWeight(val);
+    }
   }, []);
 
   /**
@@ -260,6 +301,20 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     triggerHaptic([30]);
     const nextVal = Math.max(1, Math.min(100, curr.currentReps + delta));
     setCurrentReps(nextVal);
+  }, []);
+
+  /**
+   * Asignar repeticiones exactas directamente (ej: 10, 12, 15)
+   */
+  const setRepsDirectly = useCallback((newReps) => {
+    const curr = stateRef.current;
+    if (!curr.isActive) return;
+
+    const val = Math.max(1, Math.min(200, Math.round(Number(newReps))));
+    if (!isNaN(val)) {
+      triggerHaptic([30]);
+      setCurrentReps(val);
+    }
   }, []);
 
   /**
@@ -352,19 +407,8 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     requestScreenWakeLock();
     triggerHaptic([60, 40, 60]);
     playChime('set_done');
-
-    // Solicitar permiso de notificaciones en Android explícitamente si aún no se solicitó
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission().then((perm) => {
-          if (perm === 'granted') {
-            syncMediaSession();
-          }
-        }).catch(() => {});
-      } else if (Notification.permission === 'granted') {
-        syncMediaSession();
-      }
-    }
+    setLockscreenVisibility(true);
+    syncMediaSession();
   }, [syncMediaSession]);
 
   /**
@@ -373,9 +417,13 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
   const stopWorkout = useCallback(() => {
     setIsActive(false);
     setIsResting(false);
+    restEndTimeRef.current = null;
     stopBackgroundAudio();
     releaseScreenWakeLock();
     closeNativeNotification();
+    cancelNativeWorkoutNotification();
+    setIsLockscreenMode(false);
+    setLockscreenVisibility(false);
 
     if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
       navigator.mediaSession.playbackState = 'none';
@@ -386,10 +434,48 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
    * Saltar descanso anticipadamente
    */
   const skipRest = useCallback(() => {
+    restEndTimeRef.current = null;
     setIsResting(false);
     setRestSecondsLeft(0);
     triggerHaptic([40]);
   }, []);
+
+  // Sincronizar visibilidad nativa de pantalla de bloqueo cuando cambia el modo widget
+  useEffect(() => {
+    if (isActive) {
+      setLockscreenVisibility(isLockscreenMode);
+    }
+  }, [isActive, isLockscreenMode]);
+
+  // Escuchar acciones nativas directas desde la notificación de la pantalla de bloqueo (sin desbloquear)
+  useEffect(() => {
+    const unsub = subscribeToWorkoutActions((action) => {
+      if (action === 'next_set') {
+        completeCurrentSet();
+      } else if (action === 'add_weight') {
+        adjustWeight(2.5);
+      } else if (action === 'sub_weight') {
+        adjustWeight(-2.5);
+      } else if (action === 'add_weight_1kg') {
+        adjustWeight(1);
+      } else if (action === 'sub_weight_1kg') {
+        adjustWeight(-1);
+      } else if (action === 'add_weight_half') {
+        adjustWeight(0.5);
+      } else if (action === 'sub_weight_half') {
+        adjustWeight(-0.5);
+      } else if (action === 'add_reps') {
+        adjustReps(1);
+      } else if (action === 'sub_reps') {
+        adjustReps(-1);
+      } else if (action === 'skip_rest') {
+        skipRest();
+      } else if (action === 'stop_workout') {
+        stopWorkout();
+      }
+    });
+    return () => unsub();
+  }, [completeCurrentSet, adjustWeight, adjustReps, skipRest, stopWorkout]);
 
   // Registrar Service Worker al montar y escuchar acciones de notificaciones
   useEffect(() => {
@@ -418,23 +504,46 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
     }
   }, [completeCurrentSet, cycleReps, adjustWeight]);
 
-  // Temporizador de descanso (segundo a segundo)
+  // Temporizador de descanso (basado en timestamp real para que NUNCA se congele en segundo plano)
   useEffect(() => {
     if (!isActive || !isResting || isPaused) return;
 
-    const interval = setInterval(() => {
-      setRestSecondsLeft((prev) => {
-        if (prev <= 1) {
-          setIsResting(false);
-          triggerHaptic([150, 80, 150]);
-          playChime('rest_end');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const checkTimer = () => {
+      if (!restEndTimeRef.current) return;
+      const now = Date.now();
+      const remainingSeconds = Math.max(0, Math.ceil((restEndTimeRef.current - now) / 1000));
 
-    return () => clearInterval(interval);
+      setRestSecondsLeft(remainingSeconds);
+
+      if (remainingSeconds <= 0) {
+        setIsResting(false);
+        restEndTimeRef.current = null;
+        triggerHaptic([350, 150, 350, 150, 500]);
+        triggerNativeVibrate([350, 150, 350, 150, 500]);
+        playChime('rest_end');
+      }
+    };
+
+    checkTimer();
+    const interval = setInterval(checkTimer, 400);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkTimer();
+      }
+    };
+    const handleFocus = () => {
+      checkTimer();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [isActive, isResting, isPaused]);
 
   // Sincronizar MediaSession y Notificación nativa cada vez que cambia el estado relevante
@@ -515,16 +624,22 @@ export function ActiveWorkoutProvider({ children, onLogSet }) {
         currentReps,
         isResting,
         restSecondsLeft,
+        totalRestDuration: totalRestDurationRef.current || targetRestSeconds || 90,
+        addRestSeconds,
         isPaused,
         completedSets,
         isHudExpanded,
         setIsHudExpanded,
+        isLockscreenMode,
+        setIsLockscreenMode,
         startWorkout,
         stopWorkout,
         completeCurrentSet,
         cycleReps,
         adjustWeight,
+        setWeightDirectly,
         adjustReps,
+        setRepsDirectly,
         addTotalSet,
         removeTotalSet,
         skipToNextExercise,

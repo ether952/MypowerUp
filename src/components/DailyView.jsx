@@ -20,7 +20,8 @@ import {
   Sparkles,
   Sliders,
   Layers,
-  XCircle
+  XCircle,
+  Camera
 } from 'lucide-react';
 import {
   calculate1RM,
@@ -42,6 +43,9 @@ import EditWorkoutModal from './EditWorkoutModal';
 import EditFoodModal from './EditFoodModal';
 import VisualGymExercisePicker from './VisualGymExercisePicker';
 import ExerciseDbPicker from './ExerciseDbPicker';
+import FoodScannerModal from './FoodScannerModal';
+import ButtonSparkles from './ButtonSparkles';
+import { playSatisfyingCheckSound } from '../services/audioFeedbackService';
 import bgMusculacion from '../assets/bg-musculacion-hd.png';
 import bgAlimentos from '../assets/bg-alimentos-hd.png';
 import bgCardio from '../assets/bg-cardio-hd.png';
@@ -174,11 +178,22 @@ export default function DailyView({
   const [calories, setCalories] = useState('');
   const [protein, setProtein] = useState('');
   const [isEstimatingAI, setIsEstimatingAI] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [editingFood, setEditingFood] = useState(null);
   const [lastEstimatedFood, setLastEstimatedFood] = useState('');
   const aiDebounceTimerRef = useRef(null);
   const aiRequestIdRef = useRef(0);
   const currentNutritionEst = useMemo(() => estimateNutrition(foodName), [foodName]);
+
+  const handleApplyScannedFood = (scannedFood) => {
+    if (!scannedFood) return;
+    setFoodName(scannedFood.name || '');
+    setCalories(String(scannedFood.calories || 0));
+    setProtein(String(scannedFood.protein || 0));
+    if (scannedFood.mealType) {
+      setMealType(scannedFood.mealType);
+    }
+  };
   const [showQuickFoods, setShowQuickFoods] = useState(false);
   const [showQuickSupps, setShowQuickSupps] = useState(false);
   const [foodSuggestions, setFoodSuggestions] = useState([]);
@@ -193,6 +208,9 @@ export default function DailyView({
   const [cardioDistance, setCardioDistance] = useState('');
   const [cardioTime, setCardioTime] = useState(() => getCurrentTimeString());
   const [isCardioFormOpen, setIsCardioFormOpen] = useState(false);
+  const [exerciseSparkle, setExerciseSparkle] = useState(false);
+  const [foodSparkle, setFoodSparkle] = useState(false);
+  const [cardioSparkle, setCardioSparkle] = useState(false);
   const cardioSectionRef = useRef(null);
   const sec1ContentRef = useRef(null);
   const sec2ContentRef = useRef(null);
@@ -220,6 +238,12 @@ export default function DailyView({
     if (onAddCardio) {
       onAddCardio(payload);
     }
+
+    setCardioSparkle(true);
+    playSatisfyingCheckSound();
+    setTimeout(() => {
+      setCardioSparkle(false);
+    }, 1200);
 
     setCardioFrom('');
     setCardioTo('');
@@ -496,6 +520,11 @@ export default function DailyView({
     }
 
     onAddWorkout(workoutPayload);
+    setExerciseSparkle(true);
+    playSatisfyingCheckSound();
+    setTimeout(() => {
+      setExerciseSparkle(false);
+    }, 1200);
 
     // Guardar en memoria
     const key = exerciseName.trim().toLowerCase();
@@ -564,6 +593,11 @@ export default function DailyView({
     };
 
     onAddFood(foodPayload);
+    setFoodSparkle(true);
+    playSatisfyingCheckSound();
+    setTimeout(() => {
+      setFoodSparkle(false);
+    }, 1200);
 
     // Guardar en memoria inteligente aprendida (solo si contiene valores reales > 0)
     if (finalCalories > 0 || finalProtein > 0) {
@@ -1100,9 +1134,22 @@ export default function DailyView({
 
                         <button
                           type="submit"
-                          className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0 font-mono"
+                          className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0 font-mono ${
+                            exerciseSparkle
+                              ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
+                              : 'bg-black hover:bg-zinc-800 text-white'
+                          }`}
                         >
-                          <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR EJERCICIO
+                          <ButtonSparkles active={exerciseSparkle} />
+                          {exerciseSparkle ? (
+                            <>
+                              <Check className="w-4 h-4 stroke-[3] text-white" /> ¡REGISTRADO!
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-4 h-4 stroke-[3]" /> REGISTRAR EJERCICIO
+                            </>
+                          )}
                         </button>
                       </div>
 
@@ -1342,38 +1389,29 @@ export default function DailyView({
                           </button>
                         )}
 
-                        {/* Dropdown de Alimentos Rápidos */}
+                        {/* Dropdown de Alimentos Rápidos (Solucionado crash) */}
                         {showQuickFoods && (
                           <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col">
                             <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between text-[11px] font-mono text-zinc-900 uppercase font-bold tracking-wider select-none shrink-0">
-                              <span>Base de Alimentos</span>
+                              <span>Base de Alimentos Frecuentes</span>
                               <span className="text-[10px] text-zinc-500 font-mono font-normal">
-                                {Object.keys(QUICK_FOODS).length} categorías
+                                {QUICK_FOODS.length} sugerencias
                               </span>
                             </div>
 
                             <div className="max-h-72 overflow-y-auto divide-y divide-zinc-100 custom-scrollbar">
-                              {Object.entries(QUICK_FOODS).map(([category, items]) => (
-                                <div key={category} className="py-2">
-                                  <div className="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-600 font-bold bg-zinc-50">
-                                    {category}
-                                  </div>
-                                  <div className="divide-y divide-zinc-100">
-                                    {items.map((item, idx) => (
-                                      <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() => handleSelectQuickFood(item)}
-                                        className="w-full text-left px-5 py-2 hover:bg-zinc-50 flex items-center justify-between text-xs text-zinc-700 hover:text-black transition-colors font-medium cursor-pointer"
-                                      >
-                                        <span>{item.name}</span>
-                                        <span className="text-[10px] font-mono text-zinc-600 font-bold">
-                                          {item.calories} kcal ({item.protein}g P)
-                                        </span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
+                              {QUICK_FOODS.map((item, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => handleSelectQuickFood(item)}
+                                  className="w-full text-left px-5 py-2.5 hover:bg-zinc-50 flex items-center justify-between text-xs text-zinc-700 hover:text-black transition-colors font-medium cursor-pointer"
+                                >
+                                  <span className="font-semibold text-zinc-900">{item.name}</span>
+                                  <span className="text-[10px] font-mono text-emerald-600 font-bold ml-2 shrink-0">
+                                    {item.calories} kcal • {item.protein}g P
+                                  </span>
+                                </button>
                               ))}
                             </div>
                           </div>
@@ -1550,13 +1588,37 @@ export default function DailyView({
 
                 </div>
 
-                {/* Botón de envío */}
-                <div className="flex justify-end pt-0.5">
+                {/* Botón de envío y Cámara al lado */}
+                <div className="flex flex-wrap items-center justify-end gap-2.5 pt-1">
+                  {/* Botón para activar la cámara al lado de registrar */}
+                  <button
+                    type="button"
+                    onClick={() => setIsScannerOpen(true)}
+                    className="px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 hover:text-black border border-zinc-300 font-bold font-mono text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-xs select-none"
+                    title="Escanear plato o alimento con la cámara del celular"
+                  >
+                    <Camera className="w-4 h-4 text-emerald-600" />
+                    <span>ACTIVAR CÁMARA</span>
+                  </button>
+
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono"
+                    className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono ${
+                      foodSparkle
+                        ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
+                        : 'bg-black hover:bg-zinc-800 text-white'
+                    }`}
                   >
-                    <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR {mealType === 'suplementacion' ? 'SUPLEMENTO' : 'COMIDA'}
+                    <ButtonSparkles active={foodSparkle} />
+                    {foodSparkle ? (
+                      <>
+                        <Check className="w-4 h-4 stroke-[3] text-white" /> ¡REGISTRADO!
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 stroke-[3]" /> REGISTRAR {mealType === 'suplementacion' ? 'SUPLEMENTO' : 'ALIMENTO'}
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -1810,9 +1872,22 @@ export default function DailyView({
 
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono"
+                    className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono ${
+                      cardioSparkle
+                        ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
+                        : 'bg-black hover:bg-zinc-800 text-white'
+                    }`}
                   >
-                    <Plus className="w-4 h-4 stroke-[3]" /> AGREGAR SESIÓN DE CARDIO
+                    <ButtonSparkles active={cardioSparkle} />
+                    {cardioSparkle ? (
+                      <>
+                        <Check className="w-4 h-4 stroke-[3] text-white" /> ¡REGISTRADO!
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 stroke-[3]" /> REGISTRAR SESIÓN DE CARDIO
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -1921,6 +1996,13 @@ export default function DailyView({
             onUpdateFood(updated.id, updated, selectedDate);
           }
         }}
+      />
+
+      <FoodScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onApplyFood={handleApplyScannedFood}
+        goals={goals}
       />
 
     </div>

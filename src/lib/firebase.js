@@ -1,9 +1,12 @@
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getAuth, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signInWithPopup, 
+  signInWithCredential, 
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged,
@@ -67,6 +70,32 @@ export const registerWithEmail = async (email, password, displayName = '') => {
 
 export const loginWithGoogle = async () => {
   if (!auth || !googleProvider) throw new Error('Firebase no está configurado. Agrega tus credenciales en el archivo .env');
+
+  // Si está en el APK de Android
+  if (Capacitor.isNativePlatform() || Capacitor.getPlatform() === 'android') {
+    let result;
+    try {
+      // Intento 1: flujo nativo moderno (Credential Manager)
+      result = await FirebaseAuthentication.signInWithGoogle({
+        skipNativeAuth: true
+      });
+    } catch (cmErr) {
+      console.warn('CredentialManager falló, reintentando con GoogleSignIn nativo tradicional:', cmErr);
+      // Intento 2: flujo nativo clásico de Google Play Services
+      result = await FirebaseAuthentication.signInWithGoogle({
+        skipNativeAuth: true,
+        useCredentialManager: false
+      });
+    }
+
+    const idToken = result?.credential?.idToken || result?.idToken;
+    if (!idToken) throw new Error('No se recibió el token de autorización de Google.');
+    
+    const credential = GoogleAuthProvider.credential(idToken);
+    return await signInWithCredential(auth, credential);
+  }
+
+  // Si está en el navegador web
   return await signInWithPopup(auth, googleProvider);
 };
 

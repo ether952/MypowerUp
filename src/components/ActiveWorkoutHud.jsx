@@ -40,6 +40,8 @@ export default function ActiveWorkoutHud() {
     completedSets,
     isHudExpanded,
     setIsHudExpanded,
+    isLockscreenMode,
+    setIsLockscreenMode,
     completeCurrentSet,
     cycleReps,
     adjustWeight,
@@ -56,13 +58,13 @@ export default function ActiveWorkoutHud() {
 
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  if (!isActive || !currentExercise) return null;
+  if (!isActive || !currentExercise || isLockscreenMode) return null;
 
   const currentSetDisplay = currentSetIndex + 1;
   const resolvedImg = resolveExerciseGifUrl(currentExercise) || currentExercise.gifUrl;
 
-  // Acceso rápido a discos de peso típicos de gimnasio (+ / - kg)
-  const QUICK_WEIGHT_OFFSETS = [-10, -5, -2.5, 2.5, 5, 10];
+  // Acceso rápido a discos y mancuernas de gimnasio (+ / - kg)
+  const QUICK_WEIGHT_OFFSETS = [-5, -2.5, -1, 1, 2.5, 5];
   const COMMON_REP_PILLS = [6, 8, 10, 12, 15, 20];
 
   return (
@@ -162,6 +164,16 @@ export default function ActiveWorkoutHud() {
               </button>
             )}
 
+            {/* Botón Modo Pantalla de Bloqueo / Widget */}
+            <button
+              type="button"
+              onClick={() => setIsLockscreenMode(true)}
+              className="p-1.5 text-zinc-400 hover:text-emerald-400 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+              title="Abrir Widget de Pantalla de Bloqueo"
+            >
+              <Lock className="w-4 h-4" />
+            </button>
+
             {/* Botón Expandir a Pantalla Completa */}
             <button
               type="button"
@@ -199,6 +211,16 @@ export default function ActiveWorkoutHud() {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Botón Modo Pantalla de Bloqueo */}
+              <button
+                type="button"
+                onClick={() => setIsLockscreenMode(true)}
+                className="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-emerald-400 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+                title="Activar Widget de Pantalla de Bloqueo"
+              >
+                <Lock className="w-3.5 h-3.5" />
+              </button>
+
               {/* Botón Minimizar */}
               <button
                 type="button"
@@ -320,13 +342,12 @@ export default function ActiveWorkoutHud() {
                   return (
                     <div
                       key={setNum}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 shrink-0 transition-all ${
-                        isDone
+                      className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 shrink-0 transition-all ${isDone
                           ? 'bg-emerald-950/40 border border-emerald-500/40 text-emerald-300'
                           : isCurrent
-                          ? 'bg-emerald-500 text-black shadow-md ring-2 ring-emerald-400 font-black'
-                          : 'bg-zinc-800/80 border border-zinc-700/60 text-zinc-400'
-                      }`}
+                            ? 'bg-emerald-500 text-black shadow-md ring-2 ring-emerald-400 font-black'
+                            : 'bg-zinc-800/80 border border-zinc-700/60 text-zinc-400'
+                        }`}
                     >
                       {isDone ? (
                         <>
@@ -443,11 +464,10 @@ export default function ActiveWorkoutHud() {
                       key={repsVal}
                       type="button"
                       onClick={() => setCurrentReps(repsVal)}
-                      className={`py-1.5 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer text-center ${
-                        currentReps === repsVal
+                      className={`py-1.5 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer text-center ${currentReps === repsVal
                           ? 'bg-emerald-500 text-black font-black'
                           : 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300'
-                      }`}
+                        }`}
                     >
                       {repsVal}r
                     </button>

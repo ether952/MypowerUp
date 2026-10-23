@@ -28,6 +28,7 @@ import MyPowerUpView from './components/MyPowerUpView';
 import CoachRoutinesView from './components/CoachRoutinesView';
 import FloatingCoachWidget from './components/FloatingCoachWidget';
 import ActiveWorkoutHud from './components/ActiveWorkoutHud';
+import LockscreenWidget from './components/LockscreenWidget';
 import { ActiveWorkoutProvider } from './context/ActiveWorkoutContext';
 import GoalsModal from './components/GoalsModal';
 import LandingView from './components/LandingView';
@@ -35,6 +36,7 @@ import RegisterView from './components/RegisterView';
 import LoginDrawer from './components/LoginDrawer';
 import HeaderLoginDropdown from './components/HeaderLoginDropdown';
 import Footer from './components/Footer';
+import { playSatisfyingCheckSound } from './services/audioFeedbackService';
 import powerUpLogoImg from './assets/logo-mypowerup.png';
 import {
   getLocalDateString,
@@ -412,6 +414,7 @@ export default function App() {
         [selectedDate]: { ...day, foods: newFoods },
       };
     });
+    playSatisfyingCheckSound();
     showToast('Alimento registrado');
   };
 
@@ -453,6 +456,7 @@ export default function App() {
         [selectedDate]: { ...day, workouts: newWorkouts },
       };
     });
+    playSatisfyingCheckSound();
     showToast('Ejercicio registrado');
   };
 
@@ -499,6 +503,7 @@ export default function App() {
         [todayStr]: { ...day, workouts: updatedWorkouts },
       };
     });
+    playSatisfyingCheckSound();
     showToast(`Serie ${setNumber} registrada (${weight}kg × ${reps} reps)`);
   };
 
@@ -540,6 +545,7 @@ export default function App() {
         [selectedDate]: { ...day, cardios: newCardios }
       };
     });
+    playSatisfyingCheckSound();
     showToast('Cardio registrado');
   };
 
@@ -566,6 +572,9 @@ export default function App() {
         [targetDate]: { ...day, weight: newWeight !== null ? newWeight.toString() : '' },
       };
     });
+    if (newWeight) {
+      playSatisfyingCheckSound();
+    }
     showToast('Peso corporal actualizado');
   };
 
@@ -610,6 +619,7 @@ export default function App() {
 
     setSelectedDate(todayStr);
     navigate('/diario');
+    playSatisfyingCheckSound();
     showToast(`¡${exercises.length} ejercicios cargados en tu Diario de hoy!`);
   };
 
@@ -1207,8 +1217,11 @@ export default function App() {
         }}
       />
 
-      {/* HUD Flotante del Entrenamiento Activo (Pantalla de Bloqueo & Mini-player móvil) */}
+      {/* HUD Flotante del Entrenamiento Activo (Mini-player móvil y pantalla completa) */}
       <ActiveWorkoutHud />
+
+      {/* Widget Minimalista y Ágil para Pantalla de Bloqueo */}
+      <LockscreenWidget />
     </div>
   </ActiveWorkoutProvider>
   );

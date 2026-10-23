@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "937355101895",
+    "project_id": "mypowerup-543da",
+    "storage_bucket": "mypowerup-543da.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937355101895:android:37ddfaf3c140bd8db520e2",
+        "android_client_info": {
+          "package_name": "com.mypowerup.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "937355101895-cl9tp114m5hnsec40vfc2ue1o8urnmdb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mypowerup.app",
+            "certificate_hash": "f5ab3125c8c72340655af560cd974d09e2ceac93"
+          }
+        },
+        {
+          "client_id": "937355101895-g1sonnp7oajrct6nvtncaf4rhkt1iulq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDw-JT-E2oYzEMEbltIVK70WHkPrZgSlnU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "937355101895-g1sonnp7oajrct6nvtncaf4rhkt1iulq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

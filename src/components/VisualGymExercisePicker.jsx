@@ -13,6 +13,8 @@ import {
   Play
 } from 'lucide-react';
 import { useActiveWorkout } from '../context/ActiveWorkoutContext';
+import ButtonSparkles from './ButtonSparkles';
+import { playSatisfyingCheckSound } from '../services/audioFeedbackService';
 import spriteSheetImg from '../assets/gym-exercises-spritesheet.png';
 
 // Colección de 48 Ejercicios y Máquinas de Gimnasio con Animaciones 3D Musculares Verificadas (48/48 HTTP 200 OK)
@@ -545,21 +547,20 @@ export default function VisualGymExercisePicker({
   rememberedWorkouts = {},
   onUpdateRememberedWorkouts
 }) {
-  const { startWorkout } = useActiveWorkout();
+  const { startWorkout, setIsLockscreenMode } = useActiveWorkout();
   const [selectedCategory, setSelectedCategory] = useState('Todos');
-  const [selectedExercise, setSelectedExercise] = useState(GYM_EXERCISES_SPRITES[0]);
+  const [selectedExercise, setSelectedExercise] = useState(null);
   const [activeSetIndex, setActiveSetIndex] = useState(0);
-  const [currentWeight, setCurrentWeight] = useState(GYM_EXERCISES_SPRITES[0].defaultWeight);
-  const [currentReps, setCurrentReps] = useState(GYM_EXERCISES_SPRITES[0].defaultReps);
+  const [currentWeight, setCurrentWeight] = useState(20);
+  const [currentReps, setCurrentReps] = useState(10);
   const [failedImages, setFailedImages] = useState({});
   const [isJustSaved, setIsJustSaved] = useState(false);
 
   // Lista de series configuradas
-  const [seriesList, setSeriesList] = useState([
-    { setNumber: 1, weight: GYM_EXERCISES_SPRITES[0].defaultWeight, reps: GYM_EXERCISES_SPRITES[0].defaultReps }
-  ]);
+  const [seriesList, setSeriesList] = useState([]);
 
   const carouselRef = useRef(null);
+  const configPanelRef = useRef(null);
 
   // Filtrar ejercicios por categoría
   const filteredExercises = useMemo(() => {
@@ -567,7 +568,7 @@ export default function VisualGymExercisePicker({
     return GYM_EXERCISES_SPRITES.filter((ex) => ex.category === selectedCategory);
   }, [selectedCategory]);
 
-  // Al seleccionar un ejercicio nuevo del carrusel
+  // Al seleccionar un ejercicio nuevo del carrusel (Paso 1 -> Paso 2 con scroll suave)
   const handleSelectExercise = (exercise) => {
     setSelectedExercise(exercise);
     setCurrentWeight(exercise.defaultWeight);
@@ -576,6 +577,11 @@ export default function VisualGymExercisePicker({
       { setNumber: 1, weight: exercise.defaultWeight, reps: exercise.defaultReps }
     ]);
     setActiveSetIndex(0);
+
+    // Animación suave de scroll hacia la sección de pesos y series
+    setTimeout(() => {
+      configPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
   };
 
   const scrollCarousel = (direction) => {
@@ -691,11 +697,13 @@ export default function VisualGymExercisePicker({
       }
     }
 
-    // Feedback visual claro e inmediato
+    // Feedback sonoro y visual con estrellitas verdes
+    playSatisfyingCheckSound();
     setIsJustSaved(true);
     setTimeout(() => {
       setIsJustSaved(false);
-    }, 2200);
+      setSelectedExercise(null); // Vuelve al Paso 1 para elegir el siguiente ejercicio
+    }, 1800);
 
     if (onClose) onClose();
   };
@@ -706,9 +714,19 @@ export default function VisualGymExercisePicker({
       {/* 1. CABECERA & CONTROLES DEL VISUALIZADOR */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 pb-4">
         <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 text-[10px] font-mono font-extrabold uppercase tracking-wider">
+              {selectedExercise ? 'Paso 1 Completado ✓' : 'Paso 1: Seleccionar Ejercicio'}
+            </span>
+          </div>
           <h3 className="text-xl sm:text-2xl font-black text-zinc-900 uppercase font-display tracking-tight">
-            SELECTOR
+            SELECTOR VISUAL
           </h3>
+          <p className="text-xs text-zinc-500 font-mono mt-0.5">
+            {selectedExercise
+              ? 'Ejercicio seleccionado. Configura tus cargas y series a continuación.'
+              : 'Toca un ejercicio del carrusel para abrir la torre de placas y cargar series.'}
+          </p>
         </div>
       </div>
       {/* 2. FILTROS DE CATEGORÍA */}
@@ -824,9 +842,29 @@ export default function VisualGymExercisePicker({
         </div>
       </div>
 
-      {/* 4. PANEL DE CARGA DE SERIES, PLACAS Y PESO */}
+      {/* INDICADOR PASO 1 CUANDO NO HAY EJERCICIO SELECCIONADO */}
+      {!selectedExercise && (
+        <div className="border-2 border-dashed border-zinc-200 rounded-2xl p-6 sm:p-8 text-center flex flex-col items-center justify-center gap-2.5 bg-zinc-50/70 animate-fade-in transition-all">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-zinc-200 shadow-xs flex items-center justify-center text-emerald-600">
+            <Dumbbell className="w-6 h-6 stroke-[2.5]" />
+          </div>
+          <div className="space-y-1">
+            <span className="font-mono text-xs sm:text-sm font-black text-zinc-900 uppercase tracking-wider block">
+              Paso 1: Selecciona un ejercicio del catálogo arriba
+            </span>
+            <p className="text-xs text-zinc-500 font-mono max-w-md mx-auto">
+              Al tocar cualquier ejercicio se desplegará suavemente hacia abajo la torre de placas interactiva para registrar tus series, pesos y repeticiones.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 4. PANEL DE CARGA DE SERIES, PLACAS Y PESO (PASO 2) */}
       {selectedExercise && (
-        <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 sm:p-6 space-y-5 shadow-inner">
+        <div
+          ref={configPanelRef}
+          className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 sm:p-6 space-y-5 shadow-inner animate-fade-in-up scroll-mt-20 transition-all"
+        >
 
           {/* Fila Superior: Ejercicio Activo Destacado + Pestañas de Series */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 pb-4">
@@ -854,9 +892,14 @@ export default function VisualGymExercisePicker({
                 )}
               </div>
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 font-extrabold block">
-                  {selectedExercise.category}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 font-extrabold block">
+                    {selectedExercise.category}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
+                    Paso 2: Cargar Series & Pesos
+                  </span>
+                </div>
                 <h4 className="text-base sm:text-lg font-black text-zinc-900 font-display">
                   {selectedExercise.name}
                 </h4>
@@ -866,8 +909,9 @@ export default function VisualGymExercisePicker({
               </div>
             </div>
 
-            {/* Pestañas de Series (Set 1, Set 2, Set 3...) */}
-            <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Pestañas de Series (Set 1, Set 2, Set 3...) + Botón Cambiar Ejercicio */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
               {seriesList.map((set, idx) => (
                 <div
                   key={set.setNumber}
@@ -902,14 +946,26 @@ export default function VisualGymExercisePicker({
                 </div>
               ))}
 
+                <button
+                  type="button"
+                  onClick={handleAddNextSet}
+                  className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-mono text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                  title="Añadir otra serie"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Serie</span>
+                </button>
+              </div>
+
+              {/* Botón para cambiar / cerrar y elegir otro ejercicio */}
               <button
                 type="button"
-                onClick={handleAddNextSet}
-                className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-mono text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
-                title="Añadir otra serie"
+                onClick={() => setSelectedExercise(null)}
+                className="px-3 py-1.5 rounded-xl bg-zinc-200/90 hover:bg-zinc-300 text-zinc-800 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                title="Volver al catálogo para elegir otro ejercicio"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Serie</span>
+                <X className="w-3.5 h-3.5" />
+                <span>Cambiar</span>
               </button>
             </div>
           </div>
@@ -1094,27 +1150,28 @@ export default function VisualGymExercisePicker({
                       gifUrl: selectedExercise.gifUrl,
                       weight: currentWeight,
                       reps: currentReps,
-                      sets: seriesList.length || 4,
+                      sets: Math.max(seriesList.length, 4),
                       restSeconds: 90
                     });
+                    setIsLockscreenMode(true);
                   }}
-                  className="w-full py-3 px-4 font-mono text-xs font-black uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black transition-all cursor-pointer active:scale-[0.98] hover:scale-[1.01]"
+                  className="w-full py-3 px-4 font-mono text-xs font-black uppercase tracking-wider rounded-xl shadow-md flex md:hidden items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black transition-all cursor-pointer active:scale-[0.98] hover:scale-[1.01]"
                   title="Inicia este ejercicio con controles en la pantalla de bloqueo y barra flotante"
                 >
                   <Play className="w-4 h-4 fill-black" />
-                  <span>▶ Iniciar Ahora (Modo Bloqueo)</span>
+                  <span> Iniciar Ahora</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleSaveCompleteWorkout}
                   disabled={isJustSaved}
-                  className={`w-full py-3.5 px-4 font-mono text-xs font-black uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] ${
-                    isJustSaved
-                      ? 'bg-emerald-600 text-white shadow-emerald-500/30 ring-2 ring-emerald-400'
-                      : 'bg-black hover:bg-zinc-800 text-white hover:shadow-lg'
-                  }`}
+                  className={`relative overflow-visible w-full py-3.5 px-4 font-mono text-xs font-black uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] ${isJustSaved
+                    ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
+                    : 'bg-black hover:bg-zinc-800 text-white hover:shadow-lg'
+                    }`}
                 >
+                  <ButtonSparkles active={isJustSaved} />
                   {isJustSaved ? (
                     <>
                       <Check className="w-4 h-4 stroke-[3] text-white" />
@@ -1123,7 +1180,7 @@ export default function VisualGymExercisePicker({
                   ) : (
                     <>
                       <Check className="w-4 h-4 stroke-[3] text-emerald-400" />
-                      <span>Registrar en Diario ({seriesList.length} {seriesList.length === 1 ? 'Serie' : 'Series'})</span>
+                      <span>Registrar ({seriesList.length} {seriesList.length === 1 ? 'Serie' : 'Series'})</span>
                     </>
                   )}
                 </button>

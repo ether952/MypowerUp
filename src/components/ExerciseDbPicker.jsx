@@ -18,6 +18,8 @@ import {
   BODY_PARTS_ES,
   CURATED_FALLBACK_EXERCISES
 } from '../services/exerciseDbService';
+import ButtonSparkles from './ButtonSparkles';
+import { playSatisfyingCheckSound } from '../services/audioFeedbackService';
 
 export default function ExerciseDbPicker({ onAddWorkout }) {
   const [exercises, setExercises] = useState(CURATED_FALLBACK_EXERCISES);
@@ -92,6 +94,7 @@ export default function ExerciseDbPicker({ onAddWorkout }) {
     };
 
     if (onAddWorkout) {
+      playSatisfyingCheckSound();
       onAddWorkout(workoutPayload);
       setIsAddedSuccess(true);
       setTimeout(() => setIsAddedSuccess(false), 2000);
@@ -281,21 +284,22 @@ export default function ExerciseDbPicker({ onAddWorkout }) {
                 {/* Botón de Carga Directa */}
                 <button
                   type="submit"
-                  className={`w-full py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98 ${
+                  className={`relative overflow-visible w-full py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98 ${
                     isAddedSuccess
-                      ? 'bg-emerald-500 text-black'
+                      ? 'bg-emerald-500 text-black shadow-emerald-500/40 ring-2 ring-emerald-400'
                       : 'bg-zinc-900 hover:bg-black text-white'
                   }`}
                 >
+                  <ButtonSparkles active={isAddedSuccess} />
                   {isAddedSuccess ? (
                     <>
                       <Check className="w-4 h-4 stroke-[3]" />
-                      <span>¡EJERCICIO AGREGADO!</span>
+                      <span>¡EJERCICIO REGISTRADO!</span>
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4 stroke-[3]" />
-                      <span>AGREGAR A MI ENTRENAMIENTO</span>
+                      <span>REGISTRAR EN MI ENTRENAMIENTO</span>
                     </>
                   )}
                 </button>

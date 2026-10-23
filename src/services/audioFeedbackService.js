@@ -46,14 +46,113 @@ export function stopBackgroundAudio() {
   }
 }
 
+let sharedAudioCtx = null;
+
+/**
+ * Obtiene o inicializa la instancia compartida de AudioContext para evitar límites de instancias
+ */
+export function getSharedAudioContext() {
+  try {
+    if (typeof window === 'undefined') return null;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+      sharedAudioCtx = new AudioCtx();
+    }
+    if (sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume().catch(() => {});
+    }
+    return sharedAudioCtx;
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * Sonido satisfactorio de "check" más grave, cálido y con cuerpo (estilo gimnasio/tecnología moderna)
+ * Diseñado con una base más grave (C4 - E4 - G4) y un "thock" táctil de 85Hz que combina
+ * perfectamente con la estética oscura y deportiva de MyPowerUp.
+ */
+export function playSatisfyingCheckSound() {
+  try {
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // 1. Golpe de cuerpo táctil y grave ("thock" mecánico / peso encajado)
+    const subOsc = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(240, now);
+    subOsc.frequency.exponentialRampToValueAtTime(75, now + 0.045);
+    subGain.gain.setValueAtTime(0.2, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    subOsc.connect(subGain);
+    subGain.connect(ctx.destination);
+    subOsc.start(now);
+    subOsc.stop(now + 0.055);
+
+    // 2. Primera nota cálida y con cuerpo (Do4 / C4: 261.63 Hz subiendo a Mi4 / E4: 329.63 Hz)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(261.63, now + 0.012);
+    osc1.frequency.exponentialRampToValueAtTime(329.63, now + 0.055);
+    gain1.gain.setValueAtTime(0.001, now + 0.012);
+    gain1.gain.linearRampToValueAtTime(0.24, now + 0.03);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now + 0.012);
+    osc1.stop(now + 0.4);
+
+    // 3. Segunda nota de confirmación y plenitud (Sol4 / G4: 392.00 Hz)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    const t2 = now + 0.04;
+    osc2.frequency.setValueAtTime(392.00, t2);
+    gain2.gain.setValueAtTime(0.001, t2);
+    gain2.gain.linearRampToValueAtTime(0.22, t2 + 0.025);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.44);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(t2);
+    osc2.stop(t2 + 0.46);
+
+    // 4. Resonancia suave aterciopelada (Do5 / C5: 523.25 Hz, tipo piano eléctrico/tecnológico)
+    const osc3 = ctx.createOscillator();
+    const gain3 = ctx.createGain();
+    osc3.type = 'triangle';
+    const t3 = now + 0.07;
+    osc3.frequency.setValueAtTime(523.25, t3);
+    gain3.gain.setValueAtTime(0.001, t3);
+    gain3.gain.linearRampToValueAtTime(0.12, t3 + 0.02);
+    gain3.gain.exponentialRampToValueAtTime(0.0001, t3 + 0.35);
+    osc3.connect(gain3);
+    gain3.connect(ctx.destination);
+    osc3.start(t3);
+    osc3.stop(t3 + 0.38);
+
+    // Feedback háptico en smartphones
+    triggerHaptic([35, 20, 50]);
+  } catch (err) {
+    console.warn('Error reproduciendo sonido de check:', err);
+  }
+}
+
 /**
  * Sintetizador Web Audio API para notificaciones sonoras sin archivos externos
  */
 export function playChime(type = 'set_done') {
+  if (type === 'check_success' || type === 'registration_success') {
+    playSatisfyingCheckSound();
+    return;
+  }
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
 
     if (type === 'set_done') {
       // Doble campana energética de serie completada
