@@ -226,8 +226,8 @@ export default function ChartsView({
               type="button"
               onClick={() => setRangeDays(days)}
               className={`px-3.5 py-1.5 rounded-lg font-bold transition-all uppercase cursor-pointer ${rangeDays === days
-                  ? 'bg-zinc-900 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+                ? 'bg-zinc-900 text-white shadow-xs'
+                : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
                 }`}
             >
               {days === 7 ? '7 DÍAS' : `${days} DÍAS`}
@@ -242,7 +242,7 @@ export default function ChartsView({
       <div className="space-y-8">
 
         {/* KPI HUD - DISEÑO ABIERTO Y ELEGANTE */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-5 bg-white border border-zinc-200 rounded-2xl shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-5 shadow-xs">
           <div className="space-y-1">
             <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
               <span>Días Entrenados</span>
@@ -274,7 +274,7 @@ export default function ChartsView({
         {/* ========================================================================= */}
         {/* SECCIÓN: PROGRESIÓN DE FUERZA (SUBIDA DE PESOS)                           */}
         {/* ========================================================================= */}
-        <div className="space-y-5 bg-white border border-zinc-200 rounded-2xl p-5 sm:p-6 shadow-xs">
+        <div className="space-y-5 p-5 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="space-y-1">
               <div className="text-xs font-mono text-emerald-600 uppercase tracking-wider font-bold">
@@ -288,11 +288,11 @@ export default function ChartsView({
             {/* Selector de ejercicio */}
             {availableExercises.length > 0 && (
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <label className="text-xs font-mono text-zinc-500 uppercase whitespace-nowrap">Ejercicio:</label>
+                <label className="text-xs font-mono text-zinc-500 uppercase">Ejercicio:</label>
                 <select
                   value={selectedExercise}
                   onChange={(e) => setSelectedExercise(e.target.value)}
-                  className="bg-zinc-50 border border-zinc-200 text-zinc-900 px-3.5 py-2 rounded-xl text-xs font-mono focus:border-zinc-900 outline-none w-full sm:w-auto cursor-pointer shadow-xs"
+                  className="bg-zinc-50 text-zinc-900 px-3.5 py-2 text-xs font-mono outline-none w-full sm:w-auto cursor-pointer"
                 >
                   {availableExercises.map((ex) => (
                     <option key={ex} value={ex} className="bg-white text-zinc-900">
@@ -305,11 +305,11 @@ export default function ChartsView({
           </div>
 
           {availableExercises.length === 0 ? (
-            <div className="py-12 text-center text-zinc-500 font-mono text-sm border-t border-b border-zinc-100">
+            <div className="py-12 text-center text-zinc-500 font-mono text-sm">
               Registra ejercicios en la vista de Registro para comenzar a visualizar la curva de subida de pesos.
             </div>
           ) : exerciseProgressionData.length <= 1 ? (
-            <div className="py-8 px-6 bg-zinc-50 border border-zinc-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs shadow-xs">
+            <div className="py-8 px-6 bg-zinc-50 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
               <div className="flex items-center gap-3">
                 <Sparkles className="w-5 h-5 text-emerald-600" />
                 <div>
@@ -321,7 +321,7 @@ export default function ChartsView({
           ) : (
             <div className="space-y-4">
               {/* Medidores de Progresión */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 bg-zinc-50 border border-zinc-200 rounded-xl p-4 shadow-xs font-mono">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 bg-zinc-50 p-4 font-mono">
                 <div>
                   <span className="text-[10px] text-zinc-500 uppercase block">Peso Inicial</span>
                   <span className="text-lg sm:text-xl font-extrabold text-zinc-900">{initialWeight} kg</span>

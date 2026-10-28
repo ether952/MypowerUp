@@ -1,19 +1,20 @@
 import { getGeminiApiKey, setGeminiApiKey } from './aiNutritionService.js';
 
-// Modelos Gemini con soporte de visión multimodal en orden de prioridad
+// Modelos Gemini con soporte de visión multimodal en orden de prioridad y velocidad
 const VISION_MODELS = [
+  'gemini-3-flash-preview',
+  'gemini-3.6-flash',
   'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
-  'gemini-3.8-flash',
+  'gemini-3.1-flash-lite',
   'gemini-flash-latest'
 ];
 
 /**
  * Comprime y redimensiona una imagen (File o Blob) en el cliente usando HTML5 Canvas.
- * Reduce fotos pesadas de cámara (15-20MB) a ~150KB en formato JPEG 1024px.
+ * Reduce fotos pesadas de cámara (15-20MB) a ~80-120KB en formato JPEG optimizado.
  * Retorna { dataUrl, cleanBase64, mimeType, width, height }
  */
-export async function compressImageForAI(file, maxDimension = 1024, quality = 0.82) {
+export async function compressImageForAI(file, maxDimension = 900, quality = 0.80) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -143,7 +144,7 @@ Responde OBLIGATORIAMENTE con un único objeto JSON plano sin texto adicional co
 
   for (const modelName of VISION_MODELS) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(new Error('TIMEOUT')), 25000);
 
     try {
       const cleanModel = modelName.replace(/^models\//, '');
@@ -232,7 +233,11 @@ Responde OBLIGATORIAMENTE con un único objeto JSON plano sin texto adicional co
       };
     } catch (err) {
       clearTimeout(timeoutId);
-      lastErrorMessage = err.message || 'Error de red al conectar con Gemini';
+      if (err.name === 'AbortError' || err.message === 'TIMEOUT' || err.message?.includes('aborted') || err.message?.includes('abort')) {
+        lastErrorMessage = 'El análisis de la imagen tardó demasiado. Por favor intenta de nuevo con el plato centrado.';
+      } else {
+        lastErrorMessage = err.message || 'Error de red al conectar con Gemini';
+      }
     }
   }
 

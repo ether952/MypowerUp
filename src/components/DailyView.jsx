@@ -45,6 +45,7 @@ import VisualGymExercisePicker from './VisualGymExercisePicker';
 import ExerciseDbPicker from './ExerciseDbPicker';
 import FoodScannerModal from './FoodScannerModal';
 import ButtonSparkles from './ButtonSparkles';
+import ViewHeaderBanner from './ViewHeaderBanner';
 import { playSatisfyingCheckSound } from '../services/audioFeedbackService';
 import bgMusculacion from '../assets/bg-musculacion-hd.png';
 import bgAlimentos from '../assets/bg-alimentos-hd.png';
@@ -186,13 +187,56 @@ export default function DailyView({
   const currentNutritionEst = useMemo(() => estimateNutrition(foodName), [foodName]);
 
   const handleApplyScannedFood = (scannedFood) => {
-    if (!scannedFood) return;
-    setFoodName(scannedFood.name || '');
-    setCalories(String(scannedFood.calories || 0));
-    setProtein(String(scannedFood.protein || 0));
-    if (scannedFood.mealType) {
-      setMealType(scannedFood.mealType);
+    if (!scannedFood || !scannedFood.name) return;
+
+    const finalCalories = Math.max(0, Number(scannedFood.calories) || 0);
+    const finalProtein = Math.max(0, Number(scannedFood.protein) || 0);
+    const finalMealType = scannedFood.mealType || 'almuerzo';
+
+    const foodPayload = {
+      name: scannedFood.name.trim(),
+      calories: finalCalories,
+      protein: finalProtein,
+      carbs: Math.max(0, Number(scannedFood.carbs) || 0),
+      fat: Math.max(0, Number(scannedFood.fat) || 0),
+      mealType: finalMealType,
+      portionGrams: Number(scannedFood.portionGrams) || 100,
+      time: getCurrentTimeString(),
+      source: 'scanner-ai'
+    };
+
+    onAddFood(foodPayload);
+    setFoodSparkle(true);
+    playSatisfyingCheckSound();
+    setTimeout(() => {
+      setFoodSparkle(false);
+    }, 1200);
+
+    // Guardar en memoria inteligente aprendida (solo si contiene valores reales > 0)
+    if (finalCalories > 0 || finalProtein > 0) {
+      const key = scannedFood.name.trim().toLowerCase();
+      const updated = {
+        ...rememberedFoods,
+        [key]: {
+          name: scannedFood.name.trim(),
+          calories: finalCalories,
+          protein: finalProtein,
+          mealType: finalMealType,
+          lastUsed: Date.now()
+        }
+      };
+      if (onUpdateRememberedFoods) {
+        onUpdateRememberedFoods(updated);
+      } else {
+        setLocalRememberedFoods(updated);
+        localStorage.setItem('mypowerup_remembered_foods', JSON.stringify(updated));
+      }
     }
+
+    setFoodName('');
+    setCalories('');
+    setProtein('');
+    setIsScannerOpen(false);
   };
   const [showQuickFoods, setShowQuickFoods] = useState(false);
   const [showQuickSupps, setShowQuickSupps] = useState(false);
@@ -637,6 +681,11 @@ export default function DailyView({
   return (
     <div className="w-full relative pb-4">
 
+      <ViewHeaderBanner
+        title="Tu Registro Diario & Nutrición"
+        subtitle="Seguimiento de cargas y series de fuerza, control calórico y macronutrientes, y registro cardiovascular del día."
+      />
+
       {/* BARRA DE SELECCIÓN DE FECHA - LIGHT THEME */}
       <div className="bg-white/90 backdrop-blur-md border-b border-zinc-200 sticky top-14 z-20 px-3 sm:px-8 py-2.5 shadow-xs">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
@@ -765,7 +814,7 @@ export default function DailyView({
 
           {/* Toggle de Modo de Carga: Visual con GIFs vs Manual */}
           <ScrollReveal delay={50} className="relative z-30">
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-zinc-200 shadow-sm font-mono text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
               <span className="text-zinc-800 font-extrabold uppercase text-[11px] flex items-center gap-1.5 pl-1">
                 <span>Carga tu rutina:</span>
               </span>
@@ -1134,11 +1183,10 @@ export default function DailyView({
 
                         <button
                           type="submit"
-                          className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0 font-mono ${
-                            exerciseSparkle
-                              ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
-                              : 'bg-black hover:bg-zinc-800 text-white'
-                          }`}
+                          className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer shrink-0 font-mono ${exerciseSparkle
+                            ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
+                            : 'bg-black hover:bg-zinc-800 text-white'
+                            }`}
                         >
                           <ButtonSparkles active={exerciseSparkle} />
                           {exerciseSparkle ? (
@@ -1229,13 +1277,15 @@ export default function DailyView({
         </div>
       </section>
 
+      {/* Espacio en blanco de separación entre registros */}
+      <div className="w-full h-8 sm:h-12 bg-transparent pointer-events-none" aria-hidden="true" />
 
       {/* ========================================================================= */}
       {/* 02. SECCIÓN INFERIOR: NUTRICIÓN & SUPLEMENTOS                             */}
       {/* ========================================================================= */}
       <section
         ref={foodSectionRef}
-        className="relative w-full py-8 sm:py-12 px-3 sm:px-8 border-t border-zinc-200 bg-white shadow-sm overflow-hidden"
+        className="relative w-full py-10 sm:py-14 px-3 sm:px-8 border-y border-zinc-200 bg-white shadow-xs overflow-hidden min-h-[75vh] sm:min-h-0 flex flex-col justify-center"
       >
         <div className="ambient-glow-cyan w-96 h-96 top-10 right-10 opacity-30 pointer-events-none" />
         <div className="ambient-glow-mint w-80 h-80 bottom-10 left-10 opacity-25 pointer-events-none" />
@@ -1259,7 +1309,7 @@ export default function DailyView({
         {/* Difuminado suave inferior */}
         <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-1" />
 
-        <div ref={sec2ContentRef} className="space-y-4 sm:space-y-6 md:space-y-8 relative z-10 max-w-6xl mx-auto w-full will-change-transform">
+        <div ref={sec2ContentRef} className="space-y-4 sm:space-y-6 md:space-y-8 relative z-10 max-w-6xl mx-auto w-full will-change-transform my-auto">
 
           {/* Cabecera Nutrición con Reveal */}
           <ScrollReveal delay={0}>
@@ -1293,7 +1343,15 @@ export default function DailyView({
                 {/* Botón para desplegar / plegar en mobile */}
                 <button
                   type="button"
-                  onClick={() => setIsFoodFormOpen(!isFoodFormOpen)}
+                  onClick={() => {
+                    const next = !isFoodFormOpen;
+                    setIsFoodFormOpen(next);
+                    if (next) {
+                      setTimeout(() => {
+                        foodSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 100);
+                    }
+                  }}
                   className="md:hidden px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-lg text-xs font-mono font-bold text-zinc-900 tracking-wider transition-all cursor-pointer flex items-center gap-1.5 select-none shrink-0"
                 >
                   <Plus className={`w-3.5 h-3.5 transition-transform duration-200 ${isFoodFormOpen ? 'rotate-45 text-rose-600' : 'rotate-0 text-zinc-900'}`} />
@@ -1603,11 +1661,10 @@ export default function DailyView({
 
                   <button
                     type="submit"
-                    className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono ${
-                      foodSparkle
-                        ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
-                        : 'bg-black hover:bg-zinc-800 text-white'
-                    }`}
+                    className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono ${foodSparkle
+                      ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
+                      : 'bg-black hover:bg-zinc-800 text-white'
+                      }`}
                   >
                     <ButtonSparkles active={foodSparkle} />
                     {foodSparkle ? (
@@ -1683,12 +1740,15 @@ export default function DailyView({
         </div>
       </section>
 
+      {/* Espacio en blanco de separación entre registros */}
+      <div className="w-full h-8 sm:h-12 bg-transparent pointer-events-none" aria-hidden="true" />
+
       {/* ========================================================================= */}
       {/* 03. SECCIÓN INFERIOR: CARDIO & ACTIVIDAD AERÓBICA                         */}
       {/* ========================================================================= */}
       <section
         ref={cardioSectionRef}
-        className="relative w-full py-8 sm:py-12 px-3 sm:px-8 border-t border-zinc-200 bg-[#FAFAFA] shadow-sm overflow-hidden"
+        className="relative w-full py-8 sm:py-12 px-3 sm:px-8 border-y border-zinc-200 bg-[#FAFAFA] shadow-xs overflow-hidden"
       >
         <div className="ambient-glow-mint w-96 h-96 top-10 right-10 opacity-25 pointer-events-none" />
         <div className="ambient-glow-cyan w-80 h-80 bottom-10 left-10 opacity-20 pointer-events-none" />
@@ -1872,11 +1932,10 @@ export default function DailyView({
 
                   <button
                     type="submit"
-                    className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono ${
-                      cardioSparkle
-                        ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
-                        : 'bg-black hover:bg-zinc-800 text-white'
-                    }`}
+                    className={`relative overflow-visible px-5 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer font-mono ${cardioSparkle
+                      ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
+                      : 'bg-black hover:bg-zinc-800 text-white'
+                      }`}
                   >
                     <ButtonSparkles active={cardioSparkle} />
                     {cardioSparkle ? (

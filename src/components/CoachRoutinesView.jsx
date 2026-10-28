@@ -43,6 +43,7 @@ import { askAiCoach } from '../services/aiCoachService';
 import { GYM_EXERCISES_SPRITES } from './VisualGymExercisePicker';
 import { useActiveWorkout } from '../context/ActiveWorkoutContext';
 import powerUpLogoImg from '../assets/logo-mypowerup.png';
+import ViewHeaderBanner from './ViewHeaderBanner';
 
 /**
  * Componente Thumbnail robusto para GIFs de ejercicios con auto-resolución y fallback elegante
@@ -77,6 +78,8 @@ export function ExerciseThumbnail({
 }
 
 export default function CoachRoutinesView({
+  data = {},
+  selectedDate = null,
   onLoadWorkoutToDaily,
   todayNutrition = { calories: 0, protein: 0 },
   targetNutrition = { calories: 2400, protein: 150 },
@@ -290,20 +293,15 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
 
     try {
       const userContext = {
+        data,
+        selectedDate,
         profile,
         todayNutrition,
         targetNutrition,
-        activeRoutine: {
-          name: activeRoutine.name,
-          todayWorkout: todayInfo.scheduledWorkout ? {
-            title: todayInfo.scheduledWorkout.title,
-            targetMuscles: todayInfo.scheduledWorkout.targetMuscles,
-            exercises: todayInfo.scheduledWorkout.exercises.map(e => `${e.name} (${e.sets}x${e.reps})`)
-          } : 'Día de descanso'
-        }
+        activeRoutine
       };
 
-      const responseText = await askAiCoach(textToSend, userContext, chatMessages);
+      const responseText = await askAiCoach(textToSend, updated, userContext);
       setChatMessages([...updated, { role: 'model', content: responseText }]);
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (err) {
@@ -323,25 +321,10 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
   return (
     <div className="w-full min-h-screen bg-white font-sans selection:bg-emerald-500 selection:text-black">
 
-      {/* ========================================================================= */}
-      {/* 1. BANNER PRINCIPAL DE CABECERA (FULL WIDTH / EXTENDIDO A LOS LATERALES)  */}
-      {/* ========================================================================= */}
-      <div className="w-full bg-[#121214] border-b border-[#2E2E34] py-8 sm:py-10 px-4 sm:px-8 relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight font-display">
-              Tu Plan de Fuerza & Nutrición
-            </h1>
-            <p className="text-sm text-[#8A8F98] max-w-2xl leading-relaxed font-sans">
-              Rutinas personalizadas, detección de lo que te toca entrenar hoy, editor libre de ejercicios y asistencia inteligente en tiempo real.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ViewHeaderBanner
+        title="Tu Plan de Fuerza & Nutrición"
+        subtitle="Rutinas personalizadas, detección de lo que te toca entrenar hoy, editor libre de ejercicios y asistencia inteligente en tiempo real."
+      />
 
       {/* ========================================================================= */}
       {/* 2. CONTENIDO PRINCIPAL ABIERTO / SUELTO (FONDO BLANCO, SIN ENCAPSULAR)     */}
@@ -373,7 +356,6 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                 className="px-3.5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900 rounded-2xl text-xs font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer border border-zinc-200 shadow-2xs"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-zinc-500" />
-                <span className="hidden sm:inline">Restablecer</span>
               </button>
               <button
                 type="button"
@@ -381,7 +363,6 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                 className="px-4 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-2xl text-xs font-mono font-bold uppercase transition-all flex items-center gap-2 cursor-pointer shadow-sm"
               >
                 <Plus className="w-4 h-4 text-emerald-400" />
-                <span>Agregar Ejercicio</span>
               </button>
             </div>
           </div>
@@ -430,7 +411,7 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                     title="Iniciar la rutina completa con soporte para pantalla de bloqueo"
                   >
                     <Play className="w-4 h-4 fill-black" />
-                    <span>Iniciar Rutina en Vivo</span>
+                    <span>Iniciar Rutina </span>
                   </button>
                 )}
 
@@ -440,7 +421,7 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                     onClick={() => onLoadWorkoutToDaily(activeRoutine.schedule[selectedDayIdx].exercises)}
                     className="px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-mono text-xs font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-zinc-200 shadow-2xs"
                   >
-                    <span>Cargar en Diario</span>
+                    <span>Terminado</span>
                   </button>
                 )}
               </div>
@@ -645,6 +626,13 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
 
           {/* Preguntas Sugeridas */}
           <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+            <button
+              type="button"
+              onClick={() => handleSendCoachQuestion('¿Qué opinas de los ejercicios que cargué hoy?')}
+              className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-300 transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs font-bold"
+            >
+              🏋️ Analizar mis Ejercicios de Hoy
+            </button>
             <button
               type="button"
               onClick={() => handleSendCoachQuestion('¿Qué comida post-entreno me recomiendas para mi peso y meta?')}

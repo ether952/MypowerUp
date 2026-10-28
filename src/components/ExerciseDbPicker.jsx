@@ -112,7 +112,7 @@ export default function ExerciseDbPicker({ onAddWorkout }) {
             <span>CATÁLOGO GIF ANIMADO • EXERCISEDB</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-extrabold text-zinc-900 uppercase font-display tracking-tight">
-            EJERCICIOS CON MOVIMIENTO EN VIVO
+            EJERCICIOS CON MOVIMIENTO
           </h3>
         </div>
 
@@ -136,11 +136,10 @@ export default function ExerciseDbPicker({ onAddWorkout }) {
             key={part.id}
             type="button"
             onClick={() => setSelectedBodyPart(part.id)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold uppercase whitespace-nowrap transition-all cursor-pointer ${
-              selectedBodyPart === part.id
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold uppercase whitespace-nowrap transition-all cursor-pointer ${selectedBodyPart === part.id
                 ? 'bg-zinc-900 text-white shadow-xs'
                 : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-            }`}
+              }`}
           >
             {part.label}
           </button>
@@ -169,11 +168,10 @@ export default function ExerciseDbPicker({ onAddWorkout }) {
                   <div
                     key={ex.exerciseId || ex.name}
                     onClick={() => setSelectedExercise(ex)}
-                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-3 group relative overflow-hidden ${
-                      isSelected
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-3 group relative overflow-hidden ${isSelected
                         ? 'bg-zinc-900 text-white border-zinc-900 shadow-md ring-2 ring-emerald-400/50'
                         : 'bg-zinc-50 hover:bg-white text-zinc-900 border-zinc-200 hover:border-zinc-300 hover:shadow-sm'
-                    }`}
+                      }`}
                   >
                     {/* Vista previa miniatura del GIF */}
                     <div className="w-full h-32 rounded-xl bg-white overflow-hidden flex items-center justify-center border border-zinc-200/80 relative">
@@ -183,9 +181,8 @@ export default function ExerciseDbPicker({ onAddWorkout }) {
                         loading="lazy"
                         className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
                       />
-                      <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-mono uppercase font-bold ${
-                        isSelected ? 'bg-zinc-900 text-emerald-400 border border-zinc-700' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
-                      }`}>
+                      <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-mono uppercase font-bold ${isSelected ? 'bg-zinc-900 text-emerald-400 border border-zinc-700' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
+                        }`}>
                         {ex.bodyParts?.[0] || 'gym'}
                       </span>
                     </div>
@@ -284,11 +281,10 @@ export default function ExerciseDbPicker({ onAddWorkout }) {
                 {/* Botón de Carga Directa */}
                 <button
                   type="submit"
-                  className={`relative overflow-visible w-full py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98 ${
-                    isAddedSuccess
+                  className={`relative overflow-visible w-full py-3 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98 ${isAddedSuccess
                       ? 'bg-emerald-500 text-black shadow-emerald-500/40 ring-2 ring-emerald-400'
                       : 'bg-zinc-900 hover:bg-black text-white'
-                  }`}
+                    }`}
                 >
                   <ButtonSparkles active={isAddedSuccess} />
                   {isAddedSuccess ? (

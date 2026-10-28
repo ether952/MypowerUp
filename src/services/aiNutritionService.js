@@ -3,11 +3,12 @@ import { estimateNutrition, NUTRITIONAL_DATABASE } from '../utils/nutritionDb.js
 // Cache en memoria para respuestas de IA de alimentos ya consultados
 const nutritionCache = new Map();
 
-// Modelos Gemini estables y soportados en orden de prioridad
+// Modelos Gemini estables y soportados en orden de prioridad y velocidad
 const GEMINI_MODELS = [
+  'gemini-3-flash-preview',
+  'gemini-3.6-flash',
   'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
-  'gemini-3.8-flash',
+  'gemini-3.1-flash-lite',
   'gemini-flash-latest'
 ];
 
@@ -208,7 +209,7 @@ Responde OBLIGATORIAMENTE con un objeto JSON plano sin texto adicional con esta 
 
   for (const modelName of GEMINI_MODELS) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(new Error('TIMEOUT')), 15000);
 
     try {
       const cleanModel = modelName.replace(/^models\//, '');

@@ -715,17 +715,14 @@ export default function VisualGymExercisePicker({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 text-[10px] font-mono font-extrabold uppercase tracking-wider">
-              {selectedExercise ? 'Paso 1 Completado ✓' : 'Paso 1: Seleccionar Ejercicio'}
-            </span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-zinc-900 uppercase font-display tracking-tight">
             SELECTOR VISUAL
           </h3>
           <p className="text-xs text-zinc-500 font-mono mt-0.5">
             {selectedExercise
-              ? 'Ejercicio seleccionado. Configura tus cargas y series a continuación.'
-              : 'Toca un ejercicio del carrusel para abrir la torre de placas y cargar series.'}
+              ? 'Ejercicio seleccionado.'
+              : 'Toca un ejercicio del carrusel para abrir la torre de placas'}
           </p>
         </div>
       </div>
@@ -844,18 +841,7 @@ export default function VisualGymExercisePicker({
 
       {/* INDICADOR PASO 1 CUANDO NO HAY EJERCICIO SELECCIONADO */}
       {!selectedExercise && (
-        <div className="border-2 border-dashed border-zinc-200 rounded-2xl p-6 sm:p-8 text-center flex flex-col items-center justify-center gap-2.5 bg-zinc-50/70 animate-fade-in transition-all">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-zinc-200 shadow-xs flex items-center justify-center text-emerald-600">
-            <Dumbbell className="w-6 h-6 stroke-[2.5]" />
-          </div>
-          <div className="space-y-1">
-            <span className="font-mono text-xs sm:text-sm font-black text-zinc-900 uppercase tracking-wider block">
-              Paso 1: Selecciona un ejercicio del catálogo arriba
-            </span>
-            <p className="text-xs text-zinc-500 font-mono max-w-md mx-auto">
-              Al tocar cualquier ejercicio se desplegará suavemente hacia abajo la torre de placas interactiva para registrar tus series, pesos y repeticiones.
-            </p>
-          </div>
+        <div className="p-6 sm:p-8 text-center flex flex-col items-center justify-center gap-2.5 bg-zinc-50/70 animate-fade-in transition-all">
         </div>
       )}
 
@@ -896,9 +882,6 @@ export default function VisualGymExercisePicker({
                   <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 font-extrabold block">
                     {selectedExercise.category}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
-                    Paso 2: Cargar Series & Pesos
-                  </span>
                 </div>
                 <h4 className="text-base sm:text-lg font-black text-zinc-900 font-display">
                   {selectedExercise.name}
@@ -912,39 +895,39 @@ export default function VisualGymExercisePicker({
             {/* Pestañas de Series (Set 1, Set 2, Set 3...) + Botón Cambiar Ejercicio */}
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1.5 flex-wrap">
-              {seriesList.map((set, idx) => (
-                <div
-                  key={set.setNumber}
-                  className="relative group"
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleSelectSetIndex(idx)}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeSetIndex === idx
-                      ? 'bg-zinc-900 text-white shadow-xs ring-2 ring-emerald-400/50'
-                      : 'bg-white hover:bg-zinc-200 text-zinc-700 border border-zinc-300'
-                      }`}
+                {seriesList.map((set, idx) => (
+                  <div
+                    key={set.setNumber}
+                    className="relative group"
                   >
-                    <span>S{set.setNumber}</span>
-                    <span className="text-[10px] opacity-75 font-normal">
-                      {set.weight}kg × {set.reps}
-                    </span>
-                  </button>
-                  {seriesList.length > 1 && (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveSet(idx);
-                      }}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-xs"
-                      title="Eliminar serie"
+                      onClick={() => handleSelectSetIndex(idx)}
+                      className={`px-3 py-1.5 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeSetIndex === idx
+                        ? 'bg-zinc-900 text-white shadow-xs ring-2 ring-emerald-400/50'
+                        : 'bg-white hover:bg-zinc-200 text-zinc-700 border border-zinc-300'
+                        }`}
                     >
-                      ×
+                      <span>S{set.setNumber}</span>
+                      <span className="text-[10px] opacity-75 font-normal">
+                        {set.weight}kg × {set.reps}
+                      </span>
                     </button>
-                  )}
-                </div>
-              ))}
+                    {seriesList.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveSet(idx);
+                        }}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-xs"
+                        title="Eliminar serie"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
 
                 <button
                   type="button"
@@ -978,7 +961,7 @@ export default function VisualGymExercisePicker({
               <div className="flex items-center justify-between border-b border-zinc-100 pb-2.5">
                 <span className="text-xs font-mono font-extrabold uppercase text-zinc-900 flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-black" />
-                  <span>Torre de Placas de Carga (Pin Selector)</span>
+                  <span>Torre de Placas de Carga</span>
                 </span>
                 <span className="text-[11px] font-mono text-emerald-600 font-extrabold">
                   {currentWeight} KG SELECCIONADO

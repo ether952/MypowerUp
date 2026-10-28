@@ -20,6 +20,8 @@ import { getSavedCoachProfile } from '../utils/routineTemplates';
 import powerUpLogoImg from '../assets/logo-mypowerup.png';
 
 export default function FloatingCoachWidget({
+  data = {},
+  selectedDate = null,
   todayNutrition = { calories: 0, protein: 0 },
   targetNutrition = { calories: 2400, protein: 150 },
   activeRoutine = null,
@@ -31,11 +33,25 @@ export default function FloatingCoachWidget({
   const [messages, setMessages] = useState([
     {
       role: 'model',
-      content: '¡Hola! Soy tu **Coach MyPowerUp**. ¿En qué puedo ayudarte hoy? Puedo recomendarte qué comer según tus macros, darte tips para tu entrenamiento de hoy o resolver dudas de técnica.'
+      content: '¡Hola! Soy tu **Coach MyPowerUp**. ¿En qué puedo ayudarte hoy? Tengo acceso completo a tus ejercicios cargados, series, pesos y nutrición diaria. ¡Pregúntame lo que necesites!'
     }
   ]);
 
   const messagesEndRef = useRef(null);
+
+  const [hideForScanner, setHideForScanner] = useState(false);
+
+  // Escuchar si el modal de escaneo con IA de alimentos se abre/cierra para ocultar este widget flotante
+  useEffect(() => {
+    const handleScannerState = (e) => {
+      setHideForScanner(Boolean(e.detail?.open));
+    };
+
+    window.addEventListener('mypowerup_scanner_modal_change', handleScannerState);
+    return () => {
+      window.removeEventListener('mypowerup_scanner_modal_change', handleScannerState);
+    };
+  }, []);
 
   // Auto-scroll al final de mensajes
   useEffect(() => {
@@ -57,6 +73,8 @@ export default function FloatingCoachWidget({
     try {
       const profile = getSavedCoachProfile();
       const userContext = {
+        data,
+        selectedDate,
         profile,
         todayNutrition,
         targetNutrition,
@@ -80,10 +98,14 @@ export default function FloatingCoachWidget({
   };
 
   const quickPrompts = [
+    { text: '¿Qué opinas de mis ejercicios de hoy?', icon: <Dumbbell className="w-3 h-3 text-emerald-400" /> },
     { text: '¿Qué puedo comer post-entreno?', icon: <Utensils className="w-3 h-3 text-emerald-400" /> },
-    { text: '¿Qué me toca entrenar hoy?', icon: <Dumbbell className="w-3 h-3 text-cyan-400" /> },
-    { text: '¿Cómo aplicar sobrecarga progresiva?', icon: <Zap className="w-3 h-3 text-amber-400" /> }
+    { text: '¿Qué me toca entrenar hoy?', icon: <Zap className="w-3 h-3 text-cyan-400" /> }
   ];
+
+  if (hideForScanner) {
+    return null;
+  }
 
   return (
     <>
@@ -93,28 +115,19 @@ export default function FloatingCoachWidget({
           type="button"
           onClick={() => setIsOpen(true)}
           aria-label="Abrir Coach Inteligente"
-          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2.5 px-3.5 py-2.5 sm:px-4 sm:py-3 bg-zinc-900 hover:bg-black text-white rounded-full border border-emerald-500/40 shadow-[0_8px_30px_rgb(0,0,0,0.35)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.3)] transition-all duration-300 cursor-pointer group hover:scale-105 active:scale-95 select-none"
+          title="Coach"
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center bg-zinc-900 hover:bg-black text-white rounded-full border border-emerald-500/40 shadow-[0_8px_30px_rgb(0,0,0,0.35)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.35)] transition-all duration-300 cursor-pointer group hover:scale-110 active:scale-95 select-none"
         >
-          <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center">
+          <div className="relative flex items-center justify-center">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center">
               <img
                 src={powerUpLogoImg}
                 alt="Coach"
-                className="w-5 h-5 object-contain group-hover:rotate-12 transition-transform duration-300"
+                className="w-5 h-5 sm:w-6 sm:h-6 object-contain group-hover:rotate-12 transition-transform duration-300"
               />
             </div>
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full" />
-          </div>
-
-          <div className="text-left font-display">
-            <span className="text-xs font-black tracking-wide text-white uppercase block leading-tight flex items-center gap-1">
-              COACH IA
-              <Sparkles className="w-3 h-3 text-emerald-400" />
-            </span>
-            <span className="text-[10px] font-mono text-zinc-400 block leading-none">
-              Pregúntame lo que sea
-            </span>
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" />
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-zinc-900" />
           </div>
         </button>
       )}
@@ -122,7 +135,7 @@ export default function FloatingCoachWidget({
       {/* Ventana Flotante / Popover del Coach */}
       {isOpen && (
         <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-[420px] max-h-[75vh] sm:max-h-[85vh] h-[580px] bg-[#121214] border border-[#2E2E34] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up font-sans select-none">
-          
+
           {/* Header del Chat */}
           <div className="px-4 py-3.5 bg-[#18181B] border-b border-[#2E2E34] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
@@ -132,10 +145,7 @@ export default function FloatingCoachWidget({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-extrabold font-display text-white text-sm uppercase tracking-tight">
-                    Coach MyPowerUp
-                  </span>
-                  <span className="px-1.5 py-0.2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[9px] font-mono font-bold rounded-md">
-                    IA EN VIVO
+                    Coach MyUp
                   </span>
                 </div>
                 <span className="text-[10px] font-mono text-zinc-400 block">
@@ -196,11 +206,10 @@ export default function FloatingCoachWidget({
                 )}
 
                 <div
-                  className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl leading-relaxed select-text ${
-                    msg.role === 'user'
-                      ? 'bg-emerald-500 text-black font-semibold rounded-br-none shadow-md'
-                      : 'bg-[#18181B] text-zinc-200 border border-[#2E2E34] rounded-bl-none shadow-sm'
-                  }`}
+                  className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl leading-relaxed select-text ${msg.role === 'user'
+                    ? 'bg-emerald-500 text-black font-semibold rounded-br-none shadow-md'
+                    : 'bg-[#18181B] text-zinc-200 border border-[#2E2E34] rounded-bl-none shadow-sm'
+                    }`}
                 >
                   <div className="whitespace-pre-line prose-invert text-xs space-y-1">
                     {msg.content}

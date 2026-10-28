@@ -11,15 +11,13 @@ import {
   ChevronRight,
   CheckCircle2,
   Sliders,
-  Sparkles,
-  ArrowRight,
-  Gamepad2
+  Sparkles
 } from 'lucide-react';
 import { getLocalDateString } from '../utils/helpers';
 import { calculateLevelProgress } from '../utils/levelSystem';
 import { calculateCardioLevelProgress } from '../utils/cardioLevelSystem';
 import ChallengeUnifiedModal from './ChallengeUnifiedModal';
-import CityMiniGame from './CityMiniGame';
+import ViewHeaderBanner from './ViewHeaderBanner';
 import {
   getStoredChallengeCalibration,
   saveStoredChallengeCalibration,
@@ -34,15 +32,15 @@ export default function MyPowerUpView({
   challengeCalibration,
   onUpdateChallengeCalibration
 }) {
-  // 'intro' | 'muscle' | 'cardio' | 'city'
-  const [selectedChallenge, setSelectedChallenge] = useState('intro');
+  // 'muscle' (Peso) | 'cardio' (Distancia)
+  const [selectedChallenge, setSelectedChallenge] = useState('muscle');
 
   // Calibración y modal
   const [localCalibrationProfile, setLocalCalibrationProfile] = useState(() => getStoredChallengeCalibration());
   const calibrationProfile = challengeCalibration !== undefined ? challengeCalibration : localCalibrationProfile;
   const [unifiedModalType, setUnifiedModalType] = useState(null); // 'muscle' | 'cardio' | null
 
-  // Desafío de Resistencia - disciplina activa
+  // Desafío de Distancia - disciplina activa
   const [cardioDiscipline, setCardioDiscipline] = useState('running');
 
   // Ruletas de niveles
@@ -95,8 +93,8 @@ export default function MyPowerUpView({
   };
 
   return (
-    <div className="w-full px-4 sm:px-8 py-6 space-y-8 animate-fade-in-up">
-      {/* Modal Unificado */}
+    <div className="w-full animate-fade-in-up">
+      {/* Modal Unificado de Calibración */}
       <ChallengeUnifiedModal
         isOpen={Boolean(unifiedModalType)}
         onClose={() => setUnifiedModalType(null)}
@@ -105,723 +103,596 @@ export default function MyPowerUpView({
         currentProfile={calibrationProfile}
       />
 
-      {/* CABECERA */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-4">
-        <div>
-          <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase font-bold">
-            SISTEMA DE DESAFÍOS & GAMIFICACIÓN
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight font-display mt-0.5 select-none">
-            MYPOWER<span className="text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.35)]">UP</span>
-          </h2>
-        </div>
+      {/* BANNER PRINCIPAL DE CABECERA */}
+      <ViewHeaderBanner
+        title="Desafíos MyPowerUp"
+        subtitle="Supera tus metas semanales de peso levantado y distancia recorrida para subir de nivel de forma permanente."
+      >
+      </ViewHeaderBanner>
 
-        <div className="flex items-center gap-2">
-          {isChallengeActive ? (
-            <span className="text-xs font-mono text-zinc-900 bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200 flex items-center gap-1.5 font-bold">
-              <span className="w-2 h-2 rounded-full bg-black animate-pulse"></span>
-              DESAFÍOS ACTIVOS
-            </span>
-          ) : (
-            <span className="text-xs font-mono text-zinc-500">
-              DESAFÍOS SIN CALIBRAR
-            </span>
-          )}
-        </div>
-      </div>
+      {/* CONTENEDOR PRINCIPAL: DESAFÍOS AL COSTADO + INFO A LA DERECHA */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row items-start gap-6">
 
-      {/* ESTRUCTURA: BARRA LATERAL + CONTENIDO */}
-      <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-10 w-full">
+          {/* ========================================================================= */}
+          {/* COLUMNA LATERAL (IZQUIERDA): DESAFÍOS UNO ABAJO DEL OTRO                  */}
+          {/* ========================================================================= */}
+          <aside className="w-full lg:w-80 xl:w-88 shrink-0 flex flex-col gap-3.5">
+            <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest px-1 font-bold">
+              Seleccionar Desafío
+            </div>
 
-        {/* BARRA LATERAL */}
-        <aside className="w-full lg:w-56 xl:w-60 flex-shrink-0 space-y-2">
-          <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest px-1 font-bold">
-            Desafíos
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            {/* Botón 1: Guía */}
-            <button
-              type="button"
-              onClick={() => setSelectedChallenge('intro')}
-              className={`w-full py-2.5 px-3 rounded-xl text-left transition-all flex items-center gap-2.5 cursor-pointer select-none ${
-                selectedChallenge === 'intro'
-                  ? 'bg-black text-white font-bold shadow-sm'
-                  : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-              }`}
-            >
-              <Sparkles className={`w-4 h-4 flex-shrink-0 ${selectedChallenge === 'intro' ? 'text-white' : 'text-zinc-500'}`} />
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-mono tracking-wide truncate">
-                  ¿Qué es MyPowerUp?
-                </div>
-              </div>
-            </button>
-
-            {/* Botón 2: Musculación */}
+            {/* CARD 1: DESAFÍO DE PESO */}
             <button
               type="button"
               onClick={() => setSelectedChallenge('muscle')}
-              className={`w-full py-2.5 px-3 rounded-xl text-left transition-all flex items-center gap-2.5 cursor-pointer select-none ${
-                selectedChallenge === 'muscle'
-                  ? 'bg-black text-white font-bold shadow-sm'
-                  : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-              }`}
+              className={`w-full p-4 sm:p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center justify-between gap-3.5 group ${selectedChallenge === 'muscle'
+                ? 'bg-black text-white border-black shadow-lg ring-2 ring-emerald-500/30'
+                : 'bg-white text-zinc-800 border-zinc-200 hover:border-zinc-400 hover:shadow-md'
+                }`}
             >
-              <Trophy className={`w-4 h-4 flex-shrink-0 ${selectedChallenge === 'muscle' ? 'text-white' : 'text-zinc-500'}`} />
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-mono tracking-wide truncate flex items-center justify-between">
-                  <span>Musculación</span>
-                  {isChallengeActive && levelProgress && (
-                    <span className={`text-[10px] font-bold ${selectedChallenge === 'muscle' ? 'text-zinc-300' : 'text-zinc-900'}`}>
-                      L{levelProgress.currentLevel.level}
-                    </span>
-                  )}
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${selectedChallenge === 'muscle'
+                    ? 'bg-zinc-800 text-white'
+                    : 'bg-zinc-100 text-zinc-800 group-hover:bg-zinc-200'
+                    }`}
+                >
+                  <Dumbbell className="w-6 h-6" />
                 </div>
-                <div className={`text-[10px] truncate ${selectedChallenge === 'muscle' ? 'text-zinc-300' : 'text-zinc-500'}`}>
-                  {isChallengeActive && levelProgress ? (
-                    `${levelProgress.currentWeekTonnage.toLocaleString()} kg`
-                  ) : (
-                    'Sin calibrar'
-                  )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-500">
+                      Fuerza
+                    </span>
+                    {isChallengeActive && levelProgress && (
+                      <span
+                        className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${selectedChallenge === 'muscle'
+                          ? 'bg-zinc-800 text-emerald-400 border border-zinc-700'
+                          : 'bg-zinc-100 text-zinc-800 border border-zinc-200'
+                          }`}
+                      >
+                        LVL {levelProgress.currentLevel.level}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black tracking-tight uppercase font-display truncate">
+                    Desafío de Peso
+                  </h3>
+                  <p
+                    className={`text-xs truncate ${selectedChallenge === 'muscle' ? 'text-zinc-400' : 'text-zinc-500'
+                      }`}
+                  >
+                    {isChallengeActive && levelProgress
+                      ? `${levelProgress.currentWeekTonnage.toLocaleString()} kg esta semana`
+                      : 'Tonelaje acumulado'}
+                  </p>
                 </div>
               </div>
+              <Trophy
+                className={`w-5 h-5 shrink-0 ${selectedChallenge === 'muscle' ? 'text-amber-400' : 'text-zinc-300'
+                  }`}
+              />
             </button>
 
-            {/* Botón 3: Resistencia */}
+            {/* CARD 2: DESAFÍO DE DISTANCIA */}
             <button
               type="button"
               onClick={() => setSelectedChallenge('cardio')}
-              className={`w-full py-2.5 px-3 rounded-xl text-left transition-all flex items-center gap-2.5 cursor-pointer select-none ${
-                selectedChallenge === 'cardio'
-                  ? 'bg-black text-white font-bold shadow-sm'
-                  : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-              }`}
+              className={`w-full p-4 sm:p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center justify-between gap-3.5 group ${selectedChallenge === 'cardio'
+                ? 'bg-black text-white border-black shadow-lg ring-2 ring-emerald-500/30'
+                : 'bg-white text-zinc-800 border-zinc-200 hover:border-zinc-400 hover:shadow-md'
+                }`}
             >
-              <Flame className={`w-4 h-4 flex-shrink-0 ${selectedChallenge === 'cardio' ? 'text-white' : 'text-zinc-500'}`} />
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-mono tracking-wide truncate flex items-center justify-between">
-                  <span>Resistencia</span>
-                  {isChallengeActive && cardioProgress && (
-                    <span className={`text-[10px] font-bold ${selectedChallenge === 'cardio' ? 'text-zinc-300' : 'text-zinc-900'}`}>
-                      L{cardioProgress.currentLevel.level}
-                    </span>
-                  )}
-                </div>
-                <div className={`text-[10px] truncate ${selectedChallenge === 'cardio' ? 'text-zinc-300' : 'text-zinc-500'}`}>
-                  {isChallengeActive && cardioProgress ? (
-                    `${cardioProgress.currentWeekKm} km`
-                  ) : (
-                    'Sin calibrar'
-                  )}
-                </div>
-              </div>
-            </button>
-
-            {/* Botón 4: Minijuego Ciudad */}
-            <button
-              type="button"
-              onClick={() => setSelectedChallenge('city')}
-              className={`w-full py-2.5 px-3 rounded-xl text-left transition-all flex items-center gap-2.5 cursor-pointer select-none ${
-                selectedChallenge === 'city'
-                  ? 'bg-black text-white font-bold shadow-sm'
-                  : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-              }`}
-            >
-              <Gamepad2 className={`w-4 h-4 flex-shrink-0 ${selectedChallenge === 'city' ? 'text-white' : 'text-zinc-500'}`} />
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-mono tracking-wide truncate flex items-center justify-between">
-                  <span>PowerUp City</span>
-                  <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold ${
-                    selectedChallenge === 'city' ? 'bg-zinc-800 text-white' : 'bg-zinc-100 text-zinc-900'
-                  }`}>
-                    JUEGO
-                  </span>
-                </div>
-                <div className={`text-[10px] truncate ${selectedChallenge === 'city' ? 'text-zinc-300' : 'text-zinc-500'}`}>
-                  Ciudad & Rutas
-                </div>
-              </div>
-            </button>
-          </div>
-
-          {/* Mini Nota Informativa */}
-          <div className="pt-4 border-t border-zinc-200 text-[11px] font-sans text-zinc-500 space-y-1">
-            <p className="flex items-center gap-1.5 text-zinc-900 font-mono text-[10px] font-bold">
-              <Shield className="w-3 h-3 text-zinc-900" />
-              <span>NIVELES PERMANENTES</span>
-            </p>
-            <p className="leading-tight text-zinc-500">
-              Tu rango nunca baja. Cada lunes inicia un nuevo intento limpio.
-            </p>
-          </div>
-        </aside>
-
-        {/* CONTENIDO CENTRAL */}
-        <main className="flex-1 min-w-0 space-y-8">
-
-          {/* VISTA 1: INTRO */}
-          {selectedChallenge === 'intro' && (
-            <div className="space-y-8 animate-fade-in">
-
-              <div className="space-y-3">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
-                  GUÍA DE FUNCIONAMIENTO
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase font-display tracking-tight leading-tight">
-                  Entrena, supera tus marcas y sube de nivel
-                </h3>
-                <p className="text-zinc-600 font-sans text-sm sm:text-base leading-relaxed max-w-3xl">
-                  <strong className="text-zinc-900 font-bold">MyPowerUp</strong> convierte el esfuerzo de tus registros diarios en metas semanales dinámicas. Acompaña tu progresión con sobrecarga lógica sin presiones ni frustración.
-                </p>
-              </div>
-
-              {/* 3 PILARES */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6 border-y border-zinc-200">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-900">
-                    <span>01.</span>
-                    <span>AUTOMÁTICO</span>
-                  </div>
-                  <h4 className="font-display font-bold text-zinc-900 text-sm sm:text-base">
-                    Registro en Tiempo Real
-                  </h4>
-                  <p className="text-xs text-zinc-500 font-sans leading-relaxed">
-                    Cada serie, repetición y kilómetro registrado en tu día suma automáticamente a tu objetivo semanal.
-                  </p>
-                </div>
-
-                <div className="space-y-2 md:border-l md:border-zinc-200 md:pl-6">
-                  <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-900">
-                    <span>02.</span>
-                    <span>SIN FRUSTRACIÓN</span>
-                  </div>
-                  <h4 className="font-display font-bold text-zinc-900 text-sm sm:text-base">
-                    Tu Nivel Nunca Baja
-                  </h4>
-                  <p className="text-xs text-zinc-500 font-sans leading-relaxed">
-                    Si viajas o descansas una semana, mantienes tu rango intacto. Cada lunes se reinicia el contador limpiamente.
-                  </p>
-                </div>
-
-                <div className="space-y-2 md:border-l md:border-zinc-200 md:pl-6">
-                  <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-900">
-                    <span>03.</span>
-                    <span>PROGRESIÓN +20%</span>
-                  </div>
-                  <h4 className="font-display font-bold text-zinc-900 text-sm sm:text-base">
-                    Ascenso Adaptativo
-                  </h4>
-                  <p className="text-xs text-zinc-500 font-sans leading-relaxed">
-                    Al conquistar tu meta semanal, avanzas de rango con un incremento del 20% adaptado a la fisiología humana.
-                  </p>
-                </div>
-              </div>
-
-              {/* ACCESOS DIRECTOS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
-                {/* Desafío de Musculación */}
-                <div className="space-y-3 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center gap-2 text-zinc-900">
-                    <Trophy className="w-5 h-5 text-black" />
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider">
-                      FUERZA & TONELAJE
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-extrabold text-zinc-900 uppercase font-display">
-                      Desafío de Musculación
-                    </h4>
-                    <p className="text-xs text-zinc-500 font-sans mt-1 leading-relaxed">
-                      Calcula el tonelaje acumulado (<span className="text-zinc-900 font-mono font-semibold">Series × Reps × Peso</span>). Metas desde Iniciado hasta Titán de Cargas.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!isChallengeActive) {
-                        setUnifiedModalType('muscle');
-                      } else {
-                        setSelectedChallenge('muscle');
-                      }
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black hover:bg-zinc-800 text-white font-mono text-xs font-bold uppercase transition-all shadow-sm cursor-pointer"
-                  >
-                    <span>{isChallengeActive ? 'Ver Musculación' : 'Calibrar Musculación'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Desafío de Resistencia */}
-                <div className="space-y-3 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center gap-2 text-zinc-900">
-                    <Flame className="w-5 h-5 text-black" />
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider">
-                      RESISTENCIA & CARDIO
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-extrabold text-zinc-900 uppercase font-display">
-                      Desafío de Resistencia
-                    </h4>
-                    <p className="text-xs text-zinc-500 font-sans mt-1 leading-relaxed">
-                      Suma kilómetros en Caminata, Running o Bicicleta con metas calibradas según la disciplina elegida.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!isChallengeActive) {
-                        setUnifiedModalType('cardio');
-                      } else {
-                        setSelectedChallenge('cardio');
-                      }
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black hover:bg-zinc-800 text-white font-mono text-xs font-bold uppercase transition-all shadow-sm cursor-pointer"
-                  >
-                    <span>{isChallengeActive ? 'Ver Resistencia' : 'Calibrar Resistencia'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* BANNER ACCESO A POWERUP CITY */}
-              <div className="pt-4 border-t border-zinc-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-zinc-900 font-mono text-xs font-bold">
-                    <Gamepad2 className="w-4 h-4 text-black" />
-                    <span>MINIJUEGO INTERACTIVO</span>
-                  </div>
-                  <h4 className="font-display font-extrabold text-zinc-900 text-base">
-                    PowerUp City: Tu avatar y mapa de entrenamiento
-                  </h4>
-                  <p className="text-xs text-zinc-500 font-sans max-w-xl">
-                    Recorre la ciudad con tu personaje, visita el Gimnasio, las pistas de running, ciclovías o descansa en tu casa.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedChallenge('city')}
-                  className="px-4 py-2.5 rounded-xl bg-black hover:bg-zinc-800 text-white font-mono text-xs font-bold uppercase transition-all shadow-sm cursor-pointer flex-shrink-0 flex items-center gap-2"
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${selectedChallenge === 'cardio'
+                    ? 'bg-zinc-800 text-white'
+                    : 'bg-zinc-100 text-zinc-800 group-hover:bg-zinc-200'
+                    }`}
                 >
-                  <span>Explorar Ciudad</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-            </div>
-          )}
-
-          {/* VISTA 2: MUSCULACIÓN */}
-          {selectedChallenge === 'muscle' && (
-            <div className="space-y-8 animate-fade-in">
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
-                    DESAFÍO DE TONELAJE & VOLUMEN
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase font-display">
-                      Desafío de Musculación
-                    </h3>
-                    {isChallengeActive && levelProgress && (
-                      <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-900 border border-zinc-200">
-                        NIVEL {levelProgress.currentLevel.level}: {levelProgress.currentLevel.name.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
+                  <Flame className="w-6 h-6" />
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setUnifiedModalType('muscle')}
-                    className="px-3.5 py-1.5 rounded-xl border border-zinc-300 hover:border-black text-zinc-800 hover:text-black text-xs font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer bg-white shadow-sm"
-                  >
-                    <Sliders className="w-3.5 h-3.5 text-zinc-900" />
-                    <span>{isChallengeActive ? 'Ajustar Medidor' : 'Calibrar Nivel'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {!isChallengeActive && (
-                <div className="py-8 space-y-4 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                  <p className="text-sm text-zinc-600 font-sans max-w-lg">
-                    Aún no has calibrado tu nivel de inicio. Responde 3 preguntas rápidas sobre tu experiencia y días de entreno para fijar tu meta semanal.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setUnifiedModalType('muscle')}
-                    className="px-5 py-2.5 rounded-xl bg-black hover:bg-zinc-800 text-white font-mono text-xs font-bold uppercase transition-all shadow-sm cursor-pointer"
-                  >
-                    Comenzar Calibración de Musculación →
-                  </button>
-                </div>
-              )}
-
-              {isChallengeActive && levelProgress && (
-                <div className="space-y-8">
-
-                  {/* MÉTRICAS */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-4 border-b border-zinc-200">
-                    <div className="space-y-1">
-                      <span className="text-xs font-mono text-zinc-500 uppercase">Levantado esta semana</span>
-                      <div className="text-3xl sm:text-4xl font-extrabold font-mono text-zinc-900">
-                        {levelProgress.currentWeekTonnage.toLocaleString()} <span className="text-xs font-mono text-zinc-500 font-normal">KG</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1 sm:border-l sm:border-zinc-200 sm:pl-8">
-                      <span className="text-xs font-mono text-zinc-500 uppercase">Meta Reto Semanal ({levelProgress.progressPercent}%)</span>
-                      <div className="text-3xl sm:text-4xl font-extrabold font-mono text-black">
-                        {levelProgress.weeklyGoal.toLocaleString()} <span className="text-xs font-mono text-zinc-500 font-normal">KG</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* BARRA DE PROGRESO */}
-                  <div className="space-y-2">
-                    <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
-                      <div
-                        className="bg-black h-full rounded-full transition-all duration-700 ease-out"
-                        style={{ width: `${levelProgress.progressPercent}%` }}
-                      />
-                    </div>
-
-                    <div className="text-xs font-mono text-zinc-500 pt-1">
-                      {levelProgress.isGoalAchieved ? (
-                        <span className="text-zinc-900 font-bold flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-zinc-900" />
-                          ¡Reto semanal conquistado! Has superado el tonelaje de tu nivel.
-                        </span>
-                      ) : (
-                        <span>
-                          Faltan <strong className="text-zinc-900">{levelProgress.remainingKg.toLocaleString()} kg</strong> esta semana para subir al siguiente nivel.
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* RULETA DE RANGOS */}
-                  <div className="space-y-3 pt-2">
-                    <div className="flex justify-between items-center font-mono text-xs text-zinc-500">
-                      <span className="text-zinc-900 font-bold">
-                        RULETA DE RANGOS SEMANALES
-                      </span>
-
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => scrollMuscleRoulette('left')}
-                          className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-black transition-colors cursor-pointer"
-                          title="Anterior"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => scrollMuscleRoulette('right')}
-                          className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-black transition-colors cursor-pointer"
-                          title="Siguiente"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div
-                      ref={muscleRouletteRef}
-                      className="flex items-stretch gap-3 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory"
-                    >
-                      {levelProgress.levels.map((lvl) => {
-                        const isCurrent = lvl.level === levelProgress.currentLevel.level;
-                        const isUnlocked = lvl.level <= levelProgress.currentLevel.level;
-                        return (
-                          <div
-                            key={lvl.level}
-                            className={`flex-shrink-0 w-44 sm:w-48 snap-center p-4 rounded-2xl border transition-all flex flex-col justify-between select-none bg-white shadow-sm ${
-                              isCurrent
-                                ? 'border-zinc-900 ring-2 ring-black text-zinc-900'
-                                : isUnlocked
-                                  ? 'border-zinc-200 text-zinc-800'
-                                  : 'border-zinc-200 text-zinc-400 opacity-60'
-                            }`}
-                          >
-                            <div>
-                              <div className="flex justify-between items-center mb-1 text-xs font-mono">
-                                <span className={`font-bold ${isCurrent ? 'text-black font-extrabold' : 'text-zinc-500'}`}>
-                                  LVL {lvl.level}
-                                </span>
-                                {isCurrent ? (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-black text-white font-sans uppercase">
-                                    ACTUAL
-                                  </span>
-                                ) : isUnlocked ? (
-                                  <span className="text-zinc-900 font-bold text-xs">✓</span>
-                                ) : (
-                                  <span className="text-zinc-400 text-xs">🔒</span>
-                                )}
-                              </div>
-                              <h4 className="font-display font-extrabold text-sm text-zinc-900 tracking-tight truncate">
-                                {lvl.name}
-                              </h4>
-                              <p className="text-[11px] text-zinc-500 font-sans line-clamp-1">
-                                {lvl.title}
-                              </p>
-                            </div>
-
-                            <div className="mt-3 pt-2 border-t border-zinc-100">
-                              <span className="text-[10px] font-mono text-zinc-400 uppercase block">Meta Semanal</span>
-                              <span className="font-mono font-bold text-sm text-zinc-900">
-                                {lvl.weeklyGoalKg.toLocaleString()} <span className="text-xs font-sans text-zinc-500 font-normal">kg</span>
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* NOTA DE CONSEJO */}
-                  <div className="flex items-start gap-2.5 text-xs text-zinc-500 font-sans pt-2">
-                    <Shield className="w-4 h-4 text-zinc-900 flex-shrink-0 mt-0.5" />
-                    <p>
-                      <strong className="text-zinc-800">Técnica y constancia ante todo:</strong> Avanza a tu ritmo cuidando la recuperación. El tonelaje subirá naturalmente semana a semana.
-                    </p>
-                  </div>
-
-                </div>
-              )}
-
-            </div>
-          )}
-
-          {/* VISTA 3: RESISTENCIA */}
-          {selectedChallenge === 'cardio' && (
-            <div className="space-y-8 animate-fade-in">
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
-                    DESAFÍO DE DISTANCIA & CARDIO
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 uppercase font-display">
-                      Desafío de Resistencia
-                    </h3>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-500">
+                      Resistencia
+                    </span>
                     {isChallengeActive && cardioProgress && (
-                      <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-900 border border-zinc-200 uppercase">
-                        NIVEL {cardioProgress.currentLevel.level}: {cardioProgress.currentLevel.name}
+                      <span
+                        className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${selectedChallenge === 'cardio'
+                          ? 'bg-zinc-800 text-emerald-400 border border-zinc-700'
+                          : 'bg-zinc-100 text-zinc-800 border border-zinc-200'
+                          }`}
+                      >
+                        LVL {cardioProgress.currentLevel.level}
                       </span>
                     )}
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setUnifiedModalType('cardio')}
-                    className="px-3.5 py-1.5 rounded-xl border border-zinc-300 hover:border-black text-zinc-800 hover:text-black text-xs font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer bg-white shadow-sm"
+                  <h3 className="text-base sm:text-lg font-black tracking-tight uppercase font-display truncate">
+                    Desafío de Distancia
+                  </h3>
+                  <p
+                    className={`text-xs truncate ${selectedChallenge === 'cardio' ? 'text-zinc-400' : 'text-zinc-500'
+                      }`}
                   >
-                    <Sliders className="w-3.5 h-3.5 text-zinc-900" />
-                    <span>{isChallengeActive ? 'Ajustar Medidor' : 'Calibrar Nivel'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* SELECTOR DE DISCIPLINA */}
-              <div className="flex items-center gap-3 font-mono text-xs">
-                <span className="text-zinc-500 uppercase text-[11px] font-bold">Disciplina:</span>
-                <div className="flex items-center gap-1">
-                  {[
-                    { id: 'caminata', label: 'Caminata', icon: Footprints },
-                    { id: 'running', label: 'Running', icon: Flame },
-                    { id: 'bicicleta', label: 'Bicicleta', icon: Bike }
-                  ].map((d) => {
-                    const IconComp = d.icon;
-                    const isActive = cardioDiscipline === d.id;
-                    return (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => setCardioDiscipline(d.id)}
-                        className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer uppercase text-xs ${
-                          isActive
-                            ? 'bg-black text-white shadow-sm'
-                            : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
-                        }`}
-                      >
-                        <IconComp className="w-3.5 h-3.5" />
-                        <span>{d.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {!isChallengeActive && (
-                <div className="py-8 space-y-4 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                  <p className="text-sm text-zinc-600 font-sans max-w-lg">
-                    Aún no has calibrado tu nivel de inicio. Responde 3 preguntas rápidas para adaptar las metas de distancia a tu condición física.
+                    {isChallengeActive && cardioProgress
+                      ? `${cardioProgress.currentWeekKm} km en ${cardioProgress.disciplineInfo.name}`
+                      : 'Kilómetros recorridos'}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setUnifiedModalType('cardio')}
-                    className="px-5 py-2.5 rounded-xl bg-black hover:bg-zinc-800 text-white font-mono text-xs font-bold uppercase transition-all shadow-sm cursor-pointer"
-                  >
-                    Comenzar Calibración de Resistencia →
-                  </button>
                 </div>
-              )}
+              </div>
+              <Award
+                className={`w-5 h-5 shrink-0 ${selectedChallenge === 'cardio' ? 'text-amber-400' : 'text-zinc-300'
+                  }`}
+              />
+            </button>
 
-              {isChallengeActive && cardioProgress && (
-                <div className="space-y-8">
+            {/* NOTA DE NIVELES PERMANENTES EN LA BARRA LATERAL */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-zinc-900 font-mono text-[11px] font-bold">
+                <span>NIVELES PERMANENTES</span>
+              </div>
+              <p className="text-[11px] text-zinc-500 leading-relaxed font-sans">
+                Tu rango conquistado nunca baja. Cada lunes se reinicia el progreso semanal para un nuevo intento.
+              </p>
+            </div>
+          </aside>
 
-                  {/* MÉTRICAS */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-4 border-b border-zinc-200">
-                    <div className="space-y-1">
-                      <span className="text-xs font-mono text-zinc-500 uppercase">
-                        Recorrido en {cardioProgress.disciplineInfo.name}
-                      </span>
-                      <div className="text-3xl sm:text-4xl font-extrabold font-mono text-zinc-900">
-                        {cardioProgress.currentWeekKm} <span className="text-xs font-mono text-zinc-500 font-normal">KM</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1 sm:border-l sm:border-zinc-200 sm:pl-8">
-                      <span className="text-xs font-mono text-zinc-500 uppercase">Meta Reto Semanal ({cardioProgress.progressPercent}%)</span>
-                      <div className="text-3xl sm:text-4xl font-extrabold font-mono text-black">
-                        {cardioProgress.weeklyGoal} <span className="text-xs font-mono text-zinc-500 font-normal">KM</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* BARRA DE PROGRESO */}
-                  <div className="space-y-2">
-                    <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
-                      <div
-                        className="bg-black h-full rounded-full transition-all duration-700 ease-out"
-                        style={{ width: `${cardioProgress.progressPercent}%` }}
-                      />
-                    </div>
-
-                    <div className="text-xs font-mono text-zinc-500 pt-1">
-                      {cardioProgress.isGoalAchieved ? (
-                        <span className="text-zinc-900 font-bold flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-zinc-900" />
-                          ¡Reto semanal de resistencia conquistado! Has superado la distancia de tu nivel.
-                        </span>
-                      ) : (
-                        <span>
-                          Faltan <strong className="text-zinc-900">{cardioProgress.remainingKm} km</strong> esta semana para subir al siguiente nivel.
+          {/* ========================================================================= */}
+          {/* COLUMNA PRINCIPAL (DERECHA): INFO DETALLADA DEL DESAFÍO SELECCIONADO       */}
+          {/* ========================================================================= */}
+          <main className="flex-1 min-w-0 w-full space-y-5">
+            {/* ----------------------------------------------------------------------- */}
+            {/* VISTA 1: DESAFÍO DE PESO (FUERZA & MUSCULACIÓN)                         */}
+            {/* ----------------------------------------------------------------------- */}
+            {selectedChallenge === 'muscle' && (
+              <div className="space-y-5 animate-fade-in">
+                {/* Cabecera del desafío */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-3.5">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
+                      DESAFÍO DE TONELAJE & VOLUMEN
+                    </span>
+                    <div className="flex items-center gap-2.5">
+                      <h2 className="text-xl sm:text-2xl font-black text-zinc-900 uppercase font-display">
+                        Desafío de Peso
+                      </h2>
+                      {isChallengeActive && levelProgress && (
+                        <span className="text-xs font-mono font-bold px-2.5 py-0.5 text-zinc-900">
+                          NIVEL {levelProgress.currentLevel.level}: {levelProgress.currentLevel.name.toUpperCase()}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* RULETA DE RANGOS */}
-                  <div className="space-y-3 pt-2">
-                    <div className="flex justify-between items-center font-mono text-xs text-zinc-500">
-                      <span className="flex items-center gap-1.5 text-zinc-900 font-bold">
-                        <Award className="w-4 h-4 text-black" />
-                        // RULETA DE RANGOS: {cardioProgress.disciplineInfo.name.toUpperCase()}
-                      </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUnifiedModalType('muscle')}
+                      className="px-3 py-1.5 rounded-xl border border-zinc-300 hover:border-black text-zinc-800 hover:text-black text-xs font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer bg-white shadow-2xs"
+                    >
+                      <Sliders className="w-3.5 h-3.5 text-zinc-900" />
+                      <span>{isChallengeActive ? '' : 'Calibrar Nivel'}</span>
+                    </button>
+                  </div>
+                </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => scrollCardioRoulette('left')}
-                          className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-black transition-colors cursor-pointer"
-                          title="Anterior"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => scrollCardioRoulette('right')}
-                          className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-black transition-colors cursor-pointer"
-                          title="Siguiente"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                {!isChallengeActive && (
+                  <div className="py-6 space-y-3.5 bg-white border border-zinc-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <div className="flex items-center gap-2 text-emerald-600 font-mono text-xs font-bold uppercase tracking-wider">
+                      <Sparkles className="w-4 h-4" />
+                      <span>Configuración Inicial</span>
+                    </div>
+                    <h3 className="text-lg font-black text-zinc-900 uppercase font-display">
+                      Comienza tu progresión de fuerza
+                    </h3>
+                    <p className="text-xs sm:text-sm text-zinc-600 font-sans max-w-xl leading-relaxed">
+                      Aún no has calibrado tu nivel de inicio. Responde 3 preguntas rápidas sobre tu experiencia y días de entreno para fijar tu meta semanal personalizada.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setUnifiedModalType('muscle')}
+                      className="px-4 py-2 rounded-xl bg-black hover:bg-zinc-800 text-white font-mono text-xs font-bold uppercase transition-all shadow-sm cursor-pointer"
+                    >
+                      Comenzar Calibración de Peso →
+                    </button>
+                  </div>
+                )}
+
+                {isChallengeActive && levelProgress && (
+                  <div className="space-y-4">
+                    {/* MÉTRICAS SEMANALES */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-0.5">
+                        <span className="text-[11px] font-mono text-zinc-500 uppercase">Levantado esta semana</span>
+                        <div className="text-2xl sm:text-3xl font-black font-mono text-zinc-900">
+                          {levelProgress.currentWeekTonnage.toLocaleString()}{' '}
+                          <span className="text-xs font-mono text-zinc-500 font-normal">KG</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-0.5 sm:border-l sm:border-zinc-200 sm:pl-5">
+                        <span className="text-[11px] font-mono text-zinc-500 uppercase">
+                          Meta Reto Semanal ({levelProgress.progressPercent}%)
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-black font-mono text-black">
+                          {levelProgress.weeklyGoal.toLocaleString()}{' '}
+                          <span className="text-xs font-mono text-zinc-500 font-normal">KG</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div
-                      ref={cardioRouletteRef}
-                      className="flex items-stretch gap-3 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory"
-                    >
-                      {cardioProgress.levels.map((lvl) => {
-                        const isCurrent = lvl.level === cardioProgress.currentLevel.level;
-                        const isUnlocked = lvl.level <= cardioProgress.currentLevel.level;
-                        return (
-                          <div
-                            key={lvl.level}
-                            className={`flex-shrink-0 w-44 sm:w-48 snap-center p-4 rounded-2xl border transition-all flex flex-col justify-between select-none bg-white shadow-sm ${
-                              isCurrent
+                    {/* BARRA DE PROGRESO */}
+                    <div className="space-y-2 bg-white border border-zinc-200 rounded-2xl p-4 sm:p-5 shadow-sm">
+                      <div className="flex justify-between items-center text-xs font-mono font-bold">
+                        <span className="text-zinc-600 uppercase">Progreso semanal de peso</span>
+                        <span className="text-black font-extrabold">{levelProgress.progressPercent}%</span>
+                      </div>
+
+                      <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="bg-black h-full rounded-full transition-all duration-700 ease-out"
+                          style={{ width: `${levelProgress.progressPercent}%` }}
+                        />
+                      </div>
+
+                      <div className="text-xs font-mono text-zinc-500 pt-0.5">
+                        {levelProgress.isGoalAchieved ? (
+                          <span className="text-emerald-700 font-bold flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            ¡Reto semanal conquistado! Has superado el tonelaje de tu nivel.
+                          </span>
+                        ) : (
+                          <span>
+                            Faltan{' '}
+                            <strong className="text-zinc-900 font-bold">
+                              {levelProgress.remainingKg.toLocaleString()} kg
+                            </strong>{' '}
+                            esta semana para subir al siguiente nivel.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* RULETA DE RANGOS */}
+                    <div className="space-y-2.5 pt-1">
+                      <div className="flex justify-between items-center font-mono text-xs text-zinc-500">
+                        <span className="text-zinc-900 font-bold uppercase tracking-wider text-[11px]">
+                          RULETA DE RANGOS SEMANALES
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => scrollMuscleRoulette('left')}
+                            className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-black transition-colors cursor-pointer border border-zinc-200"
+                            title="Anterior"
+                          >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => scrollMuscleRoulette('right')}
+                            className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-black transition-colors cursor-pointer border border-zinc-200"
+                            title="Siguiente"
+                          >
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        ref={muscleRouletteRef}
+                        className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-0.5 scroll-smooth snap-x snap-mandatory"
+                      >
+                        {levelProgress.levels.map((lvl) => {
+                          const isCurrent = lvl.level === levelProgress.currentLevel.level;
+                          const isUnlocked = lvl.level <= levelProgress.currentLevel.level;
+                          return (
+                            <div
+                              key={lvl.level}
+                              className={`flex-shrink-0 w-40 sm:w-44 snap-center p-3.5 rounded-2xl border transition-all flex flex-col justify-between select-none bg-white shadow-2xs ${isCurrent
                                 ? 'border-zinc-900 ring-2 ring-black text-zinc-900'
                                 : isUnlocked
                                   ? 'border-zinc-200 text-zinc-800'
                                   : 'border-zinc-200 text-zinc-400 opacity-60'
-                            }`}
-                          >
-                            <div>
-                              <div className="flex justify-between items-center mb-1 text-xs font-mono">
-                                <span className={`font-bold ${isCurrent ? 'text-black font-extrabold' : 'text-zinc-500'}`}>
-                                  LVL {lvl.level}
-                                </span>
-                                {isCurrent ? (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-black text-white font-sans uppercase">
-                                    ACTUAL
+                                }`}
+                            >
+                              <div>
+                                <div className="flex justify-between items-center mb-1 text-[11px] font-mono">
+                                  <span
+                                    className={`font-bold ${isCurrent ? 'text-black font-extrabold' : 'text-zinc-500'
+                                      }`}
+                                  >
+                                    LVL {lvl.level}
                                   </span>
-                                ) : isUnlocked ? (
-                                  <span className="text-zinc-900 font-bold text-xs">✓</span>
-                                ) : (
-                                  <span className="text-zinc-400 text-xs">🔒</span>
-                                )}
+                                  {isCurrent ? (
+                                    <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-black text-white font-sans uppercase">
+                                      ACTUAL
+                                    </span>
+                                  ) : isUnlocked ? (
+                                    <span className="text-zinc-900 font-bold text-xs">✓</span>
+                                  ) : (
+                                    <span className="text-zinc-400 text-xs">🔒</span>
+                                  )}
+                                </div>
+                                <h4 className="font-display font-extrabold text-xs sm:text-sm text-zinc-900 tracking-tight truncate">
+                                  {lvl.name}
+                                </h4>
+                                <p className="text-[10px] text-zinc-500 font-sans line-clamp-1">
+                                  {lvl.title}
+                                </p>
                               </div>
-                              <h4 className="font-display font-extrabold text-sm text-zinc-900 tracking-tight truncate">
-                                {lvl.name}
-                              </h4>
-                              <p className="text-[11px] text-zinc-500 font-sans line-clamp-1">
-                                {lvl.title}
-                              </p>
-                            </div>
 
-                            <div className="mt-3 pt-2 border-t border-zinc-100">
-                              <span className="text-[10px] font-mono text-zinc-400 uppercase block">Meta Semanal</span>
-                              <span className="font-mono font-bold text-sm text-zinc-900">
-                                {lvl.weeklyGoalKm} <span className="text-xs font-sans text-zinc-500 font-normal">km</span>
-                              </span>
+                              <div className="mt-2.5 pt-2 border-t border-zinc-100">
+                                <span className="text-[9px] font-mono text-zinc-400 uppercase block">
+                                  Meta Semanal
+                                </span>
+                                <span className="font-mono font-bold text-xs sm:text-sm text-zinc-900">
+                                  {lvl.weeklyGoalKg.toLocaleString()}{' '}
+                                  <span className="text-[10px] font-sans text-zinc-500 font-normal">kg</span>
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* NOTA DE CONSEJO */}
+                    <div className="flex items-start gap-2 text-xs text-zinc-500 font-sans bg-zinc-50 ">
+                      <p>
+                        <strong className="text-zinc-800 font-bold">Sobrecarga progresiva:</strong> Avanza a tu ritmo cuidando la recuperación. El tonelaje subirá naturalmente semana a semana.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ----------------------------------------------------------------------- */}
+            {/* VISTA 2: DESAFÍO DE DISTANCIA (CARDIO / RESISTENCIA)                     */}
+            {/* ----------------------------------------------------------------------- */}
+            {selectedChallenge === 'cardio' && (
+              <div className="space-y-5 animate-fade-in">
+                {/* Cabecera del desafío */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-3.5">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
+                      DESAFÍO DE DISTANCIA & RESISTENCIA
+                    </span>
+                    <div className="flex items-center gap-2.5">
+                      <h2 className="text-xl sm:text-2xl font-black text-zinc-900 uppercase font-display">
+                        Desafío de Distancia
+                      </h2>
+                      {isChallengeActive && cardioProgress && (
+                        <span className="text-xs font-mono font-bold px-2.5 py-0.5 text-zinc-900 uppercase">
+                          NIVEL {cardioProgress.currentLevel.level}: {cardioProgress.currentLevel.name}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* NOTA DE CONSEJO */}
-                  <div className="flex items-start gap-2.5 text-xs text-zinc-500 font-sans pt-2">
-                    <Shield className="w-4 h-4 text-zinc-900 flex-shrink-0 mt-0.5" />
-                    <p>
-                      <strong className="text-zinc-800">Resistencia aeróbica progresiva:</strong> Aumenta los kilómetros gradualmente y dale prioridad al descanso adecuado.
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUnifiedModalType('cardio')}
+                      className="px-3 py-1.5 rounded-xl border border-zinc-300 hover:border-black text-zinc-800 hover:text-black text-xs font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer bg-white shadow-2xs"
+                    >
+                      <Sliders className="w-3.5 h-3.5 text-zinc-900" />
+                      <span>{isChallengeActive ? '' : 'Calibrar Nivel'}</span>
+                    </button>
                   </div>
-
                 </div>
-              )}
 
-            </div>
-          )}
+                {/* SELECTOR DE DISCIPLINA */}
+                <div className="flex flex-wrap items-center gap-2.5 font-mono text-xs">
+                  <span className="text-zinc-500 uppercase text-[10px] font-bold">Disciplina:</span>
+                  <div className="flex items-center gap-1.5">
+                    {[
+                      { id: 'caminata', label: 'Caminata', icon: Footprints },
+                      { id: 'running', label: 'Running', icon: Flame },
+                      { id: 'bicicleta', label: 'Bicicleta', icon: Bike }
+                    ].map((d) => {
+                      const IconComp = d.icon;
+                      const isActive = cardioDiscipline === d.id;
+                      return (
+                        <button
+                          key={d.id}
+                          type="button"
+                          onClick={() => setCardioDiscipline(d.id)}
+                          className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer uppercase text-xs ${isActive
+                            ? 'bg-black text-white shadow-sm ring-1 ring-black'
+                            : 'bg-white text-zinc-600 hover:text-black hover:bg-zinc-100 border border-zinc-200'
+                            }`}
+                        >
+                          <IconComp className="w-3.5 h-3.5" />
+                          <span>{d.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-          {/* VISTA 4: MINIJUEGO POWERUP CITY */}
-          {selectedChallenge === 'city' && (
-            <CityMiniGame data={data} selectedDate={referenceDate} />
-          )}
+                {!isChallengeActive && (
+                  <div className="py-6 space-y-3.5 bg-white border border-zinc-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <div className="flex items-center gap-2 text-emerald-600 font-mono text-xs font-bold uppercase tracking-wider">
+                      <Sparkles className="w-4 h-4" />
+                      <span>Configuración Inicial</span>
+                    </div>
+                    <h3 className="text-lg font-black text-zinc-900 uppercase font-display">
+                      Comienza tu progresión de resistencia
+                    </h3>
+                    <p className="text-xs sm:text-sm text-zinc-600 font-sans max-w-xl leading-relaxed">
+                      Aún no has calibrado tu nivel de inicio. Responde 3 preguntas rápidas para adaptar las metas de distancia en Caminata, Running o Bicicleta a tu condición física actual.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setUnifiedModalType('cardio')}
+                      className="px-4 py-2 rounded-xl bg-black hover:bg-zinc-800 text-white font-mono text-xs font-bold uppercase transition-all shadow-sm cursor-pointer"
+                    >
+                      Comenzar Calibración de Distancia →
+                    </button>
+                  </div>
+                )}
 
-        </main>
+                {isChallengeActive && cardioProgress && (
+                  <div className="space-y-4">
+                    {/* MÉTRICAS SEMANALES */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-0.5">
+                        <span className="text-[11px] font-mono text-zinc-500 uppercase">
+                          Recorrido en {cardioProgress.disciplineInfo.name}
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-black font-mono text-zinc-900">
+                          {cardioProgress.currentWeekKm}{' '}
+                          <span className="text-xs font-mono text-zinc-500 font-normal">KM</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-0.5 sm:border-l sm:border-zinc-200 sm:pl-5">
+                        <span className="text-[11px] font-mono text-zinc-500 uppercase">
+                          Meta Reto Semanal ({cardioProgress.progressPercent}%)
+                        </span>
+                        <div className="text-2xl sm:text-3xl font-black font-mono text-black">
+                          {cardioProgress.weeklyGoal}{' '}
+                          <span className="text-xs font-mono text-zinc-500 font-normal">KM</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* BARRA DE PROGRESO */}
+                    <div className="space-y-2 bg-white border border-zinc-200 rounded-2xl p-4 sm:p-5 shadow-sm">
+                      <div className="flex justify-between items-center text-xs font-mono font-bold">
+                        <span className="text-zinc-600 uppercase">
+                          Progreso semanal en {cardioProgress.disciplineInfo.name}
+                        </span>
+                        <span className="text-black font-extrabold">{cardioProgress.progressPercent}%</span>
+                      </div>
+
+                      <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="bg-black h-full rounded-full transition-all duration-700 ease-out"
+                          style={{ width: `${cardioProgress.progressPercent}%` }}
+                        />
+                      </div>
+
+                      <div className="text-xs font-mono text-zinc-500 pt-0.5">
+                        {cardioProgress.isGoalAchieved ? (
+                          <span className="text-emerald-700 font-bold flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            ¡Reto semanal de resistencia conquistado! Has superado la distancia de tu nivel.
+                          </span>
+                        ) : (
+                          <span>
+                            Faltan{' '}
+                            <strong className="text-zinc-900 font-bold">{cardioProgress.remainingKm} km</strong>{' '}
+                            esta semana para subir al siguiente nivel.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* RULETA DE RANGOS */}
+                    <div className="space-y-2.5 pt-1">
+                      <div className="flex justify-between items-center font-mono text-xs text-zinc-500">
+                        <span className="flex items-center gap-1.5 text-zinc-900 font-bold uppercase tracking-wider text-[11px]">
+                          <Award className="w-3.5 h-3.5 text-black" />
+                          <span>RANGOS: {cardioProgress.disciplineInfo.name.toUpperCase()}</span>
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => scrollCardioRoulette('left')}
+                            className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-black transition-colors cursor-pointer border border-zinc-200"
+                            title="Anterior"
+                          >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => scrollCardioRoulette('right')}
+                            className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-black transition-colors cursor-pointer border border-zinc-200"
+                            title="Siguiente"
+                          >
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        ref={cardioRouletteRef}
+                        className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-0.5 scroll-smooth snap-x snap-mandatory"
+                      >
+                        {cardioProgress.levels.map((lvl) => {
+                          const isCurrent = lvl.level === cardioProgress.currentLevel.level;
+                          const isUnlocked = lvl.level <= cardioProgress.currentLevel.level;
+                          return (
+                            <div
+                              key={lvl.level}
+                              className={`flex-shrink-0 w-40 sm:w-44 snap-center p-3.5 rounded-2xl border transition-all flex flex-col justify-between select-none bg-white shadow-2xs ${isCurrent
+                                ? 'border-zinc-900 ring-2 ring-black text-zinc-900'
+                                : isUnlocked
+                                  ? 'border-zinc-200 text-zinc-800'
+                                  : 'border-zinc-200 text-zinc-400 opacity-60'
+                                }`}
+                            >
+                              <div>
+                                <div className="flex justify-between items-center mb-1 text-[11px] font-mono">
+                                  <span
+                                    className={`font-bold ${isCurrent ? 'text-black font-extrabold' : 'text-zinc-500'
+                                      }`}
+                                  >
+                                    LVL {lvl.level}
+                                  </span>
+                                  {isCurrent ? (
+                                    <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-black text-white font-sans uppercase">
+                                      ACTUAL
+                                    </span>
+                                  ) : isUnlocked ? (
+                                    <span className="text-zinc-900 font-bold text-xs">✓</span>
+                                  ) : (
+                                    <span className="text-zinc-400 text-xs">🔒</span>
+                                  )}
+                                </div>
+                                <h4 className="font-display font-extrabold text-xs sm:text-sm text-zinc-900 tracking-tight truncate">
+                                  {lvl.name}
+                                </h4>
+                                <p className="text-[10px] text-zinc-500 font-sans line-clamp-1">
+                                  {lvl.title}
+                                </p>
+                              </div>
+
+                              <div className="mt-2.5 pt-2 border-t border-zinc-100">
+                                <span className="text-[9px] font-mono text-zinc-400 uppercase block">
+                                  Meta Semanal
+                                </span>
+                                <span className="font-mono font-bold text-xs sm:text-sm text-zinc-900">
+                                  {lvl.weeklyGoalKm}{' '}
+                                  <span className="text-[10px] font-sans text-zinc-500 font-normal">km</span>
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* NOTA DE CONSEJO */}
+                    <div className="flex items-start gap-2 text-xs text-zinc-500 font-sans bg-zinc-50">
+                      <p>
+                        <strong className="text-zinc-800 font-bold">Resistencia aeróbica progresiva:</strong> Aumenta los kilómetros gradualmente y dale prioridad al descanso adecuado.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </main>
+
+        </div>
       </div>
     </div>
   );

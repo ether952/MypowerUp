@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Camera,
   Upload,
@@ -43,6 +43,16 @@ export default function FoodScannerModal({
 
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
+
+  // Ocultar elementos flotantes globales (como el Coach IA) mientras el escáner esté abierto
+  useEffect(() => {
+    if (isOpen) {
+      window.dispatchEvent(new CustomEvent('mypowerup_scanner_modal_change', { detail: { open: true } }));
+      return () => {
+        window.dispatchEvent(new CustomEvent('mypowerup_scanner_modal_change', { detail: { open: false } }));
+      };
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -123,7 +133,7 @@ export default function FoodScannerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
       {/* Inputs ocultos para Cámara y Galería */}
       <input
         ref={cameraInputRef}
@@ -148,7 +158,7 @@ export default function FoodScannerModal({
       />
 
       <div className="relative w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[92vh]">
-        
+
         {/* Cabecera Limpia sin Llaves ni configuraciones */}
         <div className="px-5 py-4 border-b border-zinc-800/80 bg-zinc-900/60 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
@@ -158,9 +168,6 @@ export default function FoodScannerModal({
             <div>
               <h3 className="text-sm font-bold text-white tracking-wide flex items-center gap-1.5 font-display">
                 ESCANEAR ALIMENTO
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold uppercase">
-                  Cámara IA
-                </span>
               </h3>
               <p className="text-[11px] font-mono text-zinc-400">
                 Apunta al plato o alimento para calcular calorías y proteínas
@@ -196,7 +203,7 @@ export default function FoodScannerModal({
                     <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#10b981] animate-pulse top-1/2 -translate-y-1/2" />
                     <div className="relative z-10 px-4 py-2 rounded-full bg-black/80 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-bold flex items-center gap-2 shadow-xl">
                       <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                      <span>Analizando comida y calculando macros...</span>
+                      <span>Analizando comida</span>
                     </div>
                   </div>
                 )}
@@ -220,10 +227,7 @@ export default function FoodScannerModal({
                 </div>
                 <div>
                   <p className="text-xs font-bold text-zinc-200 font-mono uppercase tracking-wider">
-                    Toma una foto de tu plato o alimento
-                  </p>
-                  <p className="text-[11px] text-zinc-400 mt-1 max-w-xs mx-auto">
-                    La IA calculará automáticamente las proteínas y calorías con barras animadas.
+                    Toma una foto de tu alimento, nosotros hacemos el resto.
                   </p>
                 </div>
 
@@ -234,7 +238,7 @@ export default function FoodScannerModal({
                     className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs font-mono rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-emerald-500/20 active:scale-95"
                   >
                     <Camera className="w-4 h-4" />
-                    <span>ABRIR CÁMARA</span>
+                    <span>CÁMARA</span>
                   </button>
 
                   <button
@@ -266,7 +270,7 @@ export default function FoodScannerModal({
           {/* BARRAS ANIMADAS DE NUTRICIÓN + RESULTADO DETECTADO */}
           {scanResult && !isAnalyzing && (
             <div className="space-y-4 pt-1 animate-fade-in-up">
-              
+
               {/* BARRAS ANIMADAS: Proteínas arriba (primero), Calorías abajo (después) + Estrellitas */}
               <NutritionAnimatedBars
                 calories={Number(calories) || 0}
@@ -300,11 +304,10 @@ export default function FoodScannerModal({
                       key={type}
                       type="button"
                       onClick={() => setMealType(type)}
-                      className={`py-1.5 px-1 rounded-lg text-center uppercase font-bold transition-all cursor-pointer ${
-                        mealType === type
+                      className={`py-1.5 px-1 rounded-lg text-center uppercase font-bold transition-all cursor-pointer ${mealType === type
                           ? 'bg-emerald-500 text-black shadow-sm'
                           : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
-                      }`}
+                        }`}
                     >
                       {type}
                     </button>
@@ -334,11 +337,10 @@ export default function FoodScannerModal({
                       key={mult}
                       type="button"
                       onClick={() => handleMultiplierChange(mult)}
-                      className={`py-1.5 rounded-xl text-center font-bold transition-all cursor-pointer ${
-                        multiplier === mult
+                      className={`py-1.5 rounded-xl text-center font-bold transition-all cursor-pointer ${multiplier === mult
                           ? 'bg-zinc-200 text-black shadow-sm'
                           : 'bg-zinc-950 text-zinc-400 hover:text-white border border-zinc-800'
-                      }`}
+                        }`}
                     >
                       {label}
                     </button>
@@ -372,11 +374,10 @@ export default function FoodScannerModal({
               type="button"
               onClick={handleConfirm}
               disabled={isApplying}
-              className={`relative overflow-visible px-6 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer font-mono ${
-                isApplying
+              className={`relative overflow-visible px-6 py-2.5 font-bold text-xs tracking-wider uppercase rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer font-mono ${isApplying
                   ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-2 ring-emerald-400'
                   : 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-emerald-500/20'
-              }`}
+                }`}
             >
               <ButtonSparkles active={isApplying} />
               {isApplying ? (
@@ -387,7 +388,7 @@ export default function FoodScannerModal({
               ) : (
                 <>
                   <Check className="w-4 h-4 stroke-[3]" />
-                  <span>REGISTRAR ALIMENTO</span>
+                  <span>Registrar</span>
                 </>
               )}
             </button>
@@ -398,7 +399,7 @@ export default function FoodScannerModal({
               className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs font-mono rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95"
             >
               <Camera className="w-4 h-4" />
-              <span>TOMAR FOTO</span>
+              <span>Tomar foto</span>
             </button>
           )}
         </div>

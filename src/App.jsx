@@ -18,7 +18,8 @@ import {
   Zap,
   Home,
   Calendar,
-  BarChart3
+  BarChart3,
+  Camera
 } from 'lucide-react';
 
 import DailyView from './components/DailyView';
@@ -26,9 +27,11 @@ import ChartsView from './components/ChartsView';
 import HistoryView from './components/HistoryView';
 import MyPowerUpView from './components/MyPowerUpView';
 import CoachRoutinesView from './components/CoachRoutinesView';
+import ViewHeaderBanner from './components/ViewHeaderBanner';
 import FloatingCoachWidget from './components/FloatingCoachWidget';
 import ActiveWorkoutHud from './components/ActiveWorkoutHud';
 import LockscreenWidget from './components/LockscreenWidget';
+import FoodScannerModal from './components/FoodScannerModal';
 import { ActiveWorkoutProvider } from './context/ActiveWorkoutContext';
 import GoalsModal from './components/GoalsModal';
 import LandingView from './components/LandingView';
@@ -42,7 +45,8 @@ import {
   getLocalDateString,
   formatDisplayDate,
   shiftDate,
-  estimateNutrition
+  estimateNutrition,
+  getCurrentTimeString
 } from './utils/helpers';
 import { estimateNutritionWithAI } from './services/aiNutritionService';
 import {
@@ -284,6 +288,7 @@ export default function App() {
 
   // Modal de metas, menú de acciones
   const [isGoalsOpen, setIsGoalsOpen] = useState(false);
+  const [isGlobalScannerOpen, setIsGlobalScannerOpen] = useState(false);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
   const [isWeightVisible, setIsWeightVisible] = useState(false);
@@ -416,6 +421,50 @@ export default function App() {
     });
     playSatisfyingCheckSound();
     showToast('Alimento registrado');
+  };
+
+  // Registrar alimento completo directamente desde el escáner de fotos con IA
+  const handleApplyGlobalScannerFood = (scannedFood) => {
+    if (!scannedFood || !scannedFood.name) return;
+    const finalCalories = Math.max(0, Number(scannedFood.calories) || 0);
+    const finalProtein = Math.max(0, Number(scannedFood.protein) || 0);
+    const finalMealType = scannedFood.mealType || 'almuerzo';
+
+    const foodPayload = {
+      name: scannedFood.name.trim(),
+      calories: finalCalories,
+      protein: finalProtein,
+      carbs: Math.max(0, Number(scannedFood.carbs) || 0),
+      fat: Math.max(0, Number(scannedFood.fat) || 0),
+      mealType: finalMealType,
+      portionGrams: Number(scannedFood.portionGrams) || 100,
+      time: getCurrentTimeString(),
+      source: 'scanner-ai'
+    };
+
+    handleAddFood(foodPayload);
+    setIsGlobalScannerOpen(false);
+
+    // Guardar en memoria inteligente aprendida de alimentos
+    if (finalCalories > 0 || finalProtein > 0) {
+      try {
+        const key = scannedFood.name.trim().toLowerCase();
+        const stored = JSON.parse(localStorage.getItem('mypowerup_remembered_foods') || '{}');
+        stored[key] = {
+          name: scannedFood.name.trim(),
+          calories: finalCalories,
+          protein: finalProtein,
+          mealType: finalMealType,
+          lastUsed: Date.now()
+        };
+        localStorage.setItem('mypowerup_remembered_foods', JSON.stringify(stored));
+        setRememberedFoods(stored);
+      } catch (_) {}
+    }
+
+    if (activeTab !== 'daily') {
+      navigate('/diario');
+    }
   };
 
   const handleUpdateFood = (foodId, updatedFood, targetDate = selectedDate) => {
@@ -602,6 +651,7 @@ export default function App() {
         reps: reps,
         weight: weight,
         setsDetails: setsDetails,
+        detailedSets: setsDetails,
         category: ex.category || 'General',
         sprite: ex.sprite || null,
         restSeconds: ex.restSeconds || 90
@@ -1054,33 +1104,39 @@ export default function App() {
         )}
 
         {(activeTab === 'history' || activeTab === 'charts') && (
-          <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-12">
-            {/* 1. SECCIÓN DE GRÁFICOS & PROGRESIÓN (ARRIBA) */}
-            <ChartsView
-              data={data}
-              goals={goals}
-              isWeightVisible={isWeightVisible}
-              onToggleVisibility={toggleWeightVisibility}
-              onUpdateWeight={handleUpdateWeight}
-              onSelectDate={handleSelectDateFromHistory}
+          <div className="w-full">
+            <ViewHeaderBanner
+              title="Gráficos & Progreso de Rendimiento"
+              subtitle="Evolución de cargas, frecuencia de entrenamiento, balance de macronutrientes y registros históricos."
             />
+            <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-12">
+              {/* 1. SECCIÓN DE GRÁFICOS & PROGRESIÓN (ARRIBA) */}
+              <ChartsView
+                data={data}
+                goals={goals}
+                isWeightVisible={isWeightVisible}
+                onToggleVisibility={toggleWeightVisibility}
+                onUpdateWeight={handleUpdateWeight}
+                onSelectDate={handleSelectDateFromHistory}
+              />
 
-            {/* DIVISOR ELEGANTE */}
-            <div className="border-t border-zinc-200 pt-2" />
+              {/* DIVISOR ELEGANTE */}
+              <div className="border-t border-zinc-200 pt-2" />
 
-            {/* 2. SECCIÓN DE HISTORIAL & REGISTROS (ABAJO) */}
-            <HistoryView
-              data={data}
-              goals={goals}
-              isWeightVisible={isWeightVisible}
-              onToggleVisibility={toggleWeightVisibility}
-              onUpdateWeight={handleUpdateWeight}
-              onSelectDate={handleSelectDateFromHistory}
-              onUpdateWorkout={handleUpdateWorkout}
-              onDeleteWorkout={handleDeleteWorkout}
-              onUpdateFood={handleUpdateFood}
-              onDeleteFood={handleDeleteFood}
-            />
+              {/* 2. SECCIÓN DE HISTORIAL & REGISTROS (ABAJO) */}
+              <HistoryView
+                data={data}
+                goals={goals}
+                isWeightVisible={isWeightVisible}
+                onToggleVisibility={toggleWeightVisibility}
+                onUpdateWeight={handleUpdateWeight}
+                onSelectDate={handleSelectDateFromHistory}
+                onUpdateWorkout={handleUpdateWorkout}
+                onDeleteWorkout={handleDeleteWorkout}
+                onUpdateFood={handleUpdateFood}
+                onDeleteFood={handleDeleteFood}
+              />
+            </div>
           </div>
         )}
 
@@ -1095,6 +1151,8 @@ export default function App() {
 
         {activeTab === 'routines' && (
           <CoachRoutinesView
+            data={data}
+            selectedDate={selectedDate}
             onLoadWorkoutToDaily={handleLoadWorkoutToDaily}
             todayNutrition={todayNutrition}
             targetNutrition={goals}
@@ -1105,6 +1163,8 @@ export default function App() {
 
       {/* Coach Inteligente Flotante (Globito en esquina inferior derecha disponible en toda la web) */}
       <FloatingCoachWidget
+        data={data}
+        selectedDate={selectedDate}
         todayNutrition={todayNutrition}
         targetNutrition={goals}
         onNavigateToRoutines={() => navigate('/rutinas')}
@@ -1116,14 +1176,14 @@ export default function App() {
       {/* BARRA DE NAVEGACIÓN INFERIOR MOBILE (Estilo Instagram / Twitter / Apps Nativas) */}
       <nav
         aria-label="Navegación Móvil"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#121214]/95 backdrop-blur-xl border-t border-[#2E2E34] px-2 py-1 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-4px_25px_rgba(0,0,0,0.5)]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#121214]/95 backdrop-blur-xl border-t border-[#2E2E34] px-1 py-1 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-4px_25px_rgba(0,0,0,0.5)]"
       >
-        <div className="grid grid-cols-4 items-center max-w-md mx-auto">
+        <div className="grid grid-cols-5 items-center max-w-md mx-auto">
           {/* 1. Diario / Registro */}
           <button
             type="button"
             onClick={() => navigate('/diario')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'daily'
+            className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'daily'
               ? 'text-white'
               : 'text-[#8A8F98] hover:text-zinc-300'
               }`}
@@ -1144,7 +1204,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => navigate('/historial')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'history'
+            className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'history'
               ? 'text-white'
               : 'text-[#8A8F98] hover:text-zinc-300'
               }`}
@@ -1161,11 +1221,28 @@ export default function App() {
             </span>
           </button>
 
-          {/* 3. Coach & Rutinas */}
+          {/* 3. BOTÓN CENTRAL: CÁMARA IA ESCANEAR ALIMENTO */}
+          <div className="flex flex-col items-center justify-center -mt-3.5">
+            <button
+              type="button"
+              onClick={() => setIsGlobalScannerOpen(true)}
+              aria-label="Escanear alimento con IA"
+              className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-emerald-400 text-black flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.55)] border-2 border-[#121214] active:scale-90 hover:scale-105 transition-all duration-200 cursor-pointer group"
+            >
+              <Camera className="w-5 h-5 stroke-[2.3] group-hover:rotate-6 transition-transform" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-cyan-400 rounded-full animate-ping pointer-events-none" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-cyan-400 rounded-full border border-black pointer-events-none" />
+            </button>
+            <span className="text-[9px] font-mono font-bold tracking-tight text-emerald-400 mt-0.5 uppercase">
+              Cámara
+            </span>
+          </div>
+
+          {/* 4. Coach & Rutinas */}
           <button
             type="button"
             onClick={() => navigate('/rutinas')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'routines'
+            className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'routines'
               ? 'text-white'
               : 'text-[#8A8F98] hover:text-zinc-300'
               }`}
@@ -1183,11 +1260,11 @@ export default function App() {
             </span>
           </button>
 
-          {/* 4. MyPowerUp */}
+          {/* 5. MyPowerUp */}
           <button
             type="button"
             onClick={() => navigate('/mypowerup')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'mypowerup'
+            className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-all cursor-pointer group active:scale-90 ${activeTab === 'mypowerup'
               ? 'text-white'
               : 'text-[#8A8F98] hover:text-zinc-300'
               }`}
@@ -1222,6 +1299,14 @@ export default function App() {
 
       {/* Widget Minimalista y Ágil para Pantalla de Bloqueo */}
       <LockscreenWidget />
+
+      {/* Modal Global de Escáner de Alimentos con IA (Lanzado desde barra móvil o cualquier vista) */}
+      <FoodScannerModal
+        isOpen={isGlobalScannerOpen}
+        onClose={() => setIsGlobalScannerOpen(false)}
+        onApplyFood={handleApplyGlobalScannerFood}
+        goals={goals}
+      />
     </div>
   </ActiveWorkoutProvider>
   );
