@@ -53,6 +53,7 @@ import {
   getStoredChallengeCalibration,
   saveStoredChallengeCalibration
 } from './utils/challengeCalibration';
+import { getSavedCoachProfile } from './utils/routineTemplates';
 import {
   subscribeToAuthChanges,
   logoutUser,
@@ -152,11 +153,25 @@ export default function App() {
       return;
     }
 
-    const unsubscribe = subscribeToAuthChanges((currentUser) => {
+    const unsubscribe = subscribeToAuthChanges(async (currentUser) => {
       setUser(currentUser);
       setIsAuthReady(true);
       if (currentUser) {
         setSyncStatus('syncing');
+        try {
+          const coachProfile = getSavedCoachProfile();
+          const nowISO = new Date().toISOString();
+          await saveUserCloudData(currentUser.uid, {
+            email: currentUser.email || '',
+            displayName: currentUser.displayName || coachProfile?.name || '',
+            photoURL: currentUser.photoURL || '',
+            lastLoginAt: nowISO,
+            profile: coachProfile || null,
+            onboardingCompleted: Boolean(coachProfile && coachProfile.weightKg && coachProfile.age)
+          });
+        } catch (e) {
+          console.warn('Error syncing user metadata to cloud:', e);
+        }
       } else {
         setSyncStatus('local');
       }
@@ -313,8 +328,15 @@ export default function App() {
     if (!user || !isFirebaseConfigured) return;
     try {
       const nowISO = new Date().toISOString();
+      const coachProfile = getSavedCoachProfile();
       lastLocalUpdateTimestampRef.current = new Date(nowISO).getTime();
       await saveUserCloudData(user.uid, {
+        email: user.email || '',
+        displayName: user.displayName || coachProfile?.name || '',
+        photoURL: user.photoURL || '',
+        lastLoginAt: nowISO,
+        profile: coachProfile || null,
+        onboardingCompleted: Boolean(coachProfile && coachProfile.weightKg && coachProfile.age),
         data,
         goals,
         rememberedWorkouts,

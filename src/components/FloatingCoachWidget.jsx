@@ -18,6 +18,7 @@ import { askAiCoach } from '../services/aiCoachService';
 import { getGeminiApiKey, setGeminiApiKey } from '../services/aiNutritionService';
 import { getSavedCoachProfile } from '../utils/routineTemplates';
 import powerUpLogoImg from '../assets/logo-mypowerup.png';
+import CoachMessageRenderer from './CoachMessageRenderer';
 
 export default function FloatingCoachWidget({
   data = {},
@@ -211,9 +212,7 @@ export default function FloatingCoachWidget({
                     : 'bg-[#18181B] text-zinc-200 border border-[#2E2E34] rounded-bl-none shadow-sm'
                     }`}
                 >
-                  <div className="whitespace-pre-line prose-invert text-xs space-y-1">
-                    {msg.content}
-                  </div>
+                  <CoachMessageRenderer content={msg.content} isUser={msg.role === 'user'} />
                 </div>
 
                 {msg.role === 'user' && (

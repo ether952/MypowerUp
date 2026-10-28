@@ -44,6 +44,7 @@ import { GYM_EXERCISES_SPRITES } from './VisualGymExercisePicker';
 import { useActiveWorkout } from '../context/ActiveWorkoutContext';
 import powerUpLogoImg from '../assets/logo-mypowerup.png';
 import ViewHeaderBanner from './ViewHeaderBanner';
+import CoachMessageRenderer from './CoachMessageRenderer';
 
 /**
  * Componente Thumbnail robusto para GIFs de ejercicios con auto-resolución y fallback elegante
@@ -591,12 +592,10 @@ Puedes revisar qué te toca entrenar hoy, personalizar cada ejercicio o pregunta
                 <div
                   className={`max-w-[85%] px-4 py-3 rounded-2xl leading-relaxed select-text ${msg.role === 'user'
                     ? 'bg-emerald-500 text-black font-semibold rounded-br-none shadow-sm'
-                    : 'bg-white text-zinc-800 border border-zinc-200 rounded-bl-none shadow-xs'
+                    : 'bg-white text-zinc-850 border border-zinc-200 rounded-bl-none shadow-xs'
                     }`}
                 >
-                  <div className="whitespace-pre-line text-xs space-y-1">
-                    {msg.content}
-                  </div>
+                  <CoachMessageRenderer content={msg.content} isUser={msg.role === 'user'} />
                 </div>
 
                 {msg.role === 'user' && (

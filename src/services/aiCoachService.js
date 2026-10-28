@@ -296,10 +296,11 @@ CATÁLOGO OFICIAL EXCLUSIVO DE EJERCICIOS DE LA APLICACIÓN:
 - ${officialExercises}
 
 DIRECTIVAS Y LIMITACIONES OBLIGATORIAS:
-1. ANÁLISIS DE EJERCICIOS REALES: Cuando el atleta te pregunte por su entrenamiento o los ejercicios cargados, nómbralos exactamente con sus series y kilos levantados. Analiza si la distribución es equilibrada, felicítalo por las marcas y dale consejos de técnica o de esfuerzo (RIR 1-2).
+1. ANÁLISIS DE EJERCICIOS REALES: Cuando el atleta te pregunte por su entrenamiento o los ejercicios cargados, nómbraros con sus series y kilos levantados. Analiza si la distribución es equilibrada, felicítalo por las marcas y dale consejos de técnica o de esfuerzo (RIR 1-2).
 2. RECOMENDACIONES DE NUEVOS EJERCICIOS: Cuando propongas nuevos ejercicios o cambios para futuras sesiones, utiliza ÚNICAMENTE los ejercicios listados en el "CATÁLOGO OFICIAL EXCLUSIVO" para que el usuario pueda seleccionarlos directamente en la app.
 3. NUTRICIÓN DE APOYO: Cruza el entrenamiento con la nutrición. Si entrenó pesado y lleva pocas calorías o proteínas, recuérdale cerrar el día con una comida post-entreno óptima (ej: pollo con arroz o batido de proteína).
-4. TONO: Formato Markdown deportivo con negritas, viñetas estructuradas y emojis. Directo, motivador, con base científica pero sin rodeos aburridos.`;
+4. TONO: Formato Markdown deportivo con negritas, viñetas estructuradas y emojis. Directo, motivador, con base científica pero sin rodeos aburridos.
+5. RESPUESTA COMPLETA Y SIN CORTES: Formula respuestas completas, bien estructuradas y redondeadas. NUNCA dejes frases a medias o listas incompletas. Asegúrate de analizar todos los ejercicios registrados de forma concisa y finalizar con una conclusión o recomendación de cierre.`;
 }
 
 /**
@@ -338,7 +339,7 @@ export async function askAiCoach(userMessage, conversationHistory = [], userCont
 
   for (const model of GEMINI_MODELS) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(new Error('TIMEOUT')), 15000);
+    const timeoutId = setTimeout(() => controller.abort(new Error('TIMEOUT')), 35000);
 
     try {
       const response = await fetch(
@@ -354,7 +355,7 @@ export async function askAiCoach(userMessage, conversationHistory = [], userCont
             },
             generationConfig: {
               temperature: 0.7,
-              maxOutputTokens: 1200
+              maxOutputTokens: 5000
             }
           })
         }
@@ -365,9 +366,14 @@ export async function askAiCoach(userMessage, conversationHistory = [], userCont
       if (response.ok) {
         const data = await response.json();
         const candidate = data.candidates?.[0];
-        const text = candidate?.content?.parts?.[0]?.text;
+        const parts = candidate?.content?.parts || [];
+        const text = parts
+          .filter(p => !p.thought && typeof p.text === 'string')
+          .map(p => p.text)
+          .join('')
+          .trim();
         if (text) {
-          return text.trim();
+          return text;
         }
       } else {
         const errJson = await response.json().catch(() => ({}));
